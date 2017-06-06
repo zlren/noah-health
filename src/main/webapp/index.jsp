@@ -1,3 +1,3 @@
 <%
-response.sendRedirect("auth/home.action");
+response.sendRedirect("/api/auth/home");
 %>

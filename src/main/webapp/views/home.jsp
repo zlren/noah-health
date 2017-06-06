@@ -27,12 +27,12 @@
 </div>
 
 <div>
-    <c:url value="/logout.action" var="logout_url"/>
+    <c:url value="/api/auth/logout" var="logout_url"/>
     <li><a href="${logout_url}">退出</a></li>
 </div>
 
 
-<li><a href="${pageContext.request.contextPath}/member/search/1.action">查找id为1的member（这个操作只有ADMIN可以执行）</a></li>
+<li><a href="${pageContext.request.contextPath}/api/member/search/1">查找id为1的member（这个操作只有ADMIN可以执行）</a></li>
 
 </body>
 </html>

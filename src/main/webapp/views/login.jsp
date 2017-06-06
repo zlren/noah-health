@@ -9,25 +9,26 @@
 </head>
 <body>
 
-<form id="login_form" action="${pageContext.request.contextPath}/auth/login.action" method="post">
-    <div>
-        <label>用户名</label>
+<div style="text-align: center;">
+    <form id="login_form" action="${pageContext.request.contextPath}/api/auth/login" method="post">
         <div>
-            <input type="text" id="username" name="username">
+            <label>用户名</label>
+            <div>
+                <input type="text" id="username" name="username">
+            </div>
         </div>
-    </div>
-    <div>
-        <label>密码</label>
         <div>
-            <input type="password" id="password" name="password">
+            <label>密码</label>
+            <div>
+                <input type="password" id="password" name="password">
+            </div>
         </div>
-    </div>
-    <div>
         <div>
-            <button type="submit">登录</button>
+            <div>
+                <button type="submit">登录</button>
+            </div>
         </div>
-    </div>
-</form>
-
+    </form>
+</div>
 </body>
 </html>

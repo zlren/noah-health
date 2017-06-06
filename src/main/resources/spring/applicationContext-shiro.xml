@@ -10,13 +10,13 @@
 		<property name="securityManager" ref="securityManager" />
 
 		<!-- loginUrl认证提交地址，如果没有认证将会请求此地址进行认证，请求此地址将由formAuthenticationFilter进行表单认证 -->
-		<property name="loginUrl" value="/auth/login.action" />
+		<property name="loginUrl" value="/api/auth/login" />
 
 		<!-- 认证成功统一跳转到first.action，建议不配置，shiro认证成功自动到上一个请求路径 -->
 		<!-- <property name="successUrl" value="/auth/home.action" /> -->
 
 		<!-- 通过unauthorizedUrl指定没有权限操作时跳转页面 -->
-		<property name="unauthorizedUrl" value="/auth/denied.action" />
+		<property name="unauthorizedUrl" value="/api/auth/denied" />
 
 		<!-- 过虑器链定义，从上向下顺序执行，一般将/**放在最下边 -->
 		<property name="filterChainDefinitions">
@@ -25,7 +25,7 @@
 				/js/** = anon
 				/img/** = anon
 
-				/logout.action = logout
+				/api/auth/logout = logout
 				/favicon.ico = anon
 
 				/test/** = anon

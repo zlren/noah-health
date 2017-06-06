@@ -31,7 +31,7 @@ public class LoginController {
      * @return
      * @throws Exception
      */
-    @RequestMapping("/home")
+    @RequestMapping("home")
     public String home() throws Exception {
 
         Subject subject = SecurityUtils.getSubject();
