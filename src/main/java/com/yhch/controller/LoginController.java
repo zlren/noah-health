@@ -25,7 +25,7 @@ import java.util.Random;
 
 
 /**
- * LoginController
+ * 登录、注册和首页跳转
  */
 @Controller
 @RequestMapping("/auth")

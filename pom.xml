@@ -22,7 +22,7 @@
         <mybatis.paginator.version>1.2.15</mybatis.paginator.version>
         <pagehelper.version>3.7.6</pagehelper.version>
 
-        <mysql.version>5.1.35</mysql.version>
+        <mysql.version>5.1.40</mysql.version>
 
         <slf4j.version>1.7.9</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
@@ -31,7 +31,7 @@
         <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
         <fastjson.version>1.2.3</fastjson.version>
 
-        <druid.version>1.0.12</druid.version>
+        <druid.version>1.0.27</druid.version>
 
         <aspectjweaver.version>1.8.4</aspectjweaver.version>
 
