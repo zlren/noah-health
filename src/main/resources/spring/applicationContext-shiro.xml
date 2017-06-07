@@ -13,7 +13,7 @@
 		<property name="loginUrl" value="/api/auth/login" />
 
 		<!-- 认证成功统一跳转到first.action，建议不配置，shiro认证成功自动到上一个请求路径 -->
-		<!-- <property name="successUrl" value="/auth/home.action" /> -->
+		 <!--<property name="successUrl" value="/api/auth/hehe" />-->
 
 		<!-- 通过unauthorizedUrl指定没有权限操作时跳转页面 -->
 		<property name="unauthorizedUrl" value="/api/auth/denied" />
@@ -24,6 +24,10 @@
 				/css/** = anon
 				/js/** = anon
 				/img/** = anon
+
+                /api/auth/register = anon
+                /api/auth/register_check = anon
+                /api/auth/send_sms = anon
 
 				/api/auth/logout = logout
 				/favicon.ico = anon

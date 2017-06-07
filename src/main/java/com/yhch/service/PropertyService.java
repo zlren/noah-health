@@ -12,4 +12,8 @@ public class PropertyService {
 
     @Value("${config.rows}")
     public int rows;
+
+    @Value("${register.codeLen}")
+    public int codeLen;
+
 }
