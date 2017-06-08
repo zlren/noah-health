@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -94,8 +96,8 @@ public class LoginController {
 
     @RequestMapping(value = "login")
     @ResponseBody
-    public Map<String, Object> login(@RequestBody String jsonString){
-
+    public Map<String, Object> login(@RequestBody String jsonString) throws UnsupportedEncodingException {
+        jsonString = URLDecoder.decode(jsonString, "utf-8").split("=")[0];
         logger.info(jsonString);
 
         JSONObject userJson = (JSONObject) JSONObject.parse(jsonString);
@@ -105,6 +107,28 @@ public class LoginController {
 
         //验证用户名与密码是否有效
         System.out.println("进入用户名与密码认证action");
+
+
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("token", false);
+        return map;
+
+    }
+
+    @RequestMapping(value = "hehe")
+    @ResponseBody
+    public Map<String, Object> hehe(@RequestBody String jsonString) throws UnsupportedEncodingException {
+//        jsonString = URLDecoder.decode(jsonString, "utf-8").split("=")[0];
+//        logger.info(jsonString);
+//
+//        JSONObject userJson = (JSONObject) JSONObject.parse(jsonString);
+//        logger.info(userJson.getString("username"));
+//        logger.info(userJson.getString("password"));
+//
+//
+//        //验证用户名与密码是否有效
+        System.out.println("进入hehe action");
 
 
 
