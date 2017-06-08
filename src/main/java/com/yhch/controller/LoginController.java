@@ -1,26 +1,23 @@
 package com.yhch.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
-import com.yhch.bean.ROLES;
 import com.yhch.pojo.User;
 import com.yhch.service.MemberService;
 import com.yhch.service.PropertyService;
 import com.yhch.service.UserService;
 import com.yhch.util.SMSUtil;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 
@@ -41,25 +38,6 @@ public class LoginController {
     @Autowired
     private PropertyService propertyService;
 
-    /**
-     * 显示登录成功后对应该用户等级的首页
-     *
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping("home")
-    public String home() throws Exception {
-
-        Subject subject = SecurityUtils.getSubject();
-
-        if (subject.hasRole(ROLES.ADMIN)) {
-            return "home";
-        } else if (subject.hasRole(ROLES.USER_1)) {
-            return "home";
-        } else {
-            return null;
-        }
-    }
 
     @RequestMapping("send_sms")
     @ResponseBody
@@ -106,7 +84,6 @@ public class LoginController {
         }
     }
 
-
     /**
      * 通用页面跳转controller
      * login / register
@@ -114,8 +91,38 @@ public class LoginController {
      * @return
      * @throws Exception
      */
-    @RequestMapping("{pageName}")
-    public String login(@PathVariable("pageName") String pageName) {
-        return pageName;
+
+    @RequestMapping(value = "login")
+    @ResponseBody
+    public Map<String, Object> login(@RequestBody String jsonString){
+
+        logger.info(jsonString);
+
+        JSONObject userJson = (JSONObject) JSONObject.parse(jsonString);
+        logger.info(userJson.getString("username"));
+        logger.info(userJson.getString("password"));
+
+
+        //验证用户名与密码是否有效
+        System.out.println("进入用户名与密码认证action");
+
+
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("token", false);
+        return map;
+
     }
+
+
+//    public @ResponseBody Integer addUser(@RequestBody String userString, HttpSession session) {
+//        JSONObject userJson = (JSONObject) JSONObject.parse(userString);
+//
+//        User curUser = (User) session.getAttribute("curUser");
+//
+//        User newUser = new User();
+//
+//        newUser.setNUM((String) userJson.get("NUM"));
+//        newUser.setUSERNAME((String) userJson.get("USERNAME"));
+
 }

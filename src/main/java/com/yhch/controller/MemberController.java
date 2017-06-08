@@ -3,7 +3,6 @@ package com.yhch.controller;
 import com.yhch.pojo.Member;
 import com.yhch.service.MemberService;
 import com.yhch.service.PropertyService;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +31,6 @@ public class MemberController {
     @RequestMapping("/search/{member_id}")
     @ResponseBody
     // @RequiresRoles(logical = Logical.OR, value = {"ADMIN", "USER-1"})
-    @RequiresRoles("ADMIN")
     public Member searchMemberById(@PathVariable("member_id") Integer memberId) {
         return memberService.queryById(memberId);
     }
@@ -44,7 +42,6 @@ public class MemberController {
      * @return
      */
     @RequestMapping("/delete/{member_id}")
-    @RequiresRoles("ADMIN")
     public void deleteMember(@PathVariable("member_id") Integer memberId) {
         memberService.deleteById(memberId);
     }

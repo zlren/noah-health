@@ -1,5 +1,3 @@
 <%
-response.sendRedirect("/api/auth/home");
+    response.sendRedirect("/api/auth/home");
 %>
-
-<!--我-->

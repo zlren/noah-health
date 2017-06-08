@@ -29,13 +29,31 @@
         <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
         <init-param>
             <param-name>encoding</param-name>
-            <param-value>UTF8</param-value>
+            <param-value>utf-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceEncoding</param-name>
+            <param-value>true</param-value>
         </init-param>
     </filter>
     <filter-mapping>
         <filter-name>encodingFilter</filter-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/api/*</url-pattern>
     </filter-mapping>
+
+    <!--解决跨域访问-->
+    <filter>
+        <filter-name>crossOriginFilter</filter-name>
+        <filter-class>com.yhch.interceptor.CrossOriginInterceptor</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>crossOriginFilter</filter-name>
+        <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
+
+
+
+
 
     <!-- 防止spring内存溢出监听器 -->
     <listener>
@@ -60,29 +78,5 @@
         <!-- <url-pattern>*.html</url-pattern> -->
         <url-pattern>/api/*</url-pattern>
     </servlet-mapping>
-
-
-    <!-- shiro的filter -->
-    <!-- shiro过虑器，DelegatingFilterProxy通过代理模式将spring容器中的bean和filter关联起来 -->
-    <filter>
-        <filter-name>shiroFilter</filter-name>
-        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
-
-        <!-- 设置true由servlet容器控制filter的生命周期 -->
-        <init-param>
-            <param-name>targetFilterLifecycle</param-name>
-            <param-value>true</param-value>
-        </init-param>
-
-        <!-- 设置spring容器filter的bean id，如果不设置则找与filter-name一致的bean -->
-        <init-param>
-            <param-name>targetBeanName</param-name>
-            <param-value>shiroFilter</param-value>
-        </init-param>
-    </filter>
-    <filter-mapping>
-        <filter-name>shiroFilter</filter-name>
-        <url-pattern>/api/*</url-pattern>
-    </filter-mapping>
 
 </web-app>

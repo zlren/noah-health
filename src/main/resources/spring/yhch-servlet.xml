@@ -10,6 +10,17 @@
     <!-- 定义注解驱动 -->
     <mvc:annotation-driven/>
 
+    <!--定义拦截器-->
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <!-- 匹配的是url路径， 如果不配置或/**,将拦截所有的Controller -->
+            <mvc:mapping path="/api/**" />
+            <mvc:exclude-mapping path="/api/auth/login" />
+            <bean class="com.yhch.interceptor.LoginCertifyInterceptor"/>
+        </mvc:interceptor>
+        <!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
+    </mvc:interceptors>
+
     <!-- 定义Controller的扫描包 -->
     <context:component-scan base-package="com.yhch.controller"/>
 
@@ -21,11 +32,5 @@
         <property name="prefix" value="/views/"/>
         <property name="suffix" value=".jsp"/>
     </bean>
-
-    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
-    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
-          depends-on="lifecycleBeanPostProcessor"/>
-    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor"
-          p:securityManager-ref="securityManager"/>
 
 </beans>
