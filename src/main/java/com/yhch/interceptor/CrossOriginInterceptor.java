@@ -1,5 +1,7 @@
 package com.yhch.interceptor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -10,6 +12,9 @@ import java.io.IOException;
  */
 public class CrossOriginInterceptor implements Filter {
 
+
+	private static final Logger logger = LoggerFactory.getLogger(CrossOriginInterceptor.class);
+
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 	}
@@ -18,13 +23,13 @@ public class CrossOriginInterceptor implements Filter {
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 
-		System.out.println("进入CrossOriginInterceptor拦截器");
+		logger.info("进入CrossOriginInterceptor");
 
 		HttpServletResponse response = (HttpServletResponse) servletResponse;
 		response.setHeader("Access-Control-Allow-Origin", "*");
 		response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
 		response.setHeader("Access-Control-Max-Age", "3600");
-		response.setHeader("Access-Control-Allow-Headers", "x-requested-with");
+		response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Content-Type, Accept, token");
 		filterChain.doFilter(servletRequest, servletResponse);
 	}
 

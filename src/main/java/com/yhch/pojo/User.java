@@ -11,9 +11,7 @@ public class User {
 
     private String password;
 
-    private Integer auth;
-
-    private String name;
+    private String role;
 
     private String phone;
 
@@ -60,32 +58,19 @@ public class User {
     }
 
     /**
-     * @return auth
+     * @return role
      */
-    public Integer getAuth() {
-        return auth;
+    public String getRole() {
+        return role;
     }
 
     /**
-     * @param auth
+     * @param role
      */
-    public void setAuth(Integer auth) {
-        this.auth = auth;
+    public void setRole(String role) {
+        this.role = role;
     }
 
-    /**
-     * @return name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @param name
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
 
     /**
      * @return phone

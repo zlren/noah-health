@@ -16,4 +16,12 @@ public class PropertyService {
     @Value("${register.codeLen}")
     public int codeLen;
 
+    @Value("${token.issuer}")
+    public String issuer;
+
+    @Value("${token.duration}")
+    public long tokenDuration;
+
+    @Value("${token.apiKeySecret}")
+    public String apiKeySecret;
 }

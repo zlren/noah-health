@@ -3,15 +3,21 @@ package com.yhch.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
+import com.yhch.interceptor.TokenCertifyInterceptor;
+import com.yhch.pojo.Identity;
 import com.yhch.pojo.User;
 import com.yhch.service.MemberService;
 import com.yhch.service.PropertyService;
 import com.yhch.service.UserService;
+import com.yhch.util.MD5Util;
 import com.yhch.util.SMSUtil;
+import com.yhch.util.TokenUtil;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import sun.security.provider.MD5;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -29,7 +35,7 @@ import java.util.Random;
 @Controller
 @RequestMapping("/auth")
 public class LoginController {
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(LoginController.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     @Autowired
     private UserService userService;
@@ -61,9 +67,9 @@ public class LoginController {
             SMSUtil.send(phoneNumber, smsText);
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResult("failure", "短信发送失败，请重试");
+            return new CommonResult("failure", "短信发送失败，请重试", null);
         }
-        return new CommonResult("success", "");
+        return new CommonResult("success", "", null);
     }
 
     @RequestMapping("register_check")
@@ -80,9 +86,9 @@ public class LoginController {
             user.setPassword(password);
             // todo 当然user表要改，需要加上手机信息
 
-            return CommonResult.success();
+            return CommonResult.success("注册成功", null);
         } else {
-            return CommonResult.failure("");
+            return CommonResult.failure("注册失败");
         }
     }
 
@@ -96,47 +102,84 @@ public class LoginController {
 
     @RequestMapping(value = "login")
     @ResponseBody
-    public Map<String, Object> login(@RequestBody String jsonString) throws UnsupportedEncodingException {
-        jsonString = URLDecoder.decode(jsonString, "utf-8").split("=")[0];
-        logger.info(jsonString);
+    public CommonResult login(@RequestBody Map<String, Object> params) {
 
-        JSONObject userJson = (JSONObject) JSONObject.parse(jsonString);
-        logger.info(userJson.getString("username"));
-        logger.info(userJson.getString("password"));
+        logger.info("进入login.action");
 
+        String username = (String) params.get("username");
+        String password = (String) params.get("password");
 
-        //验证用户名与密码是否有效
-        System.out.println("进入用户名与密码认证action");
+        //1.验证用户名与密码
+        CommonResult result = userService.loginValidate(username, password);
+        if(result.getCode() != Constant.SUCCESS) return result;
 
+        //2.生成token
+        User legalUser = (User) result.getContent(); //取得已通过验证的该用户
+        result = userService.generateToken(legalUser.getId().toString(),
+                                            propertyService.issuer,
+                                            legalUser.getUsername(),
+                                            legalUser.getRole(),
+                                            propertyService.tokenDuration,
+                                            propertyService.apiKeySecret);
 
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("token", false);
-        return map;
+        return result;
 
     }
 
     @RequestMapping(value = "hehe")
     @ResponseBody
-    public Map<String, Object> hehe(@RequestBody String jsonString) throws UnsupportedEncodingException {
-//        jsonString = URLDecoder.decode(jsonString, "utf-8").split("=")[0];
-//        logger.info(jsonString);
-//
-//        JSONObject userJson = (JSONObject) JSONObject.parse(jsonString);
-//        logger.info(userJson.getString("username"));
-//        logger.info(userJson.getString("password"));
-//
-//
-//        //验证用户名与密码是否有效
-        System.out.println("进入hehe action");
+    public CommonResult hehe(@RequestBody Map<String, Object> params, HttpSession session) {
+
+        logger.info("进入hehe.action");
+
+
+        Identity identity = (Identity) session.getAttribute("identity");
+        logger.info("用户名=" + identity.getUsername());
+        logger.info("角色=" + identity.getRole());
 
 
 
-        Map<String, Object> map = new HashMap<>();
-        map.put("token", false);
-        return map;
+        return CommonResult.success("已登录", null);
 
     }
+
+
+
+
+    @RequestMapping(value = "enterPage")
+    @ResponseBody
+    public CommonResult enterPage() {
+
+        logger.info("进入enterPage");
+        return CommonResult.success("成功进入该页面", null);
+
+    }
+
+
+
+    @RequestMapping(value = "loginDenied")
+    @ResponseBody
+    public CommonResult loginDenied() {
+
+
+        logger.info("进入loginDenied");
+        return CommonResult.failure("请先登录");
+
+    }
+
+
+    @RequestMapping(value = "roleDenied")
+    @ResponseBody
+    public CommonResult roleDenied() {
+
+
+        logger.info("进入roleDenied");
+        return CommonResult.failure("权限不够");
+
+    }
+
+
+
 
 
 //    public @ResponseBody Integer addUser(@RequestBody String userString, HttpSession session) {

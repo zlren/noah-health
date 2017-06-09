@@ -8,6 +8,8 @@ public class Constant {
     public static String VALIDATE_PHONE_CODE = "VALIDATE_PHONE_CODE";
     public static String SEND_CODE_TIME = "SEND_CODE_TIME";
 
-    public static String SUCCESS = "success";
-    public static String FAILURE = "failure";
+    public static String SUCCESS = "SUCCESS";
+    public static String FAILURE = "FAILURE";
+    public static String FAILURE_LOGIN = "FAILURE_LOGIN";
+    public static String FAILURE_AUTH = "FAILURE_AUTH";
 }
