@@ -16,14 +16,6 @@ public class Member {
 
     private String sex;
 
-    private String tel;
-
-    private String grade;
-
-    private String email;
-
-    private String inputer;
-
     private String note;
 
     /**
@@ -94,62 +86,6 @@ public class Member {
      */
     public void setSex(String sex) {
         this.sex = sex;
-    }
-
-    /**
-     * @return tel
-     */
-    public String getTel() {
-        return tel;
-    }
-
-    /**
-     * @param tel
-     */
-    public void setTel(String tel) {
-        this.tel = tel;
-    }
-
-    /**
-     * @return grade
-     */
-    public String getGrade() {
-        return grade;
-    }
-
-    /**
-     * @param grade
-     */
-    public void setGrade(String grade) {
-        this.grade = grade;
-    }
-
-    /**
-     * @return email
-     */
-    public String getEmail() {
-        return email;
-    }
-
-    /**
-     * @param email
-     */
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    /**
-     * @return inputer
-     */
-    public String getInputer() {
-        return inputer;
-    }
-
-    /**
-     * @param inputer
-     */
-    public void setInputer(String inputer) {
-        this.inputer = inputer;
     }
 
     /**

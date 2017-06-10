@@ -1,32 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
         http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
 
-    <!-- 定义注解驱动 -->
-    <mvc:annotation-driven/>
+	<!-- 定义注解驱动 -->
+	<mvc:annotation-driven/>
 
-    <!--定义拦截器-->
-    <mvc:interceptors>
+	<!--定义拦截器-->
+	<mvc:interceptors>
 
-        <!--token认证拦截器-->
-        <mvc:interceptor>
-            <mvc:mapping path="/**"/>
-            <mvc:exclude-mapping path="/auth/login"/>
-            <mvc:exclude-mapping path="/auth/register"/>
-            <mvc:exclude-mapping path="/auth/loginDenied"/>
-            <mvc:exclude-mapping path="/auth/roleDenied"/>
-            <bean class="com.yhch.interceptor.TokenCertifyInterceptor"/>
-        </mvc:interceptor>
+		<!--token认证拦截器-->
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/auth/login"/>
+			<mvc:exclude-mapping path="/auth/register"/>
+			<mvc:exclude-mapping path="/auth/send_sms"/>
+			<mvc:exclude-mapping path="/auth/login_denied"/>
+			<mvc:exclude-mapping path="/auth/role_denied"/>
+			<bean class="com.yhch.interceptor.TokenCertifyInterceptor"/>
+		</mvc:interceptor>
 
-        <!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
-    </mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<!-- 如果不定义 mvc:mapping path 将拦截所有的URL请求 -->
+			<bean class="com.yhch.bean.control.RoleCheckParse"/>
+		</mvc:interceptor>
 
-    <!-- 定义Controller的扫描包 -->
-    <context:component-scan base-package="com.yhch.controller"/>
+		<!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
+	</mvc:interceptors>
+
+	<!-- 定义Controller的扫描包 -->
+	<context:component-scan base-package="com.yhch.controller"/>
 
 </beans>

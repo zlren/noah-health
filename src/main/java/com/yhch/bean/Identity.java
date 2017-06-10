@@ -9,10 +9,9 @@ public class Identity {
     private String token;
     private String id; //对应user的id
     private String issuer;
-    private String username;
+    private String phone;
     private String role; //角色
     private Long duration; //有效时长（毫秒）
-
 
     public String getToken() {
         return token;
@@ -38,12 +37,12 @@ public class Identity {
         this.issuer = issuer;
     }
 
-    public String getUsername() {
-        return username;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getRole() {

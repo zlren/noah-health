@@ -48,6 +48,6 @@ public class SMSUtil {
         // result = stringBuilder.toString();
 
         // return result;
-        return CommonResult.success();
+        return CommonResult.success("验证码发送成功");
     }
 }

@@ -1,6 +1,7 @@
 package com.yhch.service;
 
 import com.yhch.bean.CommonResult;
+import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
 import com.yhch.pojo.User;
 import com.yhch.util.MD5Util;
@@ -26,19 +27,7 @@ public class UserService extends BaseService<User> {
         User record = new User();
         record.setUsername(username);
 
-        if (super.queryOne(record) != null) {
-            return false;
-        }
-        return true;
-    }
-
-
-    public User getUserByUsername(String username) {
-
-        User record = new User();
-        record.setUsername(username);
-
-        return super.queryOne(record);
+        return super.queryOne(record) != null;
     }
 
 
@@ -55,6 +44,7 @@ public class UserService extends BaseService<User> {
         user.setUsername(username);
         user.setPassword(MD5Util.generate(password));
         user.setPhone(phoneNumber);
+        user.setRole(Constant.USER_1);
         super.save(user);
     }
 
@@ -66,35 +56,11 @@ public class UserService extends BaseService<User> {
      * @param newPassword
      * @return
      */
-    public int changePassword(String username, String newPassword) {
-        // newPassword需要加密
-        User record = this.getUserByUsername(username);
-        record.setPassword(newPassword);
-
-        return super.update(record);
+    public void changePassword(String username, String newPassword) {
+        User user = new User();
+        user.setPassword(newPassword);
+        super.updateSelective(user);
     }
-
-
-    /**
-     * @param username
-     * @param newUsername
-     * @return
-     */
-    public int changeUsername(String username, String newUsername) {
-
-        User user = getUserByUsername(newUsername);
-        if (user != null) {
-            // 说明用户名重复了
-            return 0;
-        }
-
-        User curUser = this.getUserByUsername(username);
-        curUser.setUsername(newUsername);
-        super.update(curUser);
-
-        return 1;
-    }
-
 
     /**
      * 为通过登录验证的用户生成token
@@ -108,14 +74,14 @@ public class UserService extends BaseService<User> {
         Identity identity = new Identity();
         identity.setId(id);
         identity.setIssuer(issuer);
-        identity.setUsername(username);
+        identity.setPhone(username);
         identity.setRole(role);
         identity.setDuration(duration);
         String token = TokenUtil.createToken(identity, apiKeySecret);
 
         // 封装返回前端(除了用户名、角色、时间戳保留，其余消去)
         identity.setToken(token);
-        identity.setId(null);
+        // identity.setId(id);
         identity.setIssuer(null);
         return CommonResult.success("登录成功", identity);
     }

@@ -33,7 +33,7 @@
 
         <druid.version>1.0.27</druid.version>
 
-        <aspectjweaver.version>1.8.4</aspectjweaver.version>
+        <aspectjweaver.version>1.8.9</aspectjweaver.version>
 
         <httpclient.version>4.3.5</httpclient.version>
         <jstl.version>1.2</jstl.version>
@@ -89,6 +89,13 @@
             <artifactId>spring-web</artifactId>
             <version>${spring.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.8.9</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springframework</groupId>

@@ -68,7 +68,7 @@ public abstract class BaseService<T> {
      *
      * @param page
      * @param rows
-     * @param record
+     * @param record 为null表示查询所有
      * @return
      */
     public PageInfo<T> queryPageListByWhere(Integer page, Integer rows, T record) {

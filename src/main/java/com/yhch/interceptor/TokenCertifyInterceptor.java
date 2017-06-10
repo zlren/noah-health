@@ -1,6 +1,7 @@
 package com.yhch.interceptor;
 
 
+import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
 import com.yhch.service.PropertyService;
 import com.yhch.util.TokenUtil;
@@ -32,11 +33,11 @@ public class TokenCertifyInterceptor implements HandlerInterceptor{
 		//验证token的有效性
 		try{
 
-			String token = request.getHeader("token");
+			String token = request.getHeader(Constant.TOKEN);
 			Identity identity = TokenUtil.parseToken(token, propertyService.apiKeySecret);
 
 			//把identity存入session中(其中包含用户名、角色、过期时间戳等)
-			request.getSession().setAttribute("identity", identity);
+			request.getSession().setAttribute(Constant.IDENTITY, identity);
 
 			logger.info("有效token,放行");
 			return true;
@@ -44,7 +45,7 @@ public class TokenCertifyInterceptor implements HandlerInterceptor{
 		} catch (Exception e) {
 
 			logger.info("无效token,请前端转到登录页面");
-			response.sendRedirect("/api/auth/loginDenied");
+			response.sendRedirect("/api/auth/login_denied");
 
 			return false;
 		}

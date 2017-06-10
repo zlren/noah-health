@@ -15,14 +15,35 @@ public class CommonResult {
     private String reason;
     private Object content; //如果成功所返回的实际内容
 
-    public static CommonResult success(String reason, Object content) {
-        return new CommonResult(Constant.SUCCESS, reason, content);
-    }
-
+    /**
+     * @return
+     */
     public static CommonResult success() {
         return new CommonResult(Constant.SUCCESS, null, null);
     }
 
+    /**
+     * @param reason
+     * @return
+     */
+    public static CommonResult success(String reason) {
+        return new CommonResult(Constant.SUCCESS, reason, null);
+    }
+
+    /**
+     * @param reason
+     * @param content
+     * @return
+     */
+    public static CommonResult success(String reason, Object content) {
+        return new CommonResult(Constant.SUCCESS, reason, content);
+    }
+
+
+    /**
+     * @param reason
+     * @return
+     */
     public static CommonResult failure(String reason) {
         return new CommonResult(Constant.FAILURE, reason, null);
     }
@@ -57,5 +78,14 @@ public class CommonResult {
 
     public void setContent(Object content) {
         this.content = content;
+    }
+
+    @Override
+    public String toString() {
+        return "CommonResult {" +
+                "code = '" + code + '\'' +
+                ", reason = '" + reason + '\'' +
+                ", content = " + content +
+                '}';
     }
 }

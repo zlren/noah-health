@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
@@ -48,11 +49,17 @@ public class LoginController {
     private AuthorityService authorityService;
 
 
-    @RequestMapping("send_sms")
+    /**
+     * 发送短信验证码
+     *
+     * @param params
+     * @return
+     */
+    @RequestMapping(value = "send_sms", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult sendSms(@RequestBody Map<String, String> params) {
 
-        String phone = params.get("phone");
+        String phone = params.get(Constant.PHONE);
 
         // 1分钟内无法再次请求验证码，需要检查一下commonData中是否存在此手机号，看时间戳和现在时间的对比
         if (!CommonData.getInstance().sendCheck(phone)) {
@@ -65,8 +72,8 @@ public class LoginController {
             code.append(String.valueOf(random.nextInt(10)));
         }
 
-        String smsText = code + "(用户注册验证码，一分钟内有效)[医海慈航]";
-        logger.info(smsText);
+        String smsText = "【医海慈航】您的注册验证码为" + code + "，一分钟内有效";
+        logger.info("用户{}： {}", phone, smsText);
 
         CommonResult result;
         try {
@@ -84,16 +91,16 @@ public class LoginController {
      * @param params
      * @return
      */
-    @RequestMapping("register")
+    @RequestMapping(value = "register", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult register(@RequestBody Map<String, String> params) {
 
         // username就是手机号
-        String username = params.get("phone");
-        String password = params.get("password");
-        String phoneNumber = params.get("phone");
-        String inputCode = params.get("inputCode");
-
+        String username = params.get(Constant.PHONE);
+        String password = params.get(Constant.PASSWORD);
+        String phoneNumber = params.get(Constant.PHONE);
+        String inputCode = params.get(Constant.INPUT_CODE);
+System.out.println("inputCode="+inputCode);
         boolean checkCode = CommonData.getInstance().checkCode(phoneNumber, inputCode);
         if (!checkCode) {
             return CommonResult.failure("验证码错误");
@@ -109,7 +116,7 @@ public class LoginController {
             e.printStackTrace();
             return CommonResult.failure("注册失败");
         }
-        return CommonResult.success();
+        return CommonResult.success("注册成功");
     }
 
 
@@ -119,13 +126,15 @@ public class LoginController {
      * @param params
      * @return
      */
-    @RequestMapping("login")
+    @RequestMapping(value = "login", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult login(@RequestBody Map<String, String> params) {
 
         // 得到用户名和密码，用户名就是phone
-        String username = params.get("phone");
-        String password = params.get("password");
+        String username = params.get(Constant.PHONE);
+        String password = params.get(Constant.PASSWORD);
+
+        logger.info("{} 用户请求登录", username);
 
         if (!this.userService.isExist(username)) {
             return CommonResult.failure("用户不存在");
@@ -174,42 +183,26 @@ public class LoginController {
         logger.info("进入hehe.action");
 
         Identity identity = (Identity) session.getAttribute("identity");
-        logger.info("用户名=" + identity.getUsername());
-        logger.info("角色=" + identity.getRole());
+        logger.info("用户名 = " + identity.getPhone());
+        logger.info("角色 = " + identity.getRole());
 
 
         return CommonResult.success("已登录", null);
     }
 
 
-    @RequestMapping(value = "enterPage")
-    @ResponseBody
-    public CommonResult enterPage() {
-
-        logger.info("进入enterPage");
-        return CommonResult.success("成功进入该页面", null);
-
-    }
-
-
-    @RequestMapping(value = "loginDenied")
+    @RequestMapping(value = "login_denied")
     @ResponseBody
     public CommonResult loginDenied() {
-
-
-        logger.info("进入loginDenied");
+        logger.info("login_denied");
         return CommonResult.failure("请先登录");
-
     }
 
 
-    @RequestMapping(value = "roleDenied")
+    @RequestMapping(value = "role_denied")
     @ResponseBody
     public CommonResult roleDenied() {
-
-
-        logger.info("进入roleDenied");
-        return CommonResult.failure("权限不够");
-
+        logger.info("role_denied");
+        return CommonResult.failure("无此权限");
     }
 }

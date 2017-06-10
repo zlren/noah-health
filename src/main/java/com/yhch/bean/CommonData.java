@@ -31,9 +31,10 @@ public class CommonData {
     public boolean checkCode(String phoneNumber, String inputSmsCode) {
 
         // 系统生成的正确的验证码和创建时间
+        // 为null表示没有发送验证码直接点击的登录
         SmsCode targetSmsCode = smsCodeMap.get(phoneNumber);
 
-        if (targetSmsCode.getSmsCode().equals(inputSmsCode) && Math.abs(new Date().getTime() - targetSmsCode.getDate
+        if (targetSmsCode != null && targetSmsCode.getSmsCode().equals(inputSmsCode) && Math.abs(new Date().getTime() - targetSmsCode.getDate
                 ()) < 60000) {
             return true;
         }

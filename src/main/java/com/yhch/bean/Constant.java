@@ -4,9 +4,10 @@ package com.yhch.bean;
  * Created by zlren on 2017/6/6.
  */
 public class Constant {
-    public static String VALIDATE_PHONE = "VALIDATE_PHONE";
-    public static String VALIDATE_PHONE_CODE = "VALIDATE_PHONE_CODE";
-    public static String SEND_CODE_TIME = "SEND_CODE_TIME";
+    public static String PASSWORD = "password";
+    public static String USERNAME = "username";
+    public static String PHONE = "phone";
+    public static String INPUT_CODE = "inputCode";
 
     public static String SUCCESS = "SUCCESS";
     public static String FAILURE = "FAILURE";
@@ -14,6 +15,7 @@ public class Constant {
     public static String FAILURE_AUTH = "FAILURE_AUTH";
 
     public static String IDENTITY = "IDENTITY";
+    public static String TOKEN = "TOKEN";
 
     public static String ADMIN = "ADMIN";  // 超级管理员0
     public static String FINANCER = "FINANCER";    // 财务1
