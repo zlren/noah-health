@@ -30,7 +30,7 @@ public class UserService extends BaseService<User> {
      * @return
      */
     public int changePassword(String username, String newPassword) {
-
+        // newPassword需要加密
         User record = this.getUserByUsername(username);
         record.setPassword(newPassword);
 
@@ -60,6 +60,7 @@ public class UserService extends BaseService<User> {
 
     /**
      * 验证用户名与密码
+     *
      * @param username
      * @param password
      * @return token
@@ -70,28 +71,30 @@ public class UserService extends BaseService<User> {
         User user = new User();
         user.setUsername(username);
         User targetUser = getMapper().selectOne(user);
-        if(targetUser == null) return CommonResult.failure("无此用户");
+        if (targetUser == null) return CommonResult.failure("无此用户");
 
         //加密密码
         try {
             password = MD5Util.generate(password);
-        } catch(Exception e){
+        } catch (Exception e) {
             logger.info("MD5加密失败");
             return CommonResult.failure("加密失败");
         }
 
         //匹配验证
-        if(!targetUser.getPassword().equals(password)) return CommonResult.failure("密码错误");
+        if (!targetUser.getPassword().equals(password)) return CommonResult.failure("密码错误");
 
         return CommonResult.success("用户名与密码匹配成功", targetUser);
     }
 
     /**
      * 为通过登录验证的用户生成token
+     *
      * @param username
      * @return
      */
-    public CommonResult generateToken(String id, String issuer, String username, String role, Long duration, String apiKeySecret) {
+    public CommonResult generateToken(String id, String issuer, String username, String role, Long duration, String
+            apiKeySecret) {
 
         Identity identity = new Identity();
         identity.setId(id);

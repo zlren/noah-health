@@ -1,30 +1,25 @@
 package com.yhch.controller;
 
-import com.alibaba.fastjson.JSONObject;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
-import com.yhch.interceptor.TokenCertifyInterceptor;
 import com.yhch.pojo.Identity;
 import com.yhch.pojo.User;
 import com.yhch.service.MemberService;
 import com.yhch.service.PropertyService;
 import com.yhch.service.UserService;
-import com.yhch.util.MD5Util;
 import com.yhch.util.SMSUtil;
-import com.yhch.util.TokenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import sun.security.provider.MD5;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -111,16 +106,16 @@ public class LoginController {
 
         //1.验证用户名与密码
         CommonResult result = userService.loginValidate(username, password);
-        if(result.getCode() != Constant.SUCCESS) return result;
+        if (result.getCode() != Constant.SUCCESS) return result;
 
         //2.生成token
         User legalUser = (User) result.getContent(); //取得已通过验证的该用户
         result = userService.generateToken(legalUser.getId().toString(),
-                                            propertyService.issuer,
-                                            legalUser.getUsername(),
-                                            legalUser.getRole(),
-                                            propertyService.tokenDuration,
-                                            propertyService.apiKeySecret);
+                propertyService.issuer,
+                legalUser.getUsername(),
+                legalUser.getRole(),
+                propertyService.tokenDuration,
+                propertyService.apiKeySecret);
 
         return result;
 
@@ -138,12 +133,9 @@ public class LoginController {
         logger.info("角色=" + identity.getRole());
 
 
-
         return CommonResult.success("已登录", null);
 
     }
-
-
 
 
     @RequestMapping(value = "enterPage")
@@ -154,7 +146,6 @@ public class LoginController {
         return CommonResult.success("成功进入该页面", null);
 
     }
-
 
 
     @RequestMapping(value = "loginDenied")
@@ -177,9 +168,6 @@ public class LoginController {
         return CommonResult.failure("权限不够");
 
     }
-
-
-
 
 
 //    public @ResponseBody Integer addUser(@RequestBody String userString, HttpSession session) {
