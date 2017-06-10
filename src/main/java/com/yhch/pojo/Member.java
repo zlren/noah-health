@@ -1,18 +1,18 @@
 package com.yhch.pojo;
 
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
-@Table(name = "member")
 public class Member {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String name;
 
     private Byte age;
 
-    private String idcard;
+    @Column(name = "id_card")
+    private String idCard;
 
     private String sex;
 
@@ -26,83 +26,143 @@ public class Member {
 
     private String note;
 
+    /**
+     * @return id
+     */
     public Integer getId() {
         return id;
     }
 
+    /**
+     * @param id
+     */
     public void setId(Integer id) {
         this.id = id;
     }
 
+    /**
+     * @return name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * @param name
+     */
     public void setName(String name) {
-        this.name = name == null ? null : name.trim();
+        this.name = name;
     }
 
+    /**
+     * @return age
+     */
     public Byte getAge() {
         return age;
     }
 
+    /**
+     * @param age
+     */
     public void setAge(Byte age) {
         this.age = age;
     }
 
-    public String getIdcard() {
-        return idcard;
+    /**
+     * @return id_card
+     */
+    public String getIdCard() {
+        return idCard;
     }
 
-    public void setIdcard(String idcard) {
-        this.idcard = idcard == null ? null : idcard.trim();
+    /**
+     * @param idCard
+     */
+    public void setIdCard(String idCard) {
+        this.idCard = idCard;
     }
 
+    /**
+     * @return sex
+     */
     public String getSex() {
         return sex;
     }
 
+    /**
+     * @param sex
+     */
     public void setSex(String sex) {
-        this.sex = sex == null ? null : sex.trim();
+        this.sex = sex;
     }
 
+    /**
+     * @return tel
+     */
     public String getTel() {
         return tel;
     }
 
+    /**
+     * @param tel
+     */
     public void setTel(String tel) {
-        this.tel = tel == null ? null : tel.trim();
+        this.tel = tel;
     }
 
+    /**
+     * @return grade
+     */
     public String getGrade() {
         return grade;
     }
 
+    /**
+     * @param grade
+     */
     public void setGrade(String grade) {
-        this.grade = grade == null ? null : grade.trim();
+        this.grade = grade;
     }
 
+    /**
+     * @return email
+     */
     public String getEmail() {
         return email;
     }
 
+    /**
+     * @param email
+     */
     public void setEmail(String email) {
-        this.email = email == null ? null : email.trim();
+        this.email = email;
     }
 
+    /**
+     * @return inputer
+     */
     public String getInputer() {
         return inputer;
     }
 
+    /**
+     * @param inputer
+     */
     public void setInputer(String inputer) {
-        this.inputer = inputer == null ? null : inputer.trim();
+        this.inputer = inputer;
     }
 
+    /**
+     * @return note
+     */
     public String getNote() {
         return note;
     }
 
+    /**
+     * @param note
+     */
     public void setNote(String note) {
-        this.note = note == null ? null : note.trim();
+        this.note = note;
     }
 }

@@ -1,12 +1,15 @@
 package com.yhch.controller;
 
+import com.yhch.bean.CommonData;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
-import com.yhch.pojo.Identity;
+import com.yhch.bean.Identity;
 import com.yhch.pojo.User;
+import com.yhch.service.AuthorityService;
 import com.yhch.service.MemberService;
 import com.yhch.service.PropertyService;
 import com.yhch.service.UserService;
+import com.yhch.util.MD5Util;
 import com.yhch.util.SMSUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,12 +17,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.Date;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
@@ -28,8 +30,9 @@ import java.util.Random;
  * 登录、注册和首页跳转
  */
 @Controller
-@RequestMapping("/auth")
+@RequestMapping("auth")
 public class LoginController {
+
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     @Autowired
@@ -41,11 +44,20 @@ public class LoginController {
     @Autowired
     private PropertyService propertyService;
 
+    @Autowired
+    private AuthorityService authorityService;
+
 
     @RequestMapping("send_sms")
     @ResponseBody
-    public CommonResult sendSms(@RequestParam("phoneNumber") String phoneNumber, HttpServletRequest
-            httpServletRequest) {
+    public CommonResult sendSms(@RequestBody Map<String, String> params) {
+
+        String phone = params.get("phone");
+
+        // 1分钟内无法再次请求验证码，需要检查一下commonData中是否存在此手机号，看时间戳和现在时间的对比
+        if (!CommonData.getInstance().sendCheck(phone)) {
+            return CommonResult.failure("请1分钟后再试");
+        }
 
         StringBuilder code = new StringBuilder();
         Random random = new Random();
@@ -53,80 +65,113 @@ public class LoginController {
             code.append(String.valueOf(random.nextInt(10)));
         }
 
-        HttpSession session = httpServletRequest.getSession();
-        session.setAttribute(Constant.VALIDATE_PHONE, phoneNumber);
-        session.setAttribute(Constant.VALIDATE_PHONE_CODE, code.toString());
-        session.setAttribute(Constant.SEND_CODE_TIME, new Date().getTime());
         String smsText = code + "(用户注册验证码，一分钟内有效)[医海慈航]";
+        logger.info(smsText);
+
+        CommonResult result;
         try {
-            SMSUtil.send(phoneNumber, smsText);
+            result = SMSUtil.send(phone, String.valueOf(code), smsText);
         } catch (Exception e) {
             e.printStackTrace();
-            return new CommonResult("failure", "短信发送失败，请重试", null);
+            return CommonResult.failure("短信发送失败，请重试");
         }
-        return new CommonResult("success", "", null);
-    }
-
-    @RequestMapping("register_check")
-    @ResponseBody
-    public CommonResult registerValidate(String username, String password, String phoneNumber, String inputCode,
-                                         HttpServletRequest httpServletRequest) {
-        HttpSession session = httpServletRequest.getSession();
-        String code = (String) session.getAttribute(Constant.VALIDATE_PHONE_CODE);
-        String phone = (String) session.getAttribute(Constant.VALIDATE_PHONE);
-        if (phone.equals(phoneNumber) && code.equalsIgnoreCase(inputCode)) {
-
-            User user = new User();
-            user.setUsername(username);
-            user.setPassword(password);
-            // todo 当然user表要改，需要加上手机信息
-
-            return CommonResult.success("注册成功", null);
-        } else {
-            return CommonResult.failure("注册失败");
-        }
+        return result;
     }
 
     /**
-     * 通用页面跳转controller
-     * login / register
+     * 注册
      *
+     * @param params
      * @return
-     * @throws Exception
      */
-
-    @RequestMapping(value = "login")
+    @RequestMapping("register")
     @ResponseBody
-    public CommonResult login(@RequestBody Map<String, Object> params) {
+    public CommonResult register(@RequestBody Map<String, String> params) {
 
-        logger.info("进入login.action");
+        // username就是手机号
+        String username = params.get("phone");
+        String password = params.get("password");
+        String phoneNumber = params.get("phone");
+        String inputCode = params.get("inputCode");
 
-        String username = (String) params.get("username");
-        String password = (String) params.get("password");
+        boolean checkCode = CommonData.getInstance().checkCode(phoneNumber, inputCode);
+        if (!checkCode) {
+            return CommonResult.failure("验证码错误");
+        }
 
-        //1.验证用户名与密码
-        CommonResult result = userService.loginValidate(username, password);
-        if (result.getCode() != Constant.SUCCESS) return result;
+        if (this.userService.isExist(username)) {
+            return CommonResult.failure("用户名已经存在");
+        }
 
-        //2.生成token
-        User legalUser = (User) result.getContent(); //取得已通过验证的该用户
-        result = userService.generateToken(legalUser.getId().toString(),
+        try {
+            this.userService.register(username, password, phoneNumber);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return CommonResult.failure("注册失败");
+        }
+        return CommonResult.success();
+    }
+
+
+    /**
+     * 登录
+     *
+     * @param params
+     * @return
+     */
+    @RequestMapping("login")
+    @ResponseBody
+    public CommonResult login(@RequestBody Map<String, String> params) {
+
+        // 得到用户名和密码，用户名就是phone
+        String username = params.get("phone");
+        String password = params.get("password");
+
+        if (!this.userService.isExist(username)) {
+            return CommonResult.failure("用户不存在");
+        }
+
+        // 密码加密
+        String md5Password;
+        try {
+            md5Password = MD5Util.generate(password);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return CommonResult.failure("MD5加密失败");
+        }
+
+        // 从数据库中取出对应的user
+        User user = new User();
+        user.setUsername(username);
+        User targetUser = this.userService.queryOne(user);
+
+        // 检验密码
+        if (!targetUser.getPassword().equals(md5Password)) {
+            return CommonResult.failure("密码错误");
+        }
+
+        // 生成token
+        CommonResult result = userService.generateToken(targetUser.getId().toString(),
                 propertyService.issuer,
-                legalUser.getUsername(),
-                legalUser.getRole(),
+                targetUser.getUsername(),
+                targetUser.getRole(),
                 propertyService.tokenDuration,
                 propertyService.apiKeySecret);
 
         return result;
-
     }
 
     @RequestMapping(value = "hehe")
     @ResponseBody
     public CommonResult hehe(@RequestBody Map<String, Object> params, HttpSession session) {
 
-        logger.info("进入hehe.action");
+        CommonResult checkResult = authorityService.check(session, Arrays.asList(Constant.ADMIN, Constant
+                .ADVISER));
+        if (checkResult.getCode().equals(Constant.FAILURE)) {
+            return checkResult;
+        }
 
+        logger.info("进入hehe.action");
 
         Identity identity = (Identity) session.getAttribute("identity");
         logger.info("用户名=" + identity.getUsername());
@@ -134,7 +179,6 @@ public class LoginController {
 
 
         return CommonResult.success("已登录", null);
-
     }
 
 
@@ -168,16 +212,4 @@ public class LoginController {
         return CommonResult.failure("权限不够");
 
     }
-
-
-//    public @ResponseBody Integer addUser(@RequestBody String userString, HttpSession session) {
-//        JSONObject userJson = (JSONObject) JSONObject.parse(userString);
-//
-//        User curUser = (User) session.getAttribute("curUser");
-//
-//        User newUser = new User();
-//
-//        newUser.setNUM((String) userJson.get("NUM"));
-//        newUser.setUSERNAME((String) userJson.get("USERNAME"));
-
 }

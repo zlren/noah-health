@@ -1,7 +1,7 @@
 package com.yhch.interceptor;
 
 
-import com.yhch.pojo.Identity;
+import com.yhch.bean.Identity;
 import com.yhch.service.PropertyService;
 import com.yhch.util.TokenUtil;
 import org.slf4j.Logger;

@@ -1,7 +1,7 @@
 package com.yhch.service;
 
 import com.yhch.bean.CommonResult;
-import com.yhch.pojo.Identity;
+import com.yhch.bean.Identity;
 import com.yhch.pojo.User;
 import com.yhch.util.MD5Util;
 import com.yhch.util.TokenUtil;
@@ -9,10 +9,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.security.NoSuchAlgorithmException;
+
 @Service
 public class UserService extends BaseService<User> {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+    /**
+     * 检查用户名是否重复
+     *
+     * @param username
+     * @return true 重复（数据库中存在）
+     */
+    public boolean isExist(String username) {
+        User record = new User();
+        record.setUsername(username);
+
+        if (super.queryOne(record) != null) {
+            return false;
+        }
+        return true;
+    }
+
 
     public User getUserByUsername(String username) {
 
@@ -21,6 +40,24 @@ public class UserService extends BaseService<User> {
 
         return super.queryOne(record);
     }
+
+
+    /**
+     * 添加一个用户
+     *
+     * @param username
+     * @param password
+     * @param phoneNumber
+     * @throws NoSuchAlgorithmException
+     */
+    public void register(String username, String password, String phoneNumber) throws NoSuchAlgorithmException {
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(MD5Util.generate(password));
+        user.setPhone(phoneNumber);
+        super.save(user);
+    }
+
 
     /**
      * 修改密码
@@ -58,34 +95,6 @@ public class UserService extends BaseService<User> {
         return 1;
     }
 
-    /**
-     * 验证用户名与密码
-     *
-     * @param username
-     * @param password
-     * @return token
-     */
-    public CommonResult loginValidate(String username, String password) {
-
-        //验证用户名与密码是否与数据库中匹配
-        User user = new User();
-        user.setUsername(username);
-        User targetUser = getMapper().selectOne(user);
-        if (targetUser == null) return CommonResult.failure("无此用户");
-
-        //加密密码
-        try {
-            password = MD5Util.generate(password);
-        } catch (Exception e) {
-            logger.info("MD5加密失败");
-            return CommonResult.failure("加密失败");
-        }
-
-        //匹配验证
-        if (!targetUser.getPassword().equals(password)) return CommonResult.failure("密码错误");
-
-        return CommonResult.success("用户名与密码匹配成功", targetUser);
-    }
 
     /**
      * 为通过登录验证的用户生成token
@@ -104,7 +113,7 @@ public class UserService extends BaseService<User> {
         identity.setDuration(duration);
         String token = TokenUtil.createToken(identity, apiKeySecret);
 
-        //封装返回前端(除了用户名、角色、时间戳保留，其余消去)
+        // 封装返回前端(除了用户名、角色、时间戳保留，其余消去)
         identity.setToken(token);
         identity.setId(null);
         identity.setIssuer(null);

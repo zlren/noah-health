@@ -1,16 +1,26 @@
 package com.yhch.bean;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
+ * 通用返回结果
  * Created by zlren on 2017/6/6.
  */
 public class CommonResult {
+
+    private static final Logger logger = LoggerFactory.getLogger(CommonResult.class);
+
     private String code;
     private String reason;
     private Object content; //如果成功所返回的实际内容
 
-
     public static CommonResult success(String reason, Object content) {
         return new CommonResult(Constant.SUCCESS, reason, content);
+    }
+
+    public static CommonResult success() {
+        return new CommonResult(Constant.SUCCESS, null, null);
     }
 
     public static CommonResult failure(String reason) {
@@ -21,8 +31,9 @@ public class CommonResult {
         this.code = code;
         this.reason = reason;
         this.content = content;
-    }
 
+        logger.info(toString());
+    }
 
     public String getCode() {
         return code;

@@ -10,34 +10,23 @@
     <!-- 定义注解驱动 -->
     <mvc:annotation-driven/>
 
-
     <!--定义拦截器-->
     <mvc:interceptors>
 
         <!--token认证拦截器-->
         <mvc:interceptor>
-            <mvc:mapping path="/**" />
-            <mvc:exclude-mapping path="/auth/login" />
-            <mvc:exclude-mapping path="/auth/register" />
-            <mvc:exclude-mapping path="/auth/loginDenied" />
-            <mvc:exclude-mapping path="/auth/roleDenied" />
-            <bean class="com.yhch.interceptor.TokenCertifyInterceptor"></bean>
+            <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/auth/login"/>
+            <mvc:exclude-mapping path="/auth/register"/>
+            <mvc:exclude-mapping path="/auth/loginDenied"/>
+            <mvc:exclude-mapping path="/auth/roleDenied"/>
+            <bean class="com.yhch.interceptor.TokenCertifyInterceptor"/>
         </mvc:interceptor>
 
         <!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
     </mvc:interceptors>
 
-
     <!-- 定义Controller的扫描包 -->
     <context:component-scan base-package="com.yhch.controller"/>
-
-    <!-- 定义试图解析器 -->
-    <!--
-        Example: prefix="/WEB-INF/jsp/", suffix=".jsp", viewname="test" -> "/WEB-INF/jsp/test.jsp"
-     -->
-    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="prefix" value="/views/"/>
-        <property name="suffix" value=".jsp"/>
-    </bean>
 
 </beans>

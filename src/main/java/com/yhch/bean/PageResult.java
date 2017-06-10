@@ -70,6 +70,7 @@ public class PageResult {
 
     /**
      * 写一个pageinfo为参数的构造方法
+     *
      * @param pageInfo
      */
     public PageResult(PageInfo<?> pageInfo) {

@@ -1,5 +1,7 @@
 package com.yhch.util;
 
+import com.yhch.bean.CommonData;
+import com.yhch.bean.CommonResult;
 import com.yhch.controller.LoginController;
 import org.slf4j.LoggerFactory;
 
@@ -14,14 +16,21 @@ public class SMSUtil {
     private final static String HTTP_URL = "http://apis.baidu.com/kingtto_media/106sms/106sms";
     private final static String API_KEY = "xxxx";
 
-    public static void send(String phoneNumber, String content) throws Exception {
-        logger.info(content);
+
+    public static CommonResult send(String phone, String code, String content) throws Exception {
+
+        if (!Validator.checkMobile(phone)) {
+            return CommonResult.failure("手机号无效");
+        }
+
+
+        CommonData.getInstance().setMsgCode(phone, code);
         // String myUrl = HTTP_URL;
         // BufferedReader reader;
         // String result;
         // StringBuilder stringBuilder = new StringBuilder();
         //
-        // String httpArg = "mobile=" + phoneNumber + "&content=" + URLEncoder.encode(content, "UTF-8") + "&tag=2";
+        // String httpArg = "mobile=" + phone + "&content=" + URLEncoder.encode(content, "UTF-8") + "&tag=2";
         // myUrl = myUrl + "?" + httpArg;
         // URL url = new URL(myUrl);
         // HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -39,5 +48,6 @@ public class SMSUtil {
         // result = stringBuilder.toString();
 
         // return result;
+        return CommonResult.success();
     }
 }
