@@ -10,11 +10,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class PropertyService {
 
-    @Value("${config.rows}")
-    public int rows;
+    @Value("${page.rows}")
+    public int pageRows;
 
-    @Value("${register.codeLen}")
-    public int codeLen;
+    @Value("${sms.code.len}")
+    public int smsCodeLen;
+
+    @Value("${sms.code.expire}")
+    public int smsCodeExpire;
 
     @Value("${token.issuer}")
     public String issuer;

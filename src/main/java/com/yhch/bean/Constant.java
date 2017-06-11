@@ -9,6 +9,9 @@ public class Constant {
     public static String PHONE = "phone";
     public static String INPUT_CODE = "inputCode";
 
+
+    public static String REDIS_PRE_CODE = "REDIS_PRE_CODE_";
+
     public static String SUCCESS = "SUCCESS";
     public static String FAILURE = "FAILURE";
     public static String FAILURE_LOGIN = "FAILURE_LOGIN";
@@ -26,4 +29,6 @@ public class Constant {
     public static String USER_1 = "USER_1";    // 1级用户6
     public static String USER_2 = "USER_2";    // 2级用户7
     public static String USER_3 = "USER_3";    // 3级用户8
+
+
 }

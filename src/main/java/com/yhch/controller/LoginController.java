@@ -1,13 +1,12 @@
 package com.yhch.controller;
 
-import com.yhch.bean.CommonData;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
 import com.yhch.pojo.User;
-import com.yhch.service.AuthorityService;
 import com.yhch.service.MemberService;
 import com.yhch.service.PropertyService;
+import com.yhch.service.RedisService;
 import com.yhch.service.UserService;
 import com.yhch.util.MD5Util;
 import com.yhch.util.SMSUtil;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
@@ -46,8 +44,7 @@ public class LoginController {
     private PropertyService propertyService;
 
     @Autowired
-    private AuthorityService authorityService;
-
+    private RedisService redisService;
 
     /**
      * 发送短信验证码
@@ -61,15 +58,15 @@ public class LoginController {
 
         String phone = params.get(Constant.PHONE);
 
-        // 1分钟内无法再次请求验证码，需要检查一下commonData中是否存在此手机号，看时间戳和现在时间的对比
-        if (!CommonData.getInstance().sendCheck(phone)) {
+        if (redisService.get(phone) != null) {
             return CommonResult.failure("请1分钟后再试");
         }
 
         StringBuilder code = new StringBuilder();
         Random random = new Random();
-        for (int i = 0; i < propertyService.codeLen; i++) {
-            code.append(String.valueOf(random.nextInt(10)));
+        for (int i = 0; i < propertyService.smsCodeLen; i++) {
+            // code.append(String.valueOf(random.nextInt(10)));
+            code.append(i);
         }
 
         String smsText = "【医海慈航】您的注册验证码为" + code + "，一分钟内有效";
@@ -82,6 +79,10 @@ public class LoginController {
             e.printStackTrace();
             return CommonResult.failure("短信发送失败，请重试");
         }
+
+        // 存储在redis中，过期时间为60s
+        redisService.setSmSCode(Constant.REDIS_PRE_CODE + phone, String.valueOf(code));
+
         return result;
     }
 
@@ -98,11 +99,13 @@ public class LoginController {
         // username就是手机号
         String username = params.get(Constant.PHONE);
         String password = params.get(Constant.PASSWORD);
-        String phoneNumber = params.get(Constant.PHONE);
+        String phone = params.get(Constant.PHONE);
         String inputCode = params.get(Constant.INPUT_CODE);
-System.out.println("inputCode="+inputCode);
-        boolean checkCode = CommonData.getInstance().checkCode(phoneNumber, inputCode);
-        if (!checkCode) {
+
+        logger.info("inputCode = {}", inputCode);
+
+        String code = redisService.get(Constant.REDIS_PRE_CODE + phone);
+        if (code == null || !code.equals(inputCode)) {
             return CommonResult.failure("验证码错误");
         }
 
@@ -111,7 +114,7 @@ System.out.println("inputCode="+inputCode);
         }
 
         try {
-            this.userService.register(username, password, phoneNumber);
+            this.userService.register(username, password, phone);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return CommonResult.failure("注册失败");
@@ -129,6 +132,12 @@ System.out.println("inputCode="+inputCode);
     @RequestMapping(value = "login", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult login(@RequestBody Map<String, String> params) {
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         // 得到用户名和密码，用户名就是phone
         String username = params.get(Constant.PHONE);
@@ -173,12 +182,6 @@ System.out.println("inputCode="+inputCode);
     @RequestMapping(value = "hehe")
     @ResponseBody
     public CommonResult hehe(@RequestBody Map<String, Object> params, HttpSession session) {
-
-        CommonResult checkResult = authorityService.check(session, Arrays.asList(Constant.ADMIN, Constant
-                .ADVISER));
-        if (checkResult.getCode().equals(Constant.FAILURE)) {
-            return checkResult;
-        }
 
         logger.info("进入hehe.action");
 

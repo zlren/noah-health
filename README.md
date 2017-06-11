@@ -3,4 +3,6 @@
 -   SSM框架：Spring、SpringMVC和MyBatis
 -   通用Mapper
 -   Shiro权限管理框架
+-   token认证
+-   redis高速缓存
 

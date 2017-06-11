@@ -1,6 +1,5 @@
 package com.yhch.util;
 
-import com.yhch.bean.CommonData;
 import com.yhch.bean.CommonResult;
 import com.yhch.controller.LoginController;
 import org.slf4j.LoggerFactory;
@@ -22,9 +21,7 @@ public class SMSUtil {
         if (!Validator.checkMobile(phone)) {
             return CommonResult.failure("手机号无效");
         }
-
-
-        CommonData.getInstance().setMsgCode(phone, code);
+        
         // String myUrl = HTTP_URL;
         // BufferedReader reader;
         // String result;

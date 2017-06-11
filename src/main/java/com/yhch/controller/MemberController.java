@@ -52,7 +52,8 @@ public class MemberController {
      */
     @RequestMapping(value = "{member_id}", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult updateById(@PathVariable("member_id") Integer memberId, @RequestBody Map<String, Object> params) {
+    public CommonResult updateById(@PathVariable("member_id") Integer memberId, @RequestBody Map<String, Object>
+            params) {
         return CommonResult.success("已登录", memberService.queryById(memberId));
     }
 
@@ -77,7 +78,8 @@ public class MemberController {
     @RequestMapping(value = "list", method = RequestMethod.GET)
     public CommonResult searchByList(@RequestBody Map<String, Object> params) {
         int pageCurrent = (int) params.get("pageCurrent");
-        PageInfo<Member> memberPageInfo = this.memberService.queryPageListByWhere(pageCurrent, propertyService.rows, null);
+        PageInfo<Member> memberPageInfo = this.memberService.queryPageListByWhere(pageCurrent, propertyService
+                .pageRows, null);
         return CommonResult.success("查询成功", new PageResult(memberPageInfo));
     }
 }
