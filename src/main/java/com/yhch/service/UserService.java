@@ -26,13 +26,12 @@ public class UserService extends BaseService<User> {
     public boolean isExist(String username) {
         User record = new User();
         record.setUsername(username);
-
         return super.queryOne(record) != null;
     }
 
 
     /**
-     * 添加一个用户
+     * 添加一个用户，默认1级用户
      *
      * @param username
      * @param password
@@ -50,22 +49,14 @@ public class UserService extends BaseService<User> {
 
 
     /**
-     * 修改密码
-     *
-     * @param username
-     * @param newPassword
-     * @return
-     */
-    public void changePassword(String username, String newPassword) {
-        User user = new User();
-        user.setPassword(newPassword);
-        super.updateSelective(user);
-    }
-
-    /**
      * 为通过登录验证的用户生成token
      *
+     * @param id
+     * @param issuer
      * @param username
+     * @param role
+     * @param duration
+     * @param apiKeySecret
      * @return
      */
     public CommonResult generateToken(String id, String issuer, String username, String role, Long duration, String

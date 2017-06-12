@@ -4,7 +4,6 @@ import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
 import com.yhch.pojo.User;
-import com.yhch.service.MemberService;
 import com.yhch.service.PropertyService;
 import com.yhch.service.RedisService;
 import com.yhch.service.UserService;
@@ -36,9 +35,6 @@ public class LoginController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private MemberService memberService;
 
     @Autowired
     private PropertyService propertyService;
@@ -134,7 +130,7 @@ public class LoginController {
     public CommonResult login(@RequestBody Map<String, String> params) {
 
         try {
-            Thread.sleep(1000);
+            Thread.sleep(700);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -181,7 +177,7 @@ public class LoginController {
 
     @RequestMapping(value = "hehe")
     @ResponseBody
-    public CommonResult hehe(@RequestBody Map<String, Object> params, HttpSession session) {
+    public CommonResult hehe(HttpSession session) {
 
         logger.info("进入hehe.action");
 
