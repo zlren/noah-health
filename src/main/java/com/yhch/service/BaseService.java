@@ -166,11 +166,12 @@ public abstract class BaseService<T> {
     //  * @param value
     //  * @return
     //  */
-    // public PageInfo<T> queryPageListByPropertyFuzzy(Integer page, Integer rows, String property, String value, X
+    // public PageInfo<T> queryPageListByPropertyFuzzy(Integer pageNow, Integer pageSize, String property, String
+    // value, T
     // record) {
     //     String searchText = "%" + value + "%";
     //
-    //     Example example = new Example(X.class);
+    //     Example example = new Example(T.class);
     //     Example.Criteria criteria = example.createCriteria();
     //     criteria.andLike(property, searchText);
     //

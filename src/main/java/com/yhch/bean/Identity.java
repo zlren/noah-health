@@ -11,6 +11,7 @@ public class Identity {
     private String issuer;
     private String phone;
     private String role; //角色
+    private String name;
     private Long duration; //有效时长（毫秒）
 
     public String getToken() {
@@ -59,5 +60,13 @@ public class Identity {
 
     public void setDuration(Long duration) {
         this.duration = duration;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

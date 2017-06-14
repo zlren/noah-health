@@ -1,16 +1,18 @@
 package com.yhch.service;
 
+import com.github.pagehelper.PageHelper;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
 import com.yhch.pojo.User;
-import com.yhch.util.MD5Util;
 import com.yhch.util.TokenUtil;
+import com.yhch.util.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import tk.mybatis.mapper.entity.Example;
 
-import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 @Service
 public class UserService extends BaseService<User> {
@@ -31,41 +33,23 @@ public class UserService extends BaseService<User> {
 
 
     /**
-     * 添加一个用户，默认1级用户
-     *
-     * @param username
-     * @param password
-     * @param phoneNumber
-     * @throws NoSuchAlgorithmException
-     */
-    public void register(String username, String password, String phoneNumber) throws NoSuchAlgorithmException {
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(MD5Util.generate(password));
-        user.setPhone(phoneNumber);
-        user.setRole(Constant.USER_1);
-        super.save(user);
-    }
-
-
-    /**
      * 为通过登录验证的用户生成token
      *
      * @param id
      * @param issuer
-     * @param username
+     * @param phone
      * @param role
      * @param duration
      * @param apiKeySecret
      * @return
      */
-    public CommonResult generateToken(String id, String issuer, String username, String role, Long duration, String
+    public CommonResult generateToken(String id, String issuer, String phone, String role, Long duration, String
             apiKeySecret) {
 
         Identity identity = new Identity();
         identity.setId(id);
         identity.setIssuer(issuer);
-        identity.setPhone(username);
+        identity.setPhone(phone);
         identity.setRole(role);
         identity.setDuration(duration);
         String token = TokenUtil.createToken(identity, apiKeySecret);
@@ -76,4 +60,46 @@ public class UserService extends BaseService<User> {
         identity.setIssuer(null);
         return CommonResult.success("登录成功", identity);
     }
+
+
+    /**
+     * 条件查询会员
+     *
+     * @param pageNow
+     * @param pageSize
+     * @param role
+     * @param phone
+     * @param name
+     * @return
+     */
+    public List<User> queryUserList(Integer pageNow, Integer pageSize, String role, String phone, String name, String
+            type) {
+
+        logger.info("pageNow: {}, pageSize: {}, role: {}, phone: {}, name: {}", pageNow, pageSize, role, phone, name);
+
+        Example example = new Example(User.class);
+        Example.Criteria criteria = example.createCriteria();
+
+        if (!Validator.checkEmpty(name)) {
+            criteria.andLike(Constant.NAME, "%" + name + "%");
+        }
+
+        if (!Validator.checkEmpty(phone)) {
+            criteria.andLike(Constant.PHONE, "%" + phone + "%");
+        }
+
+        if (!Validator.checkEmpty(role)) {
+            criteria.andLike(Constant.ROLE, "%" + role + "%");
+        } else {
+            if (type.equals(Constant.MEMBER)) {
+                criteria.andLike(Constant.ROLE, "%" + "会员" + "%");
+            } else { // type.equals("employee")
+                criteria.andNotLike(Constant.ROLE, "%" + "会员" + "%");
+            }
+        }
+
+        PageHelper.startPage(pageNow, pageSize);
+        return this.getMapper().selectByExample(example);
+    }
+
 }

@@ -1,6 +1,5 @@
 package com.yhch.bean;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -11,22 +10,10 @@ import java.util.List;
  */
 public class PageResult {
 
-    // 定义jackson对象
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-    private Integer pageCurrent; // 当前查询的是第几页
-    private Integer rowCount; // 当前这一页实际查询结果共有多少行
-    private List<?> dataList; // 实际数据
-    private Integer pageCount; // 一共有多少页
-    private Long rowTotal; // 共有多少条记录
-
-    public Integer getPageCurrent() {
-        return pageCurrent;
-    }
-
-    public void setPageCurrent(Integer pageCurrent) {
-        this.pageCurrent = pageCurrent;
-    }
+    private Integer rowCount;   // 当前这一页实际查询结果共有多少行
+    private List<?> data;       // 实际数据
+    private Integer pageTotal;  // 一共有多少页
+    private Long rowTotal;      // 共有多少条记录
 
     public Integer getRowCount() {
         return rowCount;
@@ -36,20 +23,12 @@ public class PageResult {
         this.rowCount = rowCount;
     }
 
-    public List<?> getDataList() {
-        return dataList;
+    public List<?> getData() {
+        return data;
     }
 
-    public void setDataList(List<?> dataList) {
-        this.dataList = dataList;
-    }
-
-    public Integer getPageCount() {
-        return pageCount;
-    }
-
-    public void setPageCount(Integer pageCount) {
-        this.pageCount = pageCount;
+    public void setData(List<?> data) {
+        this.data = data;
     }
 
     public Long getRowTotal() {
@@ -60,11 +39,19 @@ public class PageResult {
         this.rowTotal = rowTotal;
     }
 
-    public PageResult(Integer pageCurrent, Integer rowCount, List<?> dataList, Integer pageCount, Long rowTotal) {
-        this.pageCurrent = pageCurrent;
+    public Integer getPageTotal() {
+        return pageTotal;
+    }
+
+    public void setPageTotal(Integer pageTotal) {
+        this.pageTotal = pageTotal;
+    }
+
+
+    public PageResult(Integer rowCount, List<?> data, Integer pageTotal, Long rowTotal) {
         this.rowCount = rowCount;
-        this.dataList = dataList;
-        this.pageCount = pageCount;
+        this.data = data;
+        this.pageTotal = pageTotal;
         this.rowTotal = rowTotal;
     }
 
@@ -74,11 +61,9 @@ public class PageResult {
      * @param pageInfo
      */
     public PageResult(PageInfo<?> pageInfo) {
-        this.dataList = pageInfo.getList();
-        this.pageCurrent = pageInfo.getPageNum();
-        this.rowCount = dataList.size();
-        this.pageCount = pageInfo.getPages();
+        this.data = pageInfo.getList();
+        this.rowCount = data.size();
+        this.pageTotal = pageInfo.getPages();
         this.rowTotal = pageInfo.getTotal();
     }
-
 }

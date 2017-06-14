@@ -1,4 +1,4 @@
-package com.yhch.bean.control;
+package com.yhch.bean.rolecheck;
 
 import java.lang.annotation.*;
 
@@ -8,7 +8,7 @@ import java.lang.annotation.*;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface RoleCheck {
+public @interface RequiredRoles {
     // List<String> roles() default ;
     String[] roles() default {};
 }

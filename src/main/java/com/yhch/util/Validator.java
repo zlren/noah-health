@@ -12,7 +12,7 @@ public class Validator {
      * @return
      */
     public static boolean checkEmpty(String input) {
-        return input.trim().equals("");
+        return checkNull(input) || input.trim().equals("");
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.yhch.bean.control;
+package com.yhch.bean.rolecheck;
 
 import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
@@ -18,9 +18,9 @@ import java.util.Set;
  * 自定义注解
  * Created by zlren on 17/6/10.
  */
-public class RoleCheckParse extends HandlerInterceptorAdapter {
+public class RoleCheckInterceptor extends HandlerInterceptorAdapter {
 
-    private static final Logger logger = LoggerFactory.getLogger(RoleCheckParse.class);
+    private static final Logger logger = LoggerFactory.getLogger(RoleCheckInterceptor.class);
 
     // 在调用方法之前执行拦截
     @Override
@@ -30,7 +30,7 @@ public class RoleCheckParse extends HandlerInterceptorAdapter {
         // 从方法处理器中获取出要调用的方法
         Method method = handlerMethod.getMethod();
         // 获取出方法上的Access注解
-        RoleCheck roleCheck = method.getAnnotation(RoleCheck.class);
+        RequiredRoles roleCheck = method.getAnnotation(RequiredRoles.class);
         if (roleCheck == null) {
             // 如果注解为null, 说明不需要拦截, 直接放过
             return true;

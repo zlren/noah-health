@@ -97,6 +97,7 @@ public class LoginController {
         String password = params.get(Constant.PASSWORD);
         String phone = params.get(Constant.PHONE);
         String inputCode = params.get(Constant.INPUT_CODE);
+        String name = params.get(Constant.NAME);
 
         logger.info("inputCode = {}", inputCode);
 
@@ -110,11 +111,18 @@ public class LoginController {
         }
 
         try {
-            this.userService.register(username, password, phone);
+            User user = new User();
+            user.setUsername(username);
+            user.setPassword(MD5Util.generate(password));
+            user.setPhone(phone);
+            user.setRole(Constant.USER_1);
+            user.setName(name);
+            this.userService.save(user);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return CommonResult.failure("注册失败");
         }
+
         return CommonResult.success("注册成功");
     }
 
@@ -171,6 +179,8 @@ public class LoginController {
                 targetUser.getRole(),
                 propertyService.tokenDuration,
                 propertyService.apiKeySecret);
+
+        ((Identity) result.getContent()).setName(targetUser.getName());
 
         return result;
     }
