@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * PageResult
- * Created by zlren on 2017/2/27.
+ * Created by zlren on 2017/5/27.
  */
 public class PageResult {
 

@@ -48,7 +48,7 @@ public class CommonResult {
         return new CommonResult(Constant.FAILURE, reason, null);
     }
 
-    public CommonResult(String code, String reason, Object content) {
+    private CommonResult(String code, String reason, Object content) {
         this.code = code;
         this.reason = reason;
         this.content = content;

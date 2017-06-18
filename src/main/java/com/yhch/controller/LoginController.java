@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpSession;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Random;
@@ -138,7 +137,7 @@ public class LoginController {
     public CommonResult login(@RequestBody Map<String, String> params) {
 
         try {
-            Thread.sleep(700);
+            Thread.sleep(600);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -185,21 +184,12 @@ public class LoginController {
         return result;
     }
 
-    @RequestMapping(value = "hehe")
-    @ResponseBody
-    public CommonResult hehe(HttpSession session) {
 
-        logger.info("进入hehe.action");
-
-        Identity identity = (Identity) session.getAttribute("identity");
-        logger.info("用户名 = " + identity.getPhone());
-        logger.info("角色 = " + identity.getRole());
-
-
-        return CommonResult.success("已登录", null);
-    }
-
-
+    /**
+     * 未验证跳转
+     *
+     * @return
+     */
     @RequestMapping(value = "login_denied")
     @ResponseBody
     public CommonResult loginDenied() {
@@ -208,6 +198,11 @@ public class LoginController {
     }
 
 
+    /**
+     * 权限拒绝
+     *
+     * @return
+     */
     @RequestMapping(value = "role_denied")
     @ResponseBody
     public CommonResult roleDenied() {

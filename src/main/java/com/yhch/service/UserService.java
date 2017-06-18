@@ -75,8 +75,6 @@ public class UserService extends BaseService<User> {
     public List<User> queryUserList(Integer pageNow, Integer pageSize, String role, String phone, String name, String
             type) {
 
-        logger.info("pageNow: {}, pageSize: {}, role: {}, phone: {}, name: {}", pageNow, pageSize, role, phone, name);
-
         Example example = new Example(User.class);
         Example.Criteria criteria = example.createCriteria();
 
@@ -93,7 +91,7 @@ public class UserService extends BaseService<User> {
         } else {
             if (type.equals(Constant.MEMBER)) {
                 criteria.andLike(Constant.ROLE, "%" + "会员" + "%");
-            } else { // type.equals("employee")
+            } else { // type.equals("Constant.EMPLOYEE")
                 criteria.andNotLike(Constant.ROLE, "%" + "会员" + "%");
             }
         }
@@ -102,4 +100,34 @@ public class UserService extends BaseService<User> {
         return this.getMapper().selectByExample(example);
     }
 
+
+    /**
+     * 搜索以特定字符开头的
+     *
+     * @param name
+     * @param type
+     * @return
+     */
+    public List<User> queryStartWith(String name, String phone, String type) {
+
+        Example example = new Example(User.class);
+        Example.Criteria criteria = example.createCriteria();
+
+        if (!Validator.checkEmpty(name)) {
+            criteria.andLike(Constant.NAME, name + "%");
+        }
+
+        if (!Validator.checkEmpty(phone)) {
+            criteria.andLike(Constant.PHONE, phone + "%");
+        }
+
+        if (type.equals(Constant.MEMBER)) {
+            criteria.andLike(Constant.ROLE, "%" + "会员" + "%");
+        } else {
+            criteria.andNotLike(Constant.ROLE, "%" + "会员" + "%");
+        }
+
+        PageHelper.startPage(1, 5);
+        return this.getMapper().selectByExample(example);
+    }
 }

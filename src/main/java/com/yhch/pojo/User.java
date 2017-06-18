@@ -17,6 +17,12 @@ public class User {
 
     private String phone;
 
+    @Column(name = "adviser_id")
+    private String adviserId;
+
+    @Column(name = "advise_mgr_id")
+    private String adviseMgrId;
+
     /**
      * @return id
      */
@@ -99,5 +105,33 @@ public class User {
      */
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    /**
+     * @return adviser_id
+     */
+    public String getAdviserId() {
+        return adviserId;
+    }
+
+    /**
+     * @param adviserId
+     */
+    public void setAdviserId(String adviserId) {
+        this.adviserId = adviserId;
+    }
+
+    /**
+     * @return advise_mgr_id
+     */
+    public String getAdviseMgrId() {
+        return adviseMgrId;
+    }
+
+    /**
+     * @param adviseMgrId
+     */
+    public void setAdviseMgrId(String adviseMgrId) {
+        this.adviseMgrId = adviseMgrId;
     }
 }

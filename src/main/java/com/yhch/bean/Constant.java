@@ -1,6 +1,7 @@
 package com.yhch.bean;
 
 /**
+ * 常量
  * Created by zlren on 2017/6/6.
  */
 public class Constant {
@@ -46,5 +47,9 @@ public class Constant {
     public static String MEMBER = "member";
     public static String EMPLOYEE = "employee";
 
+    public static String FIRST_ID = "firstId";
+    public static String ADVISER_ID = "adviserId";
+
+    public static String MANAGER = "manager";
 
 }

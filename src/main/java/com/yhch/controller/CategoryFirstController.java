@@ -1,6 +1,5 @@
 package com.yhch.controller;
 
-import com.github.pagehelper.PageInfo;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
 import com.yhch.bean.rolecheck.RequiredRoles;
@@ -8,7 +7,6 @@ import com.yhch.pojo.CategoryFirst;
 import com.yhch.pojo.CategorySecond;
 import com.yhch.service.CategoryFirstService;
 import com.yhch.service.CategorySecondService;
-import com.yhch.service.PropertyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,10 +33,6 @@ public class CategoryFirstController {
     @Autowired
     private CategorySecondService categorySecondService;
 
-    @Autowired
-    private PropertyService propertyService;
-
-
     /**
      * 添加一个大类
      *
@@ -44,8 +40,8 @@ public class CategoryFirstController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
+    @RequiredRoles(roles = {"系统管理员"})
     @ResponseBody
-    @RequiredRoles(roles = {"ADMIN"})
     public CommonResult addCategoryFist(@RequestBody Map<String, String> params) {
 
         String type = params.get(Constant.TYPE);
@@ -71,8 +67,8 @@ public class CategoryFirstController {
      * @return
      */
     @RequestMapping(method = RequestMethod.DELETE)
+    @RequiredRoles(roles = {"系统管理员"})
     @ResponseBody
-    @RequiredRoles(roles = {"ADMIN"})
     public CommonResult deleteCategoryFist(@RequestBody Map<String, Integer> params) {
 
         Integer id = params.get(Constant.ID);
@@ -96,8 +92,8 @@ public class CategoryFirstController {
      * @return
      */
     @RequestMapping(method = RequestMethod.PUT)
+    @RequiredRoles(roles = {"超级管理员"})
     @ResponseBody
-    @RequiredRoles(roles = {"ADMIN"})
     public CommonResult updateCategoryFist(@RequestBody Map<String, Object> params) {
 
         Integer id = (Integer) params.get(Constant.ID);
@@ -115,47 +111,37 @@ public class CategoryFirstController {
 
 
     /**
-     * 分页查询某个type（医技、化验）下的大类
+     * 分级查询
      *
      * @param params
      * @return
      */
-    @RequestMapping(value = "list_first", method = RequestMethod.GET)
+    @RequestMapping(value = "level", method = RequestMethod.POST)
+    @RequiredRoles(roles = {"超级管理员"})
     @ResponseBody
-    // @RoleCheck(roles = {"ADMIN"})
     public CommonResult queryListFirst(@RequestBody Map<String, Object> params) {
 
         String type = (String) params.get(Constant.TYPE);
-        Integer pageCurrent = (Integer) params.get(Constant.PAGE_NOW);
+
+        Map<CategoryFirst, List<CategorySecond>> result = new HashMap<>();
 
         CategoryFirst categoryFirst = new CategoryFirst();
         categoryFirst.setType(type);
+        List<CategoryFirst> categoryFirsts = this.categoryFirstService.queryListByWhere(categoryFirst);
 
-        PageInfo<CategoryFirst> categoryFirstPageInfo = this.categoryFirstService.queryPageListByWhere
-                (pageCurrent, propertyService.pageRows, categoryFirst);
-        return CommonResult.success("查询成功", categoryFirstPageInfo);
-    }
+        for (CategoryFirst first : categoryFirsts) {
 
+            result.put(first, new ArrayList<>());
 
-    /**
-     * 分页查询大类下面的所有亚类
-     *
-     * @param params
-     * @return
-     */
-    @RequestMapping(value = "list_second", method = RequestMethod.GET)
-    @ResponseBody
-    // @RoleCheck(roles = {"ADMIN"})
-    public CommonResult queryListSecond(@RequestBody Map<String, Object> params) {
+            CategorySecond categorySecond = new CategorySecond();
+            categorySecond.setFirstId(first.getId());
+            List<CategorySecond> categorySeconds = this.categorySecondService.queryListByWhere(categorySecond);
 
-        Integer id = (Integer) params.get(Constant.ID);
-        Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
+            for (CategorySecond second : categorySeconds) {
+                result.get(first).add(second);
+            }
+        }
 
-        CategorySecond categorySecond = new CategorySecond();
-        categorySecond.setFirstId(id);
-
-        PageInfo<CategorySecond> categorySecondPageInfo = this.categorySecondService.queryPageListByWhere
-                (pageNow, propertyService.pageRows, categorySecond);
-        return CommonResult.success("查询成功", categorySecondPageInfo);
+        return CommonResult.success("查询成功", result);
     }
 }
