@@ -48,8 +48,8 @@ public class Constant {
     public static String EMPLOYEE = "employee";
 
     public static String FIRST_ID = "firstId";
-    public static String ADVISER_ID = "adviserId";
+    public static String STAFF_ID = "staffId";
+    public static String STAFF_MGR_ID = "staffMgrId";
 
     public static String MANAGER = "manager";
-
 }

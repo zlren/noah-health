@@ -17,11 +17,11 @@ public class User {
 
     private String phone;
 
-    @Column(name = "adviser_id")
-    private String adviserId;
+    @Column(name = "staff_id")
+    private String staffId;
 
-    @Column(name = "advise_mgr_id")
-    private String adviseMgrId;
+    @Column(name = "staff_mgr_id")
+    private String staffMgrId;
 
     /**
      * @return id
@@ -108,30 +108,30 @@ public class User {
     }
 
     /**
-     * @return adviser_id
+     * @return staff_id
      */
-    public String getAdviserId() {
-        return adviserId;
+    public String getStaffId() {
+        return staffId;
     }
 
     /**
-     * @param adviserId
+     * @param staffId
      */
-    public void setAdviserId(String adviserId) {
-        this.adviserId = adviserId;
+    public void setStaffId(String staffId) {
+        this.staffId = staffId;
     }
 
     /**
-     * @return advise_mgr_id
+     * @return staff_mgr_id
      */
-    public String getAdviseMgrId() {
-        return adviseMgrId;
+    public String getStaffMgrId() {
+        return staffMgrId;
     }
 
     /**
-     * @param adviseMgrId
+     * @param staffMgrId
      */
-    public void setAdviseMgrId(String adviseMgrId) {
-        this.adviseMgrId = adviseMgrId;
+    public void setStaffMgrId(String staffMgrId) {
+        this.staffMgrId = staffMgrId;
     }
 }

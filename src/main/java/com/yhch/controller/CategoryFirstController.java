@@ -9,10 +9,7 @@ import com.yhch.service.CategoryFirstService;
 import com.yhch.service.CategorySecondService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -111,6 +108,27 @@ public class CategoryFirstController {
 
 
     /**
+     * 查询所有大类列表
+     *
+     * @param type
+     * @return
+     */
+    @RequestMapping(value = "{type}/list", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult queryListFirst(@PathVariable("type") String type) {
+
+        if (!type.equals(Constant.HUAYAN) && !type.equals(Constant.YIJI)) {
+            return CommonResult.failure("不支持的大类");
+        }
+
+        CategoryFirst record = new CategoryFirst();
+        record.setType(type);
+        List<CategoryFirst> categoryFirstList = this.categoryFirstService.queryListByWhere(record);
+        return CommonResult.success("查询成功", categoryFirstList);
+    }
+
+
+    /**
      * 分级查询
      *
      * @param params
@@ -119,7 +137,7 @@ public class CategoryFirstController {
     @RequestMapping(value = "level", method = RequestMethod.POST)
     @RequiredRoles(roles = {"超级管理员"})
     @ResponseBody
-    public CommonResult queryListFirst(@RequestBody Map<String, Object> params) {
+    public CommonResult queryFirstSecondLevel(@RequestBody Map<String, Object> params) {
 
         String type = (String) params.get(Constant.TYPE);
 

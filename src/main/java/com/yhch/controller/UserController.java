@@ -52,10 +52,10 @@ public class UserController {
 
         if (role.equals(Constant.USER_1) || role.equals(Constant.USER_2) || role.equals
                 (Constant.USER_3)) {
-            User adviser = this.userService.queryById(Integer.valueOf(user.getAdviserId()));
-            user.setAdviseMgrId(this.userService.queryById(Integer.valueOf(adviser.getAdviseMgrId())).getName());
-        } else if (role.equals(Constant.ADMIN)) {
-
+            User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
+            user.setStaffMgrId(this.userService.queryById(Integer.valueOf(adviser.getStaffMgrId())).getName());
+        } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ARCHIVER)) {
+            // user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
         }
 
         return CommonResult.success("查询成功", user);
@@ -99,10 +99,11 @@ public class UserController {
         String name = (String) params.get(Constant.NAME);
         String phone = (String) params.get(Constant.PHONE);
         String role = (String) params.get(Constant.ROLE);
-        String adviserId = String.valueOf(params.get(Constant.ADVISER_ID));
+        Integer adviserId = (Integer) params.get(Constant.STAFF_ID);
+        Integer staffMgrId = (Integer) params.get(Constant.STAFF_MGR_ID);
 
-        User user = new User();
-        user.setId(userId);
+        // 未修改的user
+        User user = this.userService.queryById(userId);
 
         if (!Validator.checkEmpty(name)) {
             user.setName(name);
@@ -113,17 +114,73 @@ public class UserController {
             user.setUsername(phone);
         }
 
+        // role
         if (!Validator.checkEmpty(role)) {
+            if (this.userService.checkMember(user.getRole()) && this.userService.checkMember(role)) {
+                // 以前是会员，现在也是会员
+
+            } else if (this.userService.checkStaff(user.getRole()) && this.userService.checkManager(role)) {
+                // 从员工改为主管
+
+                // 以前是顾问部员工
+                // 如果存在以它为会员的顾问，则不允许修改
+                if (user.getRole().equals(Constant.ADVISER)) {
+
+                    User record = new User();
+                    record.setStaffId(String.valueOf(userId));
+
+                    List<User> memberList = this.userService.queryListByWhere(record);
+                    if (memberList != null && memberList.size() > 0) {
+                        // 存在以他为顾问的会员
+                        return CommonResult.failure("修改失败：存在以此用户为顾问的会员");
+                    }
+                }
+
+            } else if (this.userService.checkMember(user.getRole()) && this.userService.checkStaff(role)) {
+                // 从主管改为员工
+
+                // 存在以此主管为主管的员工，则不允许修改
+                User record = new User();
+                record.setStaffMgrId(String.valueOf(userId));
+
+                List<User> staffList = this.userService.queryListByWhere(record);
+                if (staffList != null && staffList.size() > 0) {
+                    // 存在以他为主管的员工
+                    return CommonResult.failure("修改失败：存在以此用户为主管的员工");
+                }
+
+                user.setStaffMgrId(null);
+
+            } else if (user.getRole().equals(Constant.ADMIN) && !role.equals(Constant.ADMIN)) {
+                // 以前是admin现在不是了
+                // 必须保证系统中永远存在ADMIN
+                User record = new User();
+                record.setRole(Constant.ADMIN);
+
+                List<User> adminList = this.userService.queryListByWhere(record);
+                if (adminList != null && adminList.size() >= 2) {
+                    // 可以修改
+
+                } else {
+                    return CommonResult.failure("修改失败：系统中必须存在至少一个系统管理员");
+                }
+            }
+
             user.setRole(role);
         }
 
-        if (!Validator.checkEmpty(adviserId)) {
-            String adviseMgrId = this.userService.queryById(Integer.valueOf(adviserId)).getAdviseMgrId();
-            user.setAdviserId(adviserId);
-            user.setAdviseMgrId(adviseMgrId);
+        // 只有会员的staff_id不为null
+        if (adviserId != null) {
+            String adviseMgrId = this.userService.queryById(adviserId).getStaffMgrId();
+            user.setStaffId(String.valueOf(adviserId));
+            user.setStaffMgrId(adviseMgrId);
         }
 
-        this.userService.updateSelective(user);
+        if (staffMgrId != null) {
+            user.setStaffMgrId(String.valueOf(staffMgrId));
+        }
+
+        this.userService.update(user);
 
         return CommonResult.success("修改成功");
     }
@@ -168,7 +225,7 @@ public class UserController {
             Integer adviseMgrId = adviseMgrTemp.getId();
 
             User adviser = new User();
-            adviser.setAdviseMgrId(String.valueOf(adviseMgrId));
+            adviser.setStaffMgrId(String.valueOf(adviseMgrId));
             adviser.setRole(Constant.ADVISER);
             List<User> adviserList = this.userService.queryListByWhere(adviser);
 
@@ -200,9 +257,15 @@ public class UserController {
         List<User> userList = this.userService.queryUserList(pageNow, pageSize, role, phone, name, type);
         if (type.equals(Constant.MEMBER)) {
             userList.forEach(user -> {
-                User adviser = this.userService.queryById(Integer.valueOf(user.getAdviserId()));
-                user.setAdviserId(adviser.getName());
-                user.setAdviseMgrId(this.userService.queryById(Integer.valueOf(adviser.getAdviseMgrId())).getName());
+                User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
+                user.setStaffId(adviser.getName());
+                user.setStaffMgrId(this.userService.queryById(Integer.valueOf(adviser.getStaffMgrId())).getName());
+            });
+        } else if (type.equals(Constant.EMPLOYEE)) {
+            userList.forEach(user -> {
+                if (user.getRole().equals(Constant.ADVISER) || user.getRole().equals(Constant.ARCHIVER)) {
+                    user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
+                }
             });
         }
 
@@ -225,6 +288,7 @@ public class UserController {
         // 得到用户名和密码，用户名就是phone
         Integer userId = (Integer) params.get(Constant.ID);
         String password = (String) params.get(Constant.PASSWORD);
+
         String md5Password;
         try {
             md5Password = MD5Util.generate(password);

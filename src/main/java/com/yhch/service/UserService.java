@@ -102,32 +102,32 @@ public class UserService extends BaseService<User> {
 
 
     /**
-     * 搜索以特定字符开头的
+     * 一级、二级和三级会员
      *
-     * @param name
-     * @param type
+     * @param role
+     * @return true表示是
+     */
+    public boolean checkMember(String role) {
+        return role.equals(Constant.USER_1) || role.equals(Constant.USER_2) || role.equals(Constant.USER_3);
+    }
+
+    /**
+     * 顾问部员工、档案部员工、财务部员工
+     *
+     * @param role
      * @return
      */
-    public List<User> queryStartWith(String name, String phone, String type) {
+    public boolean checkStaff(String role) {
+        return role.equals(Constant.ADVISER) || role.equals(Constant.ARCHIVER) || role.equals(Constant.FINANCER);
+    }
 
-        Example example = new Example(User.class);
-        Example.Criteria criteria = example.createCriteria();
-
-        if (!Validator.checkEmpty(name)) {
-            criteria.andLike(Constant.NAME, name + "%");
-        }
-
-        if (!Validator.checkEmpty(phone)) {
-            criteria.andLike(Constant.PHONE, phone + "%");
-        }
-
-        if (type.equals(Constant.MEMBER)) {
-            criteria.andLike(Constant.ROLE, "%" + "会员" + "%");
-        } else {
-            criteria.andNotLike(Constant.ROLE, "%" + "会员" + "%");
-        }
-
-        PageHelper.startPage(1, 5);
-        return this.getMapper().selectByExample(example);
+    /**
+     * 顾问部主管、档案部主管
+     *
+     * @param role
+     * @return
+     */
+    public boolean checkManager(String role) {
+        return role.equals(Constant.ADVISE_MANAGER) || role.equals(Constant.ARCHIVE_MANAGER);
     }
 }
