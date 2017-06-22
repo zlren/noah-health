@@ -5,6 +5,7 @@ package com.yhch.bean;
  * Created by zlren on 2017/6/6.
  */
 public class Constant {
+
     public static String PASSWORD = "password";
     public static String USERNAME = "username";
     public static String PHONE = "phone";
@@ -48,8 +49,25 @@ public class Constant {
     public static String EMPLOYEE = "employee";
 
     public static String FIRST_ID = "firstId";
+    public static String SECOND_ID = "secondId";
     public static String STAFF_ID = "staffId";
     public static String STAFF_MGR_ID = "staffMgrId";
+    public static String SYSTEM_CATEGORY = "systemCategory";
+    public static String REFERENCE_VALUE = "referenceValue";
+    public static String HOSPITAL = "hospital";
+
+
+    public static String USER_ID = "userId";
+    public static String UPLOADER_ID = "uploaderId";
+
+    public static String IS_PASS = "isPass";
+    public static String IS_INPUT = "isInput";
 
     public static String MANAGER = "manager";
+
+    public static String WEITONGGUO = "未通过";
+    public static String YITONGGUO = "已通过";
+    public static String WEILURU = "未录入";
+    public static String YILURU = "已录入";
+
 }

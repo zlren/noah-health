@@ -119,8 +119,38 @@ public class UserController {
             if (this.userService.checkMember(user.getRole()) && this.userService.checkMember(role)) {
                 // 以前是会员，现在也是会员
 
+            } else if (this.userService.checkStaff(user.getRole()) &&
+                    (this.userService.checkStaff(role) || this.userService.checkAdmin(role)) &&
+                    !user.getRole().equals(role)) {
+                // 从员工改为（不同的员工或者admin）
+                // 之前是顾问员工，现在是财务或者档案员工，如果存在以此顾问员工为顾问的会员，则无法修改
+                User record = new User();
+                record.setStaffId(String.valueOf(userId));
+
+                List<User> adviserList = this.userService.queryListByWhere(record);
+                if (adviserList != null && adviserList.size() > 0) {
+                    // 存在以他为顾问的会员
+                    return CommonResult.failure("修改失败：存在以此用户为顾问的会员");
+                }
+
+            } else if (this.userService.checkManager(user.getRole()) &&
+                    (this.userService.checkManager(role) || this.userService.checkAdmin(role)) &&
+                    !user.getRole().equals(role)) {
+                // 从主管改成（不同的主管或者admin）
+
+                User record = new User();
+                record.setStaffMgrId(String.valueOf(userId));
+
+                List<User> staffList = this.userService.queryListByWhere(record);
+                if (staffList != null && staffList.size() > 0) {
+                    // 存在以他为顾问的会员
+                    return CommonResult.failure("修改失败：存在以此用户为主管的员工");
+                }
+
             } else if (this.userService.checkStaff(user.getRole()) && this.userService.checkManager(role)) {
                 // 从员工改为主管
+
+                logger.info("从员工改为主管");
 
                 // 以前是顾问部员工
                 // 如果存在以它为会员的顾问，则不允许修改
@@ -136,7 +166,9 @@ public class UserController {
                     }
                 }
 
-            } else if (this.userService.checkMember(user.getRole()) && this.userService.checkStaff(role)) {
+                user.setStaffMgrId(null);
+
+            } else if (this.userService.checkManager(user.getRole()) && this.userService.checkStaff(role)) {
                 // 从主管改为员工
 
                 // 存在以此主管为主管的员工，则不允许修改
@@ -149,7 +181,12 @@ public class UserController {
                     return CommonResult.failure("修改失败：存在以此用户为主管的员工");
                 }
 
-                user.setStaffMgrId(null);
+                // 员工需要主管字段，所以staffMgrId不为空
+                if (staffMgrId != null) {
+                    user.setStaffMgrId(null);
+                } else {
+                    return CommonResult.failure("未指定主管");
+                }
 
             } else if (user.getRole().equals(Constant.ADMIN) && !role.equals(Constant.ADMIN)) {
                 // 以前是admin现在不是了

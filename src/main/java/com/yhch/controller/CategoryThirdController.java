@@ -1,21 +1,158 @@
 package com.yhch.controller;
 
+import com.github.pagehelper.PageInfo;
+import com.yhch.bean.CommonResult;
+import com.yhch.bean.Constant;
+import com.yhch.bean.PageResult;
+import com.yhch.pojo.CategoryThird;
 import com.yhch.service.CategoryThirdService;
+import com.yhch.util.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
+ * 检查项目
  * Created by zlren on 2017/6/14.
  */
-@Controller
+
 @RequestMapping("third")
+@Controller
 public class CategoryThirdController {
 
     @Autowired
     private CategoryThirdService categoryThirdService;
 
 
+    /**
+     * 添加检查项目
+     *
+     * @param params
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult addCategoryThird(@RequestBody Map<String, Object> params) {
 
+        Integer secondId = (Integer) params.get(Constant.SECOND_ID);
+        String name = (String) params.get(Constant.NAME);
+        String systemCategory = (String) params.get(Constant.SYSTEM_CATEGORY);
+        String referenceValue = (String) params.get(Constant.REFERENCE_VALUE);
+        String hospital = (String) params.get(Constant.HOSPITAL);
+
+        // 没有检查hospital是否为空
+        if (secondId == null || Validator.checkEmpty(name) || Validator.checkEmpty(systemCategory) || Validator
+                .checkEmpty(referenceValue)) {
+            return CommonResult.failure("添加失败，信息不完整");
+        }
+
+        CategoryThird categoryThird = new CategoryThird();
+        categoryThird.setSecondId(secondId);
+        categoryThird.setName(name);
+
+        if (this.categoryThirdService.queryOne(categoryThird) != null) {
+            return CommonResult.failure("添加失败，已经存在的检查项目");
+        }
+
+        categoryThird.setSystemCategory(systemCategory);
+        categoryThird.setReferenceValue(referenceValue);
+        categoryThird.setHospital(hospital);
+
+        this.categoryThirdService.save(categoryThird);
+
+        return CommonResult.success("添加检查项目成功");
+    }
+
+
+    /**
+     * 删除检查项目
+     *
+     * @param thirdId
+     * @return
+     */
+    @RequestMapping(value = "{thirdId}", method = RequestMethod.DELETE)
+    @ResponseBody
+    public CommonResult deleteCategoryThird(@PathVariable("thirdId") Integer thirdId) {
+
+        if (this.categoryThirdService.queryById(thirdId) != null) {
+            return CommonResult.failure("删除失败，不存在的检查项目");
+        }
+
+        this.categoryThirdService.deleteById(thirdId);
+        return CommonResult.success("删除检查项目成功");
+    }
+
+
+    /**
+     * 修改检查项目
+     *
+     * @param params
+     * @param thirdId
+     * @return
+     */
+    @RequestMapping(value = "{thirdId}", method = RequestMethod.PUT)
+    @ResponseBody
+    public CommonResult updateCategoryThird(@RequestBody Map<String, Object> params, @PathVariable("thirdId") Integer
+            thirdId) {
+
+        if (this.categoryThirdService.queryById(thirdId) == null) {
+            return CommonResult.failure("修改失败，不存在的检查项目");
+        }
+
+        Integer secondId = (Integer) params.get(Constant.SECOND_ID);
+        String name = (String) params.get(Constant.NAME);
+        String systemCategory = (String) params.get(Constant.SYSTEM_CATEGORY);
+        String referenceValue = (String) params.get(Constant.REFERENCE_VALUE);
+        String hospital = (String) params.get(Constant.HOSPITAL);
+
+        // 没有检查hospital是否为空
+        if (secondId == null || Validator.checkEmpty(name) || Validator.checkEmpty(systemCategory) || Validator
+                .checkEmpty(referenceValue)) {
+            return CommonResult.failure("添加失败，信息不完整");
+        }
+
+        CategoryThird categoryThird = new CategoryThird();
+        categoryThird.setSecondId(secondId);
+        categoryThird.setName(name);
+
+        if (this.categoryThirdService.queryOne(categoryThird) != null) {
+            return CommonResult.failure("添加失败，已经存在的检查项目");
+        }
+
+        categoryThird.setSystemCategory(systemCategory);
+        categoryThird.setReferenceValue(referenceValue);
+        categoryThird.setHospital(hospital);
+
+        this.categoryThirdService.update(categoryThird);
+
+        return CommonResult.success("修改成功");
+    }
+
+
+    /**
+     * 根据secondId分页查询亚亚类
+     *
+     * @param params
+     * @param secondId
+     * @return
+     */
+    @RequestMapping(value = "{secondId}/list", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult queryThirdCategoryList(@RequestBody Map<String, Integer> params, @PathVariable("secondId")
+            Integer secondId) {
+
+        Integer pageNow = params.get(Constant.PAGE_NOW);
+        Integer pageSize = params.get(Constant.PAGE_SIZE);
+
+        CategoryThird categoryThird = new CategoryThird();
+        categoryThird.setSecondId(secondId);
+
+        PageInfo<CategoryThird> categoryThirdPageInfo = this.categoryThirdService.queryPageListByWhere(pageNow,
+                pageSize, categoryThird);
+
+        return CommonResult.success("查询成功", new PageResult(categoryThirdPageInfo));
+    }
 
 }

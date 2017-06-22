@@ -130,4 +130,14 @@ public class UserService extends BaseService<User> {
     public boolean checkManager(String role) {
         return role.equals(Constant.ADVISE_MANAGER) || role.equals(Constant.ARCHIVE_MANAGER);
     }
+
+    /**
+     * 系统管理员
+     *
+     * @param role
+     * @return
+     */
+    public boolean checkAdmin(String role) {
+        return role.equals(Constant.ADMIN);
+    }
 }
