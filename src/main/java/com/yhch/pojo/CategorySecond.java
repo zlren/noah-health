@@ -4,6 +4,7 @@ import javax.persistence.*;
 
 @Table(name = "category_second")
 public class CategorySecond {
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 

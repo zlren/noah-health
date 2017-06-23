@@ -30,6 +30,19 @@ public class CategoryFirstController {
     @Autowired
     private CategorySecondService categorySecondService;
 
+
+    /**
+     * 根据id查询
+     *
+     * @param firstId
+     * @return
+     */
+    @RequestMapping(value = "{firstId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult queryCategoryFirstById(@PathVariable("firstId") Integer firstId) {
+        return CommonResult.success("查询成功", this.categoryFirstService.queryById(firstId));
+    }
+
     /**
      * 添加一个大类
      *

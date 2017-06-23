@@ -31,6 +31,7 @@ public class TokenCertifyInterceptor implements HandlerInterceptor {
 
         // logger.info("进入TokenCertifyInterceptor");
 
+        // return true;
         // 验证token的有效性
         try {
 

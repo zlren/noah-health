@@ -25,6 +25,21 @@ public class CategoryThirdController {
     @Autowired
     private CategoryThirdService categoryThirdService;
 
+    /**
+     * 根据id查询
+     *
+     * @param thirdId
+     * @return
+     */
+    @RequestMapping(value = "{thirdId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult queryCategoryThirdById(@PathVariable("thirdId") Integer thirdId) {
+
+        // 判不存在
+
+        return CommonResult.success("查询成功", this.categoryThirdService.queryById(thirdId));
+    }
+
 
     /**
      * 添加检查项目
@@ -76,7 +91,7 @@ public class CategoryThirdController {
     @ResponseBody
     public CommonResult deleteCategoryThird(@PathVariable("thirdId") Integer thirdId) {
 
-        if (this.categoryThirdService.queryById(thirdId) != null) {
+        if (this.categoryThirdService.queryById(thirdId) == null) {
             return CommonResult.failure("删除失败，不存在的检查项目");
         }
 

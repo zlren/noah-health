@@ -9,6 +9,8 @@ import com.yhch.pojo.CategoryThird;
 import com.yhch.service.CategorySecondService;
 import com.yhch.service.CategoryThirdService;
 import com.yhch.util.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -24,11 +26,26 @@ import java.util.Map;
 @Controller
 public class CategorySecondController {
 
+    private static final Logger logger = LoggerFactory.getLogger(CategorySecondController.class);
+
     @Autowired
     private CategorySecondService categorySecondService;
 
     @Autowired
     private CategoryThirdService categoryThirdService;
+
+    /**
+     * 根据id查询
+     *
+     * @param secondId
+     * @return
+     */
+    @RequestMapping(value = "{secondId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult queryCategorySecondById(@PathVariable("secondId") Integer secondId) {
+        return CommonResult.success("查询成功", this.categorySecondService.queryById(secondId));
+    }
+
 
     /**
      * 添加一个亚类
