@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 大类
@@ -40,6 +37,11 @@ public class CategoryFirstController {
     @RequestMapping(value = "{firstId}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult queryCategoryFirstById(@PathVariable("firstId") Integer firstId) {
+
+        if (this.categoryFirstService.queryById(firstId) == null) {
+            return CommonResult.failure("查询失败，不存在的大类");
+        }
+
         return CommonResult.success("查询成功", this.categoryFirstService.queryById(firstId));
     }
 
@@ -131,6 +133,7 @@ public class CategoryFirstController {
             return CommonResult.failure("修改失败，和其他大类重复");
         }
 
+        // 设置id，根据id去改
         categoryFirst.setId(firstId);
         this.categoryFirstService.update(categoryFirst);
 
@@ -175,23 +178,21 @@ public class CategoryFirstController {
 
         CategoryFirst categoryFirst = new CategoryFirst();
         categoryFirst.setType(type);
-        List<CategoryFirst> categoryFirsts = this.categoryFirstService.queryListByWhere(categoryFirst);
 
-        String firstName;
-        for (CategoryFirst first : categoryFirsts) {
+        List<CategoryFirst> categoryFirstList = this.categoryFirstService.queryListByWhere(categoryFirst);
 
-            firstName = first.getName();
-
-            result.put(firstName, new ArrayList<>());
+        categoryFirstList.forEach(first -> {
 
             CategorySecond categorySecond = new CategorySecond();
             categorySecond.setFirstId(first.getId());
+
             List<CategorySecond> categorySeconds = this.categorySecondService.queryListByWhere(categorySecond);
 
-            for (CategorySecond second : categorySeconds) {
-                result.get(firstName).add(second);
+            // 如果一个大类不存在亚类，不把它加入到level中
+            if (categorySeconds != null && categorySeconds.size() > 0) {
+                result.put(first.getName(), categorySeconds);
             }
-        }
+        });
 
         return CommonResult.success("查询成功", result);
     }

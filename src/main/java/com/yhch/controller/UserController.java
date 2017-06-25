@@ -33,6 +33,49 @@ public class UserController {
     private UserService userService;
 
 
+    @RequestMapping(method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult addEmployee(@RequestBody Map<String, Object> params) {
+
+        String name = (String) params.get(Constant.NAME);
+        String phone = (String) params.get(Constant.PHONE);
+        String role = (String) params.get(Constant.ROLE);
+        Integer staffMgrId = (Integer) params.get(Constant.STAFF_MGR_ID);
+
+        User user = new User();
+
+        if (Validator.checkEmpty(name) || Validator.checkEmpty(phone) || Validator.checkEmpty(role)) {
+            return CommonResult.failure("添加失败，信息不完整");
+        } else {
+            user.setName(name);
+            user.setUsername(phone);
+            user.setPhone(phone);
+            user.setRole(role);
+        }
+
+        // 是员工但并不是财务部员工，所以需要主管
+        if (this.userService.checkStaff(role)) {
+            if (!role.equals(Constant.FINANCER)) {
+                if (staffMgrId == null) {
+                    return CommonResult.failure("添加失败，信息不完整");
+                } else {
+                    user.setStaffMgrId(String.valueOf(staffMgrId));
+                }
+            }
+        }
+
+        User record = new User();
+        record.setPhone(phone);
+        if (this.userService.queryOne(record) != null) {
+            return CommonResult.failure("手机号已注册");
+        }
+
+        this.userService.save(user);
+
+        return CommonResult.success("添加成功");
+    }
+
+
     /**
      * 查询用户信息
      *
@@ -123,6 +166,8 @@ public class UserController {
                     (this.userService.checkStaff(role) || this.userService.checkAdmin(role)) &&
                     !user.getRole().equals(role)) {
                 // 从员工改为（不同的员工或者admin）
+
+                // 只有user的staffId不为null，表示的是顾问
                 // 之前是顾问员工，现在是财务或者档案员工，如果存在以此顾问员工为顾问的会员，则无法修改
                 User record = new User();
                 record.setStaffId(String.valueOf(userId));
@@ -131,6 +176,11 @@ public class UserController {
                 if (adviserList != null && adviserList.size() > 0) {
                     // 存在以他为顾问的会员
                     return CommonResult.failure("修改失败：存在以此用户为顾问的会员");
+                }
+
+                // 如果改为了财务或者admin，那么所属主管为null
+                if (role.equals(Constant.FINANCER) || role.equals(Constant.ADMIN)) {
+                    user.setStaffMgrId(null);
                 }
 
             } else if (this.userService.checkManager(user.getRole()) &&
@@ -181,12 +231,15 @@ public class UserController {
                     return CommonResult.failure("修改失败：存在以此用户为主管的员工");
                 }
 
-                // 员工需要主管字段，所以staffMgrId不为空
-                if (staffMgrId != null) {
-                    user.setStaffMgrId(null);
-                } else {
-                    return CommonResult.failure("未指定主管");
+                // 除财务员工外，顾问员工和档案员工都需要主管字段，所以staffMgrId不为空
+                if (!role.equals(Constant.FINANCER)) {
+                    if (staffMgrId != null) {
+                        user.setStaffMgrId(null);
+                    } else {
+                        return CommonResult.failure("未指定主管");
+                    }
                 }
+
 
             } else if (user.getRole().equals(Constant.ADMIN) && !role.equals(Constant.ADMIN)) {
                 // 以前是admin现在不是了
@@ -266,7 +319,10 @@ public class UserController {
             adviser.setRole(Constant.ADVISER);
             List<User> adviserList = this.userService.queryListByWhere(adviser);
 
-            result.put(adviseMgrTemp.getName(), adviserList);
+            // 只返回有员工的顾问主管和员工级联关系
+            if (adviserList != null && adviserList.size() > 0) {
+                result.put(adviseMgrTemp.getName(), adviserList);
+            }
         });
 
         return CommonResult.success("查询成功", result);

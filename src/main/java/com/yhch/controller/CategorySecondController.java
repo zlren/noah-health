@@ -43,6 +43,11 @@ public class CategorySecondController {
     @RequestMapping(value = "{secondId}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult queryCategorySecondById(@PathVariable("secondId") Integer secondId) {
+
+        if (this.categorySecondService.queryById(secondId) == null) {
+            return CommonResult.failure("查询失败，不存在的亚类");
+        }
+
         return CommonResult.success("查询成功", this.categorySecondService.queryById(secondId));
     }
 
@@ -135,6 +140,7 @@ public class CategorySecondController {
             return CommonResult.failure("修改失败，已经存在的亚类");
         }
 
+        // 设置id，根据id去改
         categorySecond.setId(secondId);
 
         this.categorySecondService.update(categorySecond);

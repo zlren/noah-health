@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 检查项目
@@ -35,7 +36,9 @@ public class CategoryThirdController {
     @ResponseBody
     public CommonResult queryCategoryThirdById(@PathVariable("thirdId") Integer thirdId) {
 
-        // 判不存在
+        if (this.categoryThirdService.queryById(thirdId) == null) {
+            return CommonResult.failure("查询失败，不存在的检查项目");
+        }
 
         return CommonResult.success("查询成功", this.categoryThirdService.queryById(thirdId));
     }
@@ -125,17 +128,22 @@ public class CategoryThirdController {
         // 没有检查hospital是否为空
         if (secondId == null || Validator.checkEmpty(name) || Validator.checkEmpty(systemCategory) || Validator
                 .checkEmpty(referenceValue)) {
-            return CommonResult.failure("添加失败，信息不完整");
+            return CommonResult.failure("修改失败，信息不完整");
         }
 
+        // secondId和name可以唯一标识一个third
         CategoryThird categoryThird = new CategoryThird();
         categoryThird.setSecondId(secondId);
         categoryThird.setName(name);
 
-        if (this.categoryThirdService.queryOne(categoryThird) != null) {
-            return CommonResult.failure("添加失败，已经存在的检查项目");
+        // 修改非（secondId和name）的时候不能被判重
+        CategoryThird exist = this.categoryThirdService.queryOne(categoryThird);
+        if (exist != null && !Objects.equals(exist.getId(), thirdId)) {
+            return CommonResult.failure("修改失败，已经存在的检查项目");
         }
 
+        // 根据id去改
+        categoryThird.setId(thirdId);
         categoryThird.setSystemCategory(systemCategory);
         categoryThird.setReferenceValue(referenceValue);
         categoryThird.setHospital(hospital);
