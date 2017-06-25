@@ -1,7 +1,7 @@
 package com.yhch.pojo;
 
-import java.util.Date;
 import javax.persistence.*;
+import java.util.Date;
 
 @Table(name = "result_origin")
 public class ResultOrigin {
@@ -12,8 +12,14 @@ public class ResultOrigin {
     @Column(name = "user_id")
     private Integer userId;
 
+    @Column(name = "user_name")
+    private String userName;
+
     @Column(name = "second_id")
     private Integer secondId;
+
+    @Column(name = "second_name")
+    private String secondName;
 
     private String path;
 
@@ -22,17 +28,22 @@ public class ResultOrigin {
     @Column(name = "uploader_id")
     private Integer uploaderId;
 
+    @Column(name = "uploader_name")
+    private String uploaderName;
+
     @Column(name = "checker_id")
     private Integer checkerId;
 
-    @Column(name = "is_pass")
-    private String isPass;
+    @Column(name = "checker_name")
+    private String checkerName;
 
-    @Column(name = "is_input")
-    private String isInput;
+    private String status;
 
     @Column(name = "inputer_id")
     private Integer inputerId;
+
+    @Column(name = "inputer_name")
+    private String inputerName;
 
     /**
      * @return id
@@ -63,6 +74,20 @@ public class ResultOrigin {
     }
 
     /**
+     * @return user_name
+     */
+    public String getUserName() {
+        return userName;
+    }
+
+    /**
+     * @param userName
+     */
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    /**
      * @return second_id
      */
     public Integer getSecondId() {
@@ -74,6 +99,20 @@ public class ResultOrigin {
      */
     public void setSecondId(Integer secondId) {
         this.secondId = secondId;
+    }
+
+    /**
+     * @return second_name
+     */
+    public String getSecondName() {
+        return secondName;
+    }
+
+    /**
+     * @param secondName
+     */
+    public void setSecondName(String secondName) {
+        this.secondName = secondName;
     }
 
     /**
@@ -119,6 +158,20 @@ public class ResultOrigin {
     }
 
     /**
+     * @return uploader_name
+     */
+    public String getUploaderName() {
+        return uploaderName;
+    }
+
+    /**
+     * @param uploaderName
+     */
+    public void setUploaderName(String uploaderName) {
+        this.uploaderName = uploaderName;
+    }
+
+    /**
      * @return checker_id
      */
     public Integer getCheckerId() {
@@ -133,31 +186,31 @@ public class ResultOrigin {
     }
 
     /**
-     * @return is_pass
+     * @return checker_name
      */
-    public String getIsPass() {
-        return isPass;
+    public String getCheckerName() {
+        return checkerName;
     }
 
     /**
-     * @param isPass
+     * @param checkerName
      */
-    public void setIsPass(String isPass) {
-        this.isPass = isPass;
+    public void setCheckerName(String checkerName) {
+        this.checkerName = checkerName;
     }
 
     /**
-     * @return is_input
+     * @return status
      */
-    public String getIsInput() {
-        return isInput;
+    public String getStatus() {
+        return status;
     }
 
     /**
-     * @param isInput
+     * @param status
      */
-    public void setIsInput(String isInput) {
-        this.isInput = isInput;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     /**
@@ -172,5 +225,19 @@ public class ResultOrigin {
      */
     public void setInputerId(Integer inputerId) {
         this.inputerId = inputerId;
+    }
+
+    /**
+     * @return inputer_name
+     */
+    public String getInputerName() {
+        return inputerName;
+    }
+
+    /**
+     * @param inputerName
+     */
+    public void setInputerName(String inputerName) {
+        this.inputerName = inputerName;
     }
 }

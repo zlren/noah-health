@@ -65,9 +65,14 @@ public class Constant {
 
     public static String MANAGER = "manager";
 
-    public static String WEITONGGUO = "未通过";
-    public static String YITONGGUO = "已通过";
-    public static String WEILURU = "未录入";
-    public static String YILURU = "已录入";
+    public static String WEI_TONG_GUO = "未通过";
+    public static String DAI_SHEN_HE = "待审核";
+    public static String DAI_LU_RU = "待录入";
+    public static String YI_WAN_CHENG = "已完成";
+
+    public static String STATUS = "status";
+
+    public static String PATH = "path";
+    public static String TIME = "time";
 
 }

@@ -1,7 +1,7 @@
 package com.yhch.pojo;
 
-import java.util.Date;
 import javax.persistence.*;
+import java.util.Date;
 
 @Table(name = "result_input")
 public class ResultInput {
@@ -12,11 +12,17 @@ public class ResultInput {
     @Column(name = "user_id")
     private Integer userId;
 
+    @Column(name = "user_name")
+    private String userName;
+
     @Column(name = "origin_id")
     private Integer originId;
 
     @Column(name = "third_id")
     private Integer thirdId;
+
+    @Column(name = "third_name")
+    private String thirdName;
 
     private String value;
 
@@ -51,6 +57,20 @@ public class ResultInput {
     }
 
     /**
+     * @return user_name
+     */
+    public String getUserName() {
+        return userName;
+    }
+
+    /**
+     * @param userName
+     */
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    /**
      * @return origin_id
      */
     public Integer getOriginId() {
@@ -76,6 +96,20 @@ public class ResultInput {
      */
     public void setThirdId(Integer thirdId) {
         this.thirdId = thirdId;
+    }
+
+    /**
+     * @return third_name
+     */
+    public String getThirdName() {
+        return thirdName;
+    }
+
+    /**
+     * @param thirdName
+     */
+    public void setThirdName(String thirdName) {
+        this.thirdName = thirdName;
     }
 
     /**

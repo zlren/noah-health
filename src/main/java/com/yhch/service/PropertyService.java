@@ -27,4 +27,7 @@ public class PropertyService {
 
     @Value("${token.apiKeySecret}")
     public String apiKeySecret;
+
+    @Value("${default.password}")
+    public String defaultPassword;
 }

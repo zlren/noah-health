@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserService extends BaseService<User> {
@@ -98,6 +100,30 @@ public class UserService extends BaseService<User> {
 
         PageHelper.startPage(pageNow, pageSize);
         return this.getMapper().selectByExample(example);
+    }
+
+
+    public List<User> queryMembersByAdviseMgrId(Integer adviseMgrId) {
+
+        User record = new User();
+        record.setStaffMgrId(String.valueOf(adviseMgrId));
+        List<User> adviserList = this.queryListByWhere(record);
+
+        Set<String> adviserIdSet = new HashSet<>();
+
+        adviserList.forEach(advise -> adviserIdSet.add(String.valueOf(advise.getId())));
+
+        Example example = new Example(User.class);
+        Example.Criteria criteria = example.createCriteria();
+
+        criteria.andIn("staff_id", adviserIdSet);
+        return this.getMapper().selectByExample(example);
+    }
+
+    public List<User> queryMembersByAdviseId(Integer adviserId) {
+        User record = new User();
+        record.setStaffId(String.valueOf(adviserId));
+        return this.queryListByWhere(record);
     }
 
 

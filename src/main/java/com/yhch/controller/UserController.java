@@ -6,6 +6,7 @@ import com.yhch.bean.Constant;
 import com.yhch.bean.PageResult;
 import com.yhch.bean.rolecheck.RequiredRoles;
 import com.yhch.pojo.User;
+import com.yhch.service.PropertyService;
 import com.yhch.service.UserService;
 import com.yhch.util.MD5Util;
 import com.yhch.util.Validator;
@@ -32,7 +33,16 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private PropertyService propertyService;
 
+
+    /**
+     * 添加员工或者主管
+     *
+     * @param params
+     * @return
+     */
     @RequestMapping(method = RequestMethod.POST)
     @ResponseBody
     public CommonResult addEmployee(@RequestBody Map<String, Object> params) {
@@ -70,7 +80,13 @@ public class UserController {
             return CommonResult.failure("手机号已注册");
         }
 
-        this.userService.save(user);
+        try {
+            user.setPassword(MD5Util.generate(propertyService.defaultPassword));
+            this.userService.save(user);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return CommonResult.failure("添加失败，md5生成错误");
+        }
 
         return CommonResult.success("添加成功");
     }
