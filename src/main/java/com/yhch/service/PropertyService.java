@@ -30,4 +30,7 @@ public class PropertyService {
 
     @Value("${default.password}")
     public String defaultPassword;
+
+    @Value("${file.path}")
+    public String filePath;
 }

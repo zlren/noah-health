@@ -8,9 +8,11 @@ import com.yhch.bean.PageResult;
 import com.yhch.pojo.ResultOrigin;
 import com.yhch.pojo.User;
 import com.yhch.service.CategorySecondService;
+import com.yhch.service.PropertyService;
 import com.yhch.service.ResultOriginService;
 import com.yhch.service.UserService;
 import org.apache.commons.fileupload.util.Streams;
+import org.apache.ibatis.annotations.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,31 +49,37 @@ public class ResultOriginController {
     @Autowired
     private CategorySecondService categorySecondService;
 
+    @Autowired
+    private PropertyService propertyService;
+
+
     /**
      * 上传扫描件
      *
-     * @param files
-     * @param request
+     * @param file
+     * @param params
      * @return
      */
     @RequestMapping(value = "upload", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult addResultOriginFile(@RequestParam("file") MultipartFile[] files, HttpServletRequest request) {
+    public CommonResult addResultOriginFile(@RequestParam("file") MultipartFile file, Integer id) {
 
-        for (MultipartFile multipartFile : files) {
-            if (!multipartFile.isEmpty()) {
-                try {
-                    Streams.copy(multipartFile.getInputStream(),
-                            new FileOutputStream(
-                                    "/root/yhch-resources/origin/" + "1" + "_" + multipartFile.getOriginalFilename()),
-                            true);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        if (!file.isEmpty()) {
+            try {
+                Streams.copy(file.getInputStream(),
+                        new FileOutputStream(
+                                this.propertyService.filePath + "1" + "_" + file.getOriginalFilename()),
+                        true);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        } else {
+            return CommonResult.failure("文件上传失败");
         }
 
-        return CommonResult.success("文件上传成功");
+        logger.info("这样做对不对呢！！！！！！{}", id);
+
+        return CommonResult.success("文件上传成功", file.getOriginalFilename());
     }
 
 
@@ -118,7 +126,7 @@ public class ResultOriginController {
 
         this.resultOriginService.save(resultOrigin);
 
-        return CommonResult.success("添加成功");
+        return CommonResult.success("添加成功", resultOrigin.getId());
     }
 
 
