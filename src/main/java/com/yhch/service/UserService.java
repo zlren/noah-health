@@ -92,9 +92,9 @@ public class UserService extends BaseService<User> {
             criteria.andLike(Constant.ROLE, "%" + role + "%");
         } else {
             if (type.equals(Constant.MEMBER)) {
-                criteria.andLike(Constant.ROLE, "%" + "会员" + "%");
+                criteria.andLike(Constant.ROLE, "%会员%");
             } else { // type.equals("Constant.EMPLOYEE")
-                criteria.andNotLike(Constant.ROLE, "%" + "会员" + "%");
+                criteria.andNotLike(Constant.ROLE, "%会员%");
             }
         }
 
@@ -103,10 +103,17 @@ public class UserService extends BaseService<User> {
     }
 
 
+    /**
+     * 根据顾问部主管的id查找对应的顾问部成员，继而查找顾问对应的member
+     *
+     * @param adviseMgrId
+     * @return
+     */
     public List<User> queryMembersByAdviseMgrId(Integer adviseMgrId) {
 
         User record = new User();
         record.setStaffMgrId(String.valueOf(adviseMgrId));
+        record.setRole(Constant.ADVISER);
         List<User> adviserList = this.queryListByWhere(record);
 
         Set<String> adviserIdSet = new HashSet<>();
@@ -116,14 +123,35 @@ public class UserService extends BaseService<User> {
         Example example = new Example(User.class);
         Example.Criteria criteria = example.createCriteria();
 
-        criteria.andIn("staff_id", adviserIdSet);
+        criteria.andIn("staffId", adviserIdSet);
         return this.getMapper().selectByExample(example);
     }
 
+    /**
+     * 根据顾问查找对应的member
+     *
+     * @param adviserId
+     * @return
+     */
     public List<User> queryMembersByAdviseId(Integer adviserId) {
         User record = new User();
         record.setStaffId(String.valueOf(adviserId));
         return this.queryListByWhere(record);
+    }
+
+
+    /**
+     * 查询所有会员
+     *r
+     * @return
+     */
+    public List<User> queryAllMembers() {
+
+        Example example = new Example(User.class);
+        Example.Criteria criteria = example.createCriteria();
+
+        criteria.andLike("role", "%会员%");
+        return this.getMapper().selectByExample(example);
     }
 
 

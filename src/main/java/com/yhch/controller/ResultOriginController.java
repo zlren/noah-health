@@ -6,6 +6,7 @@ import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
 import com.yhch.bean.PageResult;
 import com.yhch.pojo.ResultOrigin;
+import com.yhch.pojo.User;
 import com.yhch.service.CategorySecondService;
 import com.yhch.service.ResultOriginService;
 import com.yhch.service.UserService;
@@ -18,8 +19,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +48,7 @@ public class ResultOriginController {
     private CategorySecondService categorySecondService;
 
     /**
-     * 上传原始数据
+     * 上传扫描件
      *
      * @param files
      * @param request
@@ -52,7 +56,7 @@ public class ResultOriginController {
      */
     @RequestMapping(value = "upload", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult addResultOrigin(@RequestParam("file") MultipartFile[] files, HttpServletRequest request) {
+    public CommonResult addResultOriginFile(@RequestParam("file") MultipartFile[] files, HttpServletRequest request) {
 
         for (MultipartFile multipartFile : files) {
             if (!multipartFile.isEmpty()) {
@@ -67,27 +71,56 @@ public class ResultOriginController {
             }
         }
 
-
-        // Integer userId = (Integer) params.get(Constant.USER_ID);
-        // Integer secondId = (Integer) params.get(Constant.SECOND_ID);
-        // Integer uploaderId = (Integer) params.get(Constant.UPLOADER_ID);
-        // // String path = (String) params.get(Constant.PATH);
-        // Date time = (Date) params.get(Constant.TIME);
-        //
-        // ResultOrigin resultOrigin = new ResultOrigin();
-        // resultOrigin.setUserId(userId);
-        // resultOrigin.setSecondId(secondId);
-        //
-        // resultOrigin.setTime(time);
-        // resultOrigin.setUploaderId(uploaderId);
-        // resultOrigin.setCheckerId(null);
-        // resultOrigin.setStatus(Constant.DAI_SHEN_HE);
-        // resultOrigin.setInputerId(null);
-        //
-        // this.resultOriginService.save(resultOrigin);
-        //
         return CommonResult.success("文件上传成功");
     }
+
+
+    /**
+     * 上传记录
+     *
+     * @param session
+     * @param params
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult addResultOriginRecord(HttpSession session, @RequestBody Map<String, Object> params) {
+
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+        Integer uploaderId = Integer.valueOf(identity.getId());
+
+
+        Integer userId = (Integer) params.get(Constant.USER_ID);
+        Integer secondId = (Integer) params.get(Constant.SECOND_ID);
+
+        Date time;
+        try {
+            time = new SimpleDateFormat("yyyy-MM-dd").parse((String) params.get(Constant.TIME));
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return CommonResult.failure("添加失败，日期解析错误");
+        }
+
+        ResultOrigin resultOrigin = new ResultOrigin();
+        resultOrigin.setUserId(userId);
+        resultOrigin.setUserName(this.userService.queryById(userId).getName());
+        resultOrigin.setSecondId(secondId);
+        resultOrigin.setSecondName(this.categorySecondService.queryById(secondId).getName());
+        resultOrigin.setTime(time);
+
+        resultOrigin.setUploaderId(uploaderId);
+        resultOrigin.setUploaderName(this.userService.queryById(uploaderId).getName());
+        resultOrigin.setCheckerId(null);
+        resultOrigin.setCheckerName(null);
+        resultOrigin.setStatus(Constant.DAI_SHEN_HE);
+        resultOrigin.setInputerId(null);
+        resultOrigin.setInputerName(null);
+
+        this.resultOriginService.save(resultOrigin);
+
+        return CommonResult.success("添加成功");
+    }
+
 
     /**
      * 删除原始数据
@@ -162,7 +195,8 @@ public class ResultOriginController {
      */
     @RequestMapping(value = "list", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult showPassOrNotResultOriginList(@RequestBody Map<String, Object> params, HttpServletRequest request) {
+    public CommonResult showPassOrNotResultOriginList(@RequestBody Map<String, Object> params, HttpServletRequest
+            request) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
@@ -182,21 +216,41 @@ public class ResultOriginController {
         logger.info("当前用户的角色是{}, id是{}", role, id);
         logger.info("时间是{}", time);
 
-        // List<User> users;
-        //
-        // if (role.equals(Constant.ARCHIVE_MANAGER) || role.equals(Constant.ARCHIVER) || role.equals(Constant.ADMIN)) {
-        //     // 档案部员工或者主管，所有的
-        //
-        // } else if (role.equals(Constant.ADVISE_MANAGER)) {
-        //     users = this.userService.queryMembersByAdviseMgrId(Integer.valueOf(id));
-        // } else if (role.equals(Constant.ADVISER)) {
-        //     users = this.userService.queryMembersByAdviseMgrId(Integer.valueOf(id));
-        // }
-
         List<ResultOrigin> resultOriginList = this.resultOriginService.queryOriginList(status, userName, secondName,
                 uploaderName, checkerName, inputerName, time, pageNow, pageSize);
 
         return CommonResult.success("查询成功", new PageResult(new PageInfo<>(resultOriginList)));
+    }
+
+
+    /**
+     * 根据职员查询旗下的member
+     *
+     * @param session
+     * @return
+     */
+    @RequestMapping(value = "member_under_employee", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult queryMemberUnderEmployee(HttpSession session) {
+
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+
+        // 当前用户的role和id
+        String role = identity.getRole();
+        String id = identity.getId();
+
+        List<User> users = null;
+
+        if (role.equals(Constant.ARCHIVE_MANAGER) || role.equals(Constant.ARCHIVER) || role.equals(Constant.ADMIN)) {
+            // 档案部员工或者主管，所有的会员
+            users = this.userService.queryAllMembers();
+        } else if (role.equals(Constant.ADVISE_MANAGER)) {
+            users = this.userService.queryMembersByAdviseMgrId(Integer.valueOf(id));
+        } else if (role.equals(Constant.ADVISER)) {
+            users = this.userService.queryMembersByAdviseId(Integer.valueOf(id));
+        }
+
+        return CommonResult.success("查询成功", users);
     }
 
 
