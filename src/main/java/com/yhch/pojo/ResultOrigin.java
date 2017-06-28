@@ -15,14 +15,6 @@ public class ResultOrigin {
     @Column(name = "user_name")
     private String userName;
 
-    @Column(name = "second_id")
-    private Integer secondId;
-
-    @Column(name = "second_name")
-    private String secondName;
-
-    private String path;
-
     private Date time;
 
     @Column(name = "uploader_id")
@@ -39,11 +31,11 @@ public class ResultOrigin {
 
     private String status;
 
-    @Column(name = "inputer_id")
-    private Integer inputerId;
+    private String note;
 
-    @Column(name = "inputer_name")
-    private String inputerName;
+    private String reason;
+
+    private String path;
 
     /**
      * @return id
@@ -85,48 +77,6 @@ public class ResultOrigin {
      */
     public void setUserName(String userName) {
         this.userName = userName;
-    }
-
-    /**
-     * @return second_id
-     */
-    public Integer getSecondId() {
-        return secondId;
-    }
-
-    /**
-     * @param secondId
-     */
-    public void setSecondId(Integer secondId) {
-        this.secondId = secondId;
-    }
-
-    /**
-     * @return second_name
-     */
-    public String getSecondName() {
-        return secondName;
-    }
-
-    /**
-     * @param secondName
-     */
-    public void setSecondName(String secondName) {
-        this.secondName = secondName;
-    }
-
-    /**
-     * @return path
-     */
-    public String getPath() {
-        return path;
-    }
-
-    /**
-     * @param path
-     */
-    public void setPath(String path) {
-        this.path = path;
     }
 
     /**
@@ -214,30 +164,44 @@ public class ResultOrigin {
     }
 
     /**
-     * @return inputer_id
+     * @return note
      */
-    public Integer getInputerId() {
-        return inputerId;
+    public String getNote() {
+        return note;
     }
 
     /**
-     * @param inputerId
+     * @param note
      */
-    public void setInputerId(Integer inputerId) {
-        this.inputerId = inputerId;
+    public void setNote(String note) {
+        this.note = note;
     }
 
     /**
-     * @return inputer_name
+     * @return reason
      */
-    public String getInputerName() {
-        return inputerName;
+    public String getReason() {
+        return reason;
     }
 
     /**
-     * @param inputerName
+     * @param reason
      */
-    public void setInputerName(String inputerName) {
-        this.inputerName = inputerName;
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    /**
+     * @return path
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * @param path
+     */
+    public void setPath(String path) {
+        this.path = path;
     }
 }

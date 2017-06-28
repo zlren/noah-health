@@ -4,6 +4,8 @@ import com.github.pagehelper.PageHelper;
 import com.yhch.bean.Constant;
 import com.yhch.pojo.ResultOrigin;
 import com.yhch.util.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
@@ -16,9 +18,11 @@ import java.util.List;
 @Service
 public class ResultOriginService extends BaseService<ResultOrigin> {
 
-    public List<ResultOrigin> queryOriginList(String status, String userName, String secondName, String uploaderName,
-                                              String checkerName, String inputerName, Date time,
-                                              Integer pageNow, Integer pageSize) {
+    private static final Logger logger = LoggerFactory.getLogger(ResultOriginService.class);
+
+    public List<ResultOrigin> queryOriginList(String status, String userName,
+                                              String uploaderName, String checkerName, Date time, Integer pageNow,
+                                              Integer pageSize) {
 
         Example example = new Example(ResultOrigin.class);
         Example.Criteria criteria = example.createCriteria();
@@ -28,34 +32,24 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
         }
 
         if (!Validator.checkEmpty(userName)) {
-            criteria.andLike("user_name", userName);
-        }
-
-        if (!Validator.checkEmpty(secondName)) {
-            criteria.andLike("second_name", secondName);
+            criteria.andLike("userName", "%" + userName + "%");
         }
 
         if (!Validator.checkEmpty(uploaderName)) {
-            criteria.andLike("uploader_name", uploaderName);
+            criteria.andLike("uploaderName", "%" + uploaderName + "%");
         }
 
         if (!Validator.checkEmpty(checkerName)) {
-            criteria.andLike("checker_name", checkerName);
+            criteria.andLike("checkerName", "%" + checkerName + "%");
         }
 
-        if (!Validator.checkEmpty(inputerName)) {
-            criteria.andLike("inputer_name", inputerName);
+        if (time != null) {
+            criteria.andEqualTo("time", time);
         }
-
-        // if (time != null) {
-        //     criteria.ande
-        // }
 
         PageHelper.startPage(pageNow, pageSize);
         return this.getMapper().selectByExample(example);
     }
-
-
 
 
 }

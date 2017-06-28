@@ -75,4 +75,6 @@ public class Constant {
     public static String PATH = "path";
     public static String TIME = "time";
 
+    public static String NOTE = "note";
+    public static String SHANG_CHUAN_ZHONG = "上传中";
 }
