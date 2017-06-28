@@ -11,6 +11,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,14 +43,11 @@ public class RoleCheckInterceptor extends HandlerInterceptorAdapter {
                 logger.info(s);
             }
 
-
             // 如果权限配置不为空, 则取出配置值
             String[] authorities = roleCheck.roles();
             Set<String> authSet = new HashSet<>();
-            for (String authority : authorities) {
-                // 将权限加入一个set集合中
-                authSet.add(authority);
-            }
+            // 将权限加入一个set集合中
+            authSet.addAll(Arrays.asList(authorities));
             // 这里我为了方便是直接参数传入权限, 在实际操作中应该是从参数中获取用户Id
             // 到数据库权限表中查询用户拥有的权限集合, 与set集合中的权限进行对比完成权限校验
 

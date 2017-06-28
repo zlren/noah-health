@@ -3,7 +3,7 @@ package com.yhch.bean.rolecheck;
 import java.lang.annotation.*;
 
 /**
- * 自定义注解
+ * 自定义注解用于权限认证
  * Created by zlren on 17/6/10.
  */
 @Retention(RetentionPolicy.RUNTIME)

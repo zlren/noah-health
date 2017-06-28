@@ -7,12 +7,12 @@ package com.yhch.bean;
 public class Identity {
 
     private String token;
-    private String id; //对应user的id
+    private String id; // 对应user的id
     private String issuer;
     private String phone;
-    private String role; //角色
+    private String role; // 角色
     private String name;
-    private Long duration; //有效时长（毫秒）
+    private Long duration; // 有效时长，单位毫秒
 
     public String getToken() {
         return token;

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -142,7 +143,7 @@ public class UserService extends BaseService<User> {
 
     /**
      * 查询所有会员
-     *r
+     *
      * @return
      */
     public List<User> queryAllMembers() {
@@ -152,6 +153,30 @@ public class UserService extends BaseService<User> {
 
         criteria.andLike("role", "%会员%");
         return this.getMapper().selectByExample(example);
+    }
+
+    /**
+     * 查询旗下的会员
+     *
+     * @param identity
+     * @return
+     */
+    public List<User> queryMembersUnderEmployee(Identity identity) {
+
+        // 当前用户的role和id
+        String role = identity.getRole();
+        String id = identity.getId();
+
+        List<User> users = new ArrayList<>();
+        if (role.equals(Constant.ARCHIVE_MANAGER) || role.equals(Constant.ARCHIVER) || role.equals(Constant.ADMIN)) {
+            // 档案部员工或者主管，所有的会员
+            users = this.queryAllMembers();
+        } else if (role.equals(Constant.ADVISE_MANAGER)) {
+            users = this.queryMembersByAdviseMgrId(Integer.valueOf(id));
+        } else if (role.equals(Constant.ADVISER)) {
+            users = this.queryMembersByAdviseId(Integer.valueOf(id));
+        }
+        return users;
     }
 
 

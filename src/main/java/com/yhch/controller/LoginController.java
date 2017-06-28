@@ -25,6 +25,7 @@ import java.util.Random;
 
 /**
  * 登录、注册和首页跳转
+ * Created by zlren on 2017/6/6.
  */
 @Controller
 @RequestMapping("auth")

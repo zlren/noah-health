@@ -13,7 +13,7 @@ public class CommonResult {
 
     private String code;
     private String reason;
-    private Object content; //如果成功所返回的实际内容
+    private Object content; // 数据
 
     /**
      * @return

@@ -65,16 +65,16 @@ public class Constant {
 
     public static String MANAGER = "manager";
 
-    public static String WEI_TONG_GUO = "未通过";
-    public static String DAI_SHEN_HE = "待审核";
-    public static String DAI_LU_RU = "待录入";
-    public static String YI_WAN_CHENG = "已完成";
-
     public static String STATUS = "status";
+    public static String REASON = "reason";
 
     public static String PATH = "path";
     public static String TIME = "time";
 
     public static String NOTE = "note";
     public static String SHANG_CHUAN_ZHONG = "上传中";
+    public static String DAI_SHEN_HE = "待审核";
+    public static String WEI_TONG_GUO = "未通过";
+    public static String YI_LU_RU = "已录入";
+
 }

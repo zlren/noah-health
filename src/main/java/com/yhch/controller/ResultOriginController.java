@@ -7,7 +7,6 @@ import com.yhch.bean.Identity;
 import com.yhch.bean.PageResult;
 import com.yhch.pojo.ResultOrigin;
 import com.yhch.pojo.User;
-import com.yhch.service.CategorySecondService;
 import com.yhch.service.PropertyService;
 import com.yhch.service.ResultOriginService;
 import com.yhch.service.UserService;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -29,7 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * 原始数据
+ * 原始数据管理
  * Created by zlren on 2017/6/21.
  */
 @RequestMapping("origin")
@@ -43,9 +41,6 @@ public class ResultOriginController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private CategorySecondService categorySecondService;
 
     @Autowired
     private PropertyService propertyService;
@@ -163,8 +158,8 @@ public class ResultOriginController {
     @ResponseBody
     public CommonResult deleteResultOrigin(@PathVariable("originId") Integer originId) {
 
-        if (this.resultOriginService.queryById(originId) != null) {
-            return CommonResult.failure("删除失败，不存在的文件");
+        if (this.resultOriginService.queryById(originId) == null) {
+            return CommonResult.failure("删除失败，不存在的记录");
         }
 
         this.resultOriginService.deleteById(originId);
@@ -224,13 +219,12 @@ public class ResultOriginController {
      */
     @RequestMapping(value = "list", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult showFilteredResultOriginList(@RequestBody Map<String, Object> params, HttpServletRequest
-            request) {
+    public CommonResult showFilteredResultOriginList(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
 
-        String status = (String) params.get("status");
+        String status = (String) params.get(Constant.STATUS);
         String userName = (String) params.get("userName");
         String uploaderName = (String) params.get("uploaderName");
         String checkerName = (String) params.get("checkerName");
@@ -246,15 +240,12 @@ public class ResultOriginController {
             }
         }
 
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+        List<User> users = this.userService.queryMembersUnderEmployee(identity);
+        Set<Integer> usersSet = new HashSet<>();
+        users.forEach(user -> usersSet.add(user.getId()));
 
-        // 当前用户的role和id
-        String role = ((Identity) request.getSession().getAttribute(Constant.IDENTITY)).getRole();
-        String id = ((Identity) request.getSession().getAttribute(Constant.IDENTITY)).getId();
-
-        logger.info("当前用户的角色是{}, id是{}", role, id);
-        logger.info("时间是{}", time);
-
-        List<ResultOrigin> resultOriginList = this.resultOriginService.queryOriginList(status, userName,
+        List<ResultOrigin> resultOriginList = this.resultOriginService.queryOriginList(usersSet, status, userName,
                 uploaderName, checkerName, time, pageNow, pageSize);
 
         return CommonResult.success("查询成功", new PageResult(new PageInfo<>(resultOriginList)));
@@ -272,22 +263,7 @@ public class ResultOriginController {
     public CommonResult queryMemberUnderEmployee(HttpSession session) {
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-
-        // 当前用户的role和id
-        String role = identity.getRole();
-        String id = identity.getId();
-
-        List<User> users = null;
-
-        if (role.equals(Constant.ARCHIVE_MANAGER) || role.equals(Constant.ARCHIVER) || role.equals(Constant.ADMIN)) {
-            // 档案部员工或者主管，所有的会员
-            users = this.userService.queryAllMembers();
-        } else if (role.equals(Constant.ADVISE_MANAGER)) {
-            users = this.userService.queryMembersByAdviseMgrId(Integer.valueOf(id));
-        } else if (role.equals(Constant.ADVISER)) {
-            users = this.userService.queryMembersByAdviseId(Integer.valueOf(id));
-        }
-
+        List<User> users = this.userService.queryMembersUnderEmployee(identity);
         return CommonResult.success("查询成功", users);
     }
 
@@ -374,9 +350,9 @@ public class ResultOriginController {
         }
 
         String path = resultOrigin.getPath();
-
         StringBuilder updatePath = new StringBuilder();
 
+        // 切开，遍历，组装
         if (!Validator.checkEmpty(path)) {
             String[] split = path.split(";");
             for (String s : split) {
@@ -396,4 +372,75 @@ public class ResultOriginController {
         return CommonResult.success("删除成功");
     }
 
+    /**
+     * 更改状态
+     *
+     * @param originId
+     * @return
+     */
+    @RequestMapping(value = "status/{originId}", method = RequestMethod.PUT)
+    @ResponseBody
+    public CommonResult submitOriginRecord(@PathVariable("originId") Integer originId,
+                                           @RequestBody Map<String, Object> params, HttpSession session) {
+
+        ResultOrigin resultOrigin = this.resultOriginService.queryById(originId);
+        if (resultOrigin == null) {
+            return CommonResult.failure("提交失败，不存在的记录");
+        }
+
+        // 待审核（提交）、已录入（通过）、未通过（附加reason）
+        String status = (String) params.get(Constant.STATUS);
+        String reason = (String) params.get(Constant.REASON);
+
+        if (Validator.checkEmpty(status)) {
+            return CommonResult.failure("修改失败，缺少参数");
+        }
+
+        if (status.equals(Constant.DAI_SHEN_HE)) { // 提交，待审核
+
+            if (Validator.checkEmpty(resultOrigin.getPath())) {
+                return CommonResult.failure("提交失败，请上传至少一份文件");
+            }
+
+            // 状态改为'待审核'
+            resultOrigin.setStatus(Constant.DAI_SHEN_HE);
+            this.resultOriginService.update(resultOrigin);
+
+            return CommonResult.success("提交成功");
+
+        } else if (status.equals(Constant.WEI_TONG_GUO)) { // 未通过
+
+            if (Validator.checkEmpty(reason)) {
+                reason = "<未说明原因>";
+            }
+
+            // 这里可以再优化一下..
+            Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+            String id = identity.getId();
+
+            resultOrigin.setCheckerId(Integer.valueOf(id));
+            resultOrigin.setCheckerName(this.userService.queryById(Integer.valueOf(id)).getName());
+
+            resultOrigin.setStatus(Constant.WEI_TONG_GUO);
+            resultOrigin.setReason(reason);
+            this.resultOriginService.update(resultOrigin);
+
+            return CommonResult.success("操作成功");
+
+        } else if (status.equals(Constant.YI_LU_RU)) { // 通过，已录入
+
+            Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+            String id = identity.getId();
+
+            resultOrigin.setCheckerId(Integer.valueOf(id));
+            resultOrigin.setCheckerName(this.userService.queryById(Integer.valueOf(id)).getName());
+
+            resultOrigin.setStatus(Constant.YI_LU_RU);
+            this.resultOriginService.update(resultOrigin);
+
+            return CommonResult.success("操作成功");
+        } else {
+            return CommonResult.failure("参数错误");
+        }
+    }
 }
