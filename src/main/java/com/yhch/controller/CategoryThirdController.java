@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -163,7 +164,8 @@ public class CategoryThirdController {
      */
     @RequestMapping(value = "{secondId}/list", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult queryThirdCategoryList(@RequestBody Map<String, Integer> params, @PathVariable("secondId")
+    public CommonResult queryThirdCategoryListBySecondId(@RequestBody Map<String, Integer> params, @PathVariable
+            ("secondId")
             Integer secondId) {
 
         Integer pageNow = params.get(Constant.PAGE_NOW);
@@ -178,4 +180,26 @@ public class CategoryThirdController {
         return CommonResult.success("查询成功", new PageResult(categoryThirdPageInfo));
     }
 
+
+    /**
+     * 根据亚类id查询所有的检查项目
+     * 与分页查询的区别是get和post
+     *
+     * @param secondId
+     * @return
+     */
+    @RequestMapping(value = "{secondId}/list", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult queryThirdCategoryListBySecondId(@PathVariable("secondId") Integer secondId) {
+        CategoryThird record = new CategoryThird();
+        record.setSecondId(secondId);
+
+        List<CategoryThird> categoryThirdList = this.categoryThirdService.queryListByWhere(record);
+
+        if (categoryThirdList != null && categoryThirdList.size() > 0) {
+            return CommonResult.success("查询成功", categoryThirdList);
+        }
+
+        return CommonResult.failure("查询失败，不存在检查项目");
+    }
 }

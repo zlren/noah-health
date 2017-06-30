@@ -1,8 +1,9 @@
 ### 医海慈航信息管理系统
 
--   SSM框架：Spring、SpringMVC和MyBatis
--   通用Mapper
--   Shiro权限管理框架
--   token认证
--   redis高速缓存
+-   `SSM框架`：Spring、SpringMVC和MyBatis（MySql）
+-   `通用Mapper`
+-   `自定义注解`实现权限管理
+-   `TOKEN认证`
+-   `Redis`缓存
+-   `Nginx`文件服务器
 

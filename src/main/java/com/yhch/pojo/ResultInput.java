@@ -1,7 +1,7 @@
 package com.yhch.pojo;
 
-import javax.persistence.*;
 import java.util.Date;
+import javax.persistence.*;
 
 @Table(name = "result_input")
 public class ResultInput {
@@ -12,21 +12,20 @@ public class ResultInput {
     @Column(name = "user_id")
     private Integer userId;
 
-    @Column(name = "user_name")
-    private String userName;
-
-    @Column(name = "origin_id")
-    private Integer originId;
-
-    @Column(name = "third_id")
-    private Integer thirdId;
-
-    @Column(name = "third_name")
-    private String thirdName;
-
-    private String value;
+    @Column(name = "second_id")
+    private Integer secondId;
 
     private Date time;
+
+    @Column(name = "inputer_id")
+    private Integer inputerId;
+
+    @Column(name = "checker_id")
+    private Integer checkerId;
+
+    private String status;
+
+    private String note;
 
     /**
      * @return id
@@ -57,73 +56,17 @@ public class ResultInput {
     }
 
     /**
-     * @return user_name
+     * @return second_id
      */
-    public String getUserName() {
-        return userName;
+    public Integer getSecondId() {
+        return secondId;
     }
 
     /**
-     * @param userName
+     * @param secondId
      */
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    /**
-     * @return origin_id
-     */
-    public Integer getOriginId() {
-        return originId;
-    }
-
-    /**
-     * @param originId
-     */
-    public void setOriginId(Integer originId) {
-        this.originId = originId;
-    }
-
-    /**
-     * @return third_id
-     */
-    public Integer getThirdId() {
-        return thirdId;
-    }
-
-    /**
-     * @param thirdId
-     */
-    public void setThirdId(Integer thirdId) {
-        this.thirdId = thirdId;
-    }
-
-    /**
-     * @return third_name
-     */
-    public String getThirdName() {
-        return thirdName;
-    }
-
-    /**
-     * @param thirdName
-     */
-    public void setThirdName(String thirdName) {
-        this.thirdName = thirdName;
-    }
-
-    /**
-     * @return value
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     * @param value
-     */
-    public void setValue(String value) {
-        this.value = value;
+    public void setSecondId(Integer secondId) {
+        this.secondId = secondId;
     }
 
     /**
@@ -138,5 +81,61 @@ public class ResultInput {
      */
     public void setTime(Date time) {
         this.time = time;
+    }
+
+    /**
+     * @return inputer_id
+     */
+    public Integer getInputerId() {
+        return inputerId;
+    }
+
+    /**
+     * @param inputerId
+     */
+    public void setInputerId(Integer inputerId) {
+        this.inputerId = inputerId;
+    }
+
+    /**
+     * @return checker_id
+     */
+    public Integer getCheckerId() {
+        return checkerId;
+    }
+
+    /**
+     * @param checkerId
+     */
+    public void setCheckerId(Integer checkerId) {
+        this.checkerId = checkerId;
+    }
+
+    /**
+     * @return status
+     */
+    public String getStatus() {
+        return status;
+    }
+
+    /**
+     * @param status
+     */
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    /**
+     * @return note
+     */
+    public String getNote() {
+        return note;
+    }
+
+    /**
+     * @param note
+     */
+    public void setNote(String note) {
+        this.note = note;
     }
 }

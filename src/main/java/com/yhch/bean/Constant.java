@@ -75,6 +75,7 @@ public class Constant {
     public static String SHANG_CHUAN_ZHONG = "上传中";
     public static String DAI_SHEN_HE = "待审核";
     public static String WEI_TONG_GUO = "未通过";
-    public static String YI_LU_RU = "已录入";
+    public static String YI_TONG_GUO = "已通过";
+    public static String LU_RU_ZHONG = "录入中";
 
 }

@@ -388,13 +388,18 @@ public class ResultOriginController {
             return CommonResult.failure("提交失败，不存在的记录");
         }
 
-        // 待审核（提交）、已录入（通过）、未通过（附加reason）
+        // 待审核（提交）、已通过、未通过（附加reason）
         String status = (String) params.get(Constant.STATUS);
         String reason = (String) params.get(Constant.REASON);
 
         if (Validator.checkEmpty(status)) {
             return CommonResult.failure("修改失败，缺少参数");
         }
+
+        // checker
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+        Integer checkerId = Integer.valueOf(identity.getId());
+        String checkerName = this.userService.queryById(checkerId).getName();
 
         if (status.equals(Constant.DAI_SHEN_HE)) { // 提交，待审核
 
@@ -414,12 +419,8 @@ public class ResultOriginController {
                 reason = "<未说明原因>";
             }
 
-            // 这里可以再优化一下..
-            Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-            String id = identity.getId();
-
-            resultOrigin.setCheckerId(Integer.valueOf(id));
-            resultOrigin.setCheckerName(this.userService.queryById(Integer.valueOf(id)).getName());
+            resultOrigin.setCheckerId(checkerId);
+            resultOrigin.setCheckerName(checkerName);
 
             resultOrigin.setStatus(Constant.WEI_TONG_GUO);
             resultOrigin.setReason(reason);
@@ -427,15 +428,12 @@ public class ResultOriginController {
 
             return CommonResult.success("操作成功");
 
-        } else if (status.equals(Constant.YI_LU_RU)) { // 通过，已录入
+        } else if (status.equals(Constant.YI_TONG_GUO)) { // 通过，已通过
 
-            Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-            String id = identity.getId();
+            resultOrigin.setCheckerId(checkerId);
+            resultOrigin.setCheckerName(checkerName);
 
-            resultOrigin.setCheckerId(Integer.valueOf(id));
-            resultOrigin.setCheckerName(this.userService.queryById(Integer.valueOf(id)).getName());
-
-            resultOrigin.setStatus(Constant.YI_LU_RU);
+            resultOrigin.setStatus(Constant.YI_TONG_GUO);
             this.resultOriginService.update(resultOrigin);
 
             return CommonResult.success("操作成功");
