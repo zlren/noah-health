@@ -4,7 +4,6 @@ import com.yhch.pojo.ResultInputDetail;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by zlren on 2017/6/29.
@@ -12,15 +11,12 @@ import java.util.Map;
 @Service
 public class ResultInputDetailService extends BaseService<ResultInputDetail> {
 
-    public void saveDetails(Integer inputId, List<Map<Integer, Object>> dataList) {
-        dataList.forEach(data -> {
-            Integer thirdId = (Integer) data.get("thirdId");
-            String value = (String) data.get("value");
-            ResultInputDetail resultInputDetail = new ResultInputDetail();
-            resultInputDetail.setResultInputId(inputId);
-            resultInputDetail.setThirdId(thirdId);
-            resultInputDetail.setValue(value);
-            this.save(resultInputDetail);
-        });
+    /**
+     * 将list中的数据插入数据库
+     *
+     * @param dataToSaveList
+     */
+    public void save(List<ResultInputDetail> dataToSaveList) {
+        dataToSaveList.forEach(detail -> this.getMapper().updateByPrimaryKeySelective(detail));
     }
 }

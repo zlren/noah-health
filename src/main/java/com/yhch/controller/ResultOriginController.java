@@ -241,7 +241,7 @@ public class ResultOriginController {
         }
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-        List<User> users = this.userService.queryMembersUnderEmployee(identity);
+        List<User> users = this.userService.queryMemberListUnderEmployee(identity);
         Set<Integer> usersSet = new HashSet<>();
         users.forEach(user -> usersSet.add(user.getId()));
 
@@ -263,7 +263,7 @@ public class ResultOriginController {
     public CommonResult queryMemberUnderEmployee(HttpSession session) {
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-        List<User> users = this.userService.queryMembersUnderEmployee(identity);
+        List<User> users = this.userService.queryMemberListUnderEmployee(identity);
         return CommonResult.success("查询成功", users);
     }
 

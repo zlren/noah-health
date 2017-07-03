@@ -13,6 +13,9 @@ public class CategoryThird {
 
     private String name;
 
+    @Column(name = "en_short")
+    private String enShort;
+
     @Column(name = "system_category")
     private String systemCategory;
 
@@ -61,6 +64,20 @@ public class CategoryThird {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * @return en_short
+     */
+    public String getEnShort() {
+        return enShort;
+    }
+
+    /**
+     * @param enShort
+     */
+    public void setEnShort(String enShort) {
+        this.enShort = enShort;
     }
 
     /**

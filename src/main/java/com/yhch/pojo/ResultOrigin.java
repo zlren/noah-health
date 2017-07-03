@@ -1,7 +1,7 @@
 package com.yhch.pojo;
 
-import javax.persistence.*;
 import java.util.Date;
+import javax.persistence.*;
 
 @Table(name = "result_origin")
 public class ResultOrigin {

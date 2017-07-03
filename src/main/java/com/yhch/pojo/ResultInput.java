@@ -15,6 +15,8 @@ public class ResultInput {
     @Column(name = "second_id")
     private Integer secondId;
 
+    private String hospital;
+
     private Date time;
 
     @Column(name = "inputer_id")
@@ -26,6 +28,8 @@ public class ResultInput {
     private String status;
 
     private String note;
+
+    private String reason;
 
     /**
      * @return id
@@ -67,6 +71,20 @@ public class ResultInput {
      */
     public void setSecondId(Integer secondId) {
         this.secondId = secondId;
+    }
+
+    /**
+     * @return hospital
+     */
+    public String getHospital() {
+        return hospital;
+    }
+
+    /**
+     * @param hospital
+     */
+    public void setHospital(String hospital) {
+        this.hospital = hospital;
     }
 
     /**
@@ -137,5 +155,19 @@ public class ResultInput {
      */
     public void setNote(String note) {
         this.note = note;
+    }
+
+    /**
+     * @return reason
+     */
+    public String getReason() {
+        return reason;
+    }
+
+    /**
+     * @param reason
+     */
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

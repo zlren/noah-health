@@ -161,7 +161,7 @@ public class UserService extends BaseService<User> {
      * @param identity
      * @return
      */
-    public List<User> queryMembersUnderEmployee(Identity identity) {
+    public List<User> queryMemberListUnderEmployee(Identity identity) {
 
         // 当前用户的role和id
         String role = identity.getRole();
@@ -177,6 +177,20 @@ public class UserService extends BaseService<User> {
             users = this.queryMembersByAdviseId(Integer.valueOf(id));
         }
         return users;
+    }
+
+    /**
+     * 查询旗下的会员，返回这些会员的id组成的set
+     *
+     * @param identity
+     * @return
+     */
+    public Set<Integer> queryMemberIdSetUnderEmployee(Identity identity) {
+
+        List<User> memberList = this.queryMemberListUnderEmployee(identity);
+        Set<Integer> memberSet = new HashSet<>();
+        memberList.forEach(member -> memberSet.add(member.getId()));
+        return memberSet;
     }
 
 
@@ -218,5 +232,25 @@ public class UserService extends BaseService<User> {
      */
     public boolean checkAdmin(String role) {
         return role.equals(Constant.ADMIN);
+    }
+
+    /**
+     * 根据姓名模糊匹配，将匹配的结果的id组成set返回
+     *
+     * @param userName
+     * @return
+     */
+    public Set<Integer> getIdSetByUserNameLike(String userName) {
+
+        Example userExample = new Example(User.class);
+        Example.Criteria userCriteria = userExample.createCriteria();
+        userCriteria.andLike("name", "%" + userName + "%");
+        userCriteria.andLike("role", "%会员%");
+        List<User> userList = this.getMapper().selectByExample(userExample);
+
+        Set<Integer> userIdSet = new HashSet<>();
+        userList.forEach(user -> userIdSet.add(user.getId()));
+
+        return userIdSet;
     }
 }
