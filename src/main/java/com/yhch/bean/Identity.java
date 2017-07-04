@@ -13,6 +13,15 @@ public class Identity {
     private String role; // 角色
     private String name;
     private Long duration; // 有效时长，单位毫秒
+    private String avatar;
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 
     public String getToken() {
         return token;

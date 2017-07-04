@@ -46,7 +46,8 @@ public class UserService extends BaseService<User> {
      * @param apiKeySecret
      * @return
      */
-    public CommonResult generateToken(String id, String issuer, String phone, String role, Long duration, String
+    public CommonResult generateToken(String id, String issuer, String phone, String role, String avatar, Long
+            duration, String
             apiKeySecret) {
 
         Identity identity = new Identity();
@@ -55,11 +56,11 @@ public class UserService extends BaseService<User> {
         identity.setPhone(phone);
         identity.setRole(role);
         identity.setDuration(duration);
+        identity.setAvatar(avatar);
         String token = TokenUtil.createToken(identity, apiKeySecret);
 
         // 封装返回前端(除了用户名、角色、时间戳保留，其余消去)
         identity.setToken(token);
-        // identity.setId(id);
         identity.setIssuer(null);
         return CommonResult.success("登录成功", identity);
     }
@@ -73,6 +74,7 @@ public class UserService extends BaseService<User> {
      * @param role
      * @param phone
      * @param name
+     * @param type
      * @return
      */
     public List<User> queryUserList(Integer pageNow, Integer pageSize, String role, String phone, String name, String

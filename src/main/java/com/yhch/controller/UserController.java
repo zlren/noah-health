@@ -98,70 +98,19 @@ public class UserController {
 
 
     /**
-     * 查询用户信息
+     * 修改别的用户的信息
      *
-     * @param userId
-     * @return
-     */
-    @RequestMapping(value = "{userId}", method = RequestMethod.GET)
-    @ResponseBody
-    public CommonResult queryById(@PathVariable("userId") Integer userId) {
-
-        User user = this.userService.queryById(userId);
-        if (user == null) {
-            return CommonResult.failure("用户不存在");
-        }
-
-        String role = user.getRole();
-
-        if (role.equals(Constant.USER_1) || role.equals(Constant.USER_2) || role.equals
-                (Constant.USER_3)) {
-            User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
-            user.setStaffMgrId(this.userService.queryById(Integer.valueOf(adviser.getStaffMgrId())).getName());
-        } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ARCHIVER)) {
-            // user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
-        }
-
-        return CommonResult.success("查询成功", user);
-    }
-
-
-    /**
-     * 删除用户
-     *
-     * @param userId
-     * @return
-     */
-    @RequestMapping(value = "{userId}", method = RequestMethod.DELETE)
-    @ResponseBody
-    @RequiredRoles(roles = {"系统管理员"})
-    public CommonResult deleteById(@PathVariable("userId") Integer userId) {
-
-        User user = this.userService.queryById(userId);
-        if (user == null) {
-            return CommonResult.failure("用户不存在");
-        }
-
-        this.userService.deleteById(userId);
-        logger.info("删除用户：{}", user.getName());
-
-        return CommonResult.success("删除成功");
-    }
-
-
-    /**
-     * 修改一个用户
-     *
-     * @param userId
      * @param params
      * @return
      */
-    @RequestMapping(value = "{userId}", method = RequestMethod.PUT)
+    @RequestMapping(method = RequestMethod.PUT)
     @ResponseBody
-    public CommonResult updateById(@PathVariable("userId") Integer userId, @RequestBody Map<String, Object> params) {
+    public CommonResult updateOtherUser(@RequestBody Map<String, Object> params) {
 
-        String name = (String) params.get(Constant.NAME);
-        String phone = (String) params.get(Constant.PHONE);
+        Integer userId = (Integer) params.get("userId");
+        // 修改别的用户的时候不能修改name和phone
+        // String name = (String) params.get(Constant.NAME);
+        // String phone = (String) params.get(Constant.PHONE);
         String role = (String) params.get(Constant.ROLE);
         Integer adviserId = (Integer) params.get(Constant.STAFF_ID);
         Integer staffMgrId = (Integer) params.get(Constant.STAFF_MGR_ID);
@@ -169,14 +118,14 @@ public class UserController {
         // 未修改的user
         User user = this.userService.queryById(userId);
 
-        if (!Validator.checkEmpty(name)) {
-            user.setName(name);
-        }
-
-        if (!Validator.checkEmpty(phone)) {
-            user.setPhone(phone);
-            user.setUsername(phone);
-        }
+        // if (!Validator.checkEmpty(name)) {
+        //     user.setName(name);
+        // }
+        //
+        // if (!Validator.checkEmpty(phone)) {
+        //     user.setPhone(phone);
+        //     user.setUsername(phone);
+        // }
 
         // role
         if (!Validator.checkEmpty(role)) {
@@ -298,6 +247,90 @@ public class UserController {
 
 
     /**
+     * 查询用户信息
+     *
+     * @param userId
+     * @return
+     */
+    @RequestMapping(value = "{userId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult queryById(@PathVariable("userId") Integer userId) {
+
+        User user = this.userService.queryById(userId);
+        if (user == null) {
+            return CommonResult.failure("用户不存在");
+        }
+
+        String role = user.getRole();
+
+        if (role.equals(Constant.USER_1) || role.equals(Constant.USER_2) || role.equals
+                (Constant.USER_3)) {
+            User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
+            user.setStaffMgrId(this.userService.queryById(Integer.valueOf(adviser.getStaffMgrId())).getName());
+        } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ARCHIVER)) {
+            // user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
+        }
+
+        return CommonResult.success("查询成功", user);
+    }
+
+
+    /**
+     * 删除用户
+     *
+     * @param userId
+     * @return
+     */
+    @RequestMapping(value = "{userId}", method = RequestMethod.DELETE)
+    @ResponseBody
+    @RequiredRoles(roles = {"系统管理员"})
+    public CommonResult deleteById(@PathVariable("userId") Integer userId) {
+
+        User user = this.userService.queryById(userId);
+        if (user == null) {
+            return CommonResult.failure("用户不存在");
+        }
+
+        this.userService.deleteById(userId);
+        logger.info("删除用户：{}", user.getName());
+
+        return CommonResult.success("删除成功");
+    }
+
+
+    /**
+     * 用户自己修改自己
+     *
+     * @param userId
+     * @param params
+     * @return
+     */
+    @RequestMapping(value = "{userId}", method = RequestMethod.PUT)
+    @ResponseBody
+    public CommonResult updateById(@PathVariable("userId") Integer userId, @RequestBody Map<String, Object> params) {
+
+        // 自己可以修改自己的name和phone
+        String name = (String) params.get(Constant.NAME);
+        String phone = (String) params.get(Constant.PHONE);
+
+        // 未修改的user
+        User user = this.userService.queryById(userId);
+
+        if (!Validator.checkEmpty(name)) {
+            user.setName(name);
+        }
+
+        if (!Validator.checkEmpty(phone)) {
+            user.setPhone(phone);
+            user.setUsername(phone);
+        }
+
+        this.userService.update(user);
+        return CommonResult.success("修改成功");
+    }
+
+
+    /**
      * 顾问部主管列表
      *
      * @return
@@ -395,35 +428,54 @@ public class UserController {
      * @param params
      * @return
      */
-    @RequestMapping(value = "password", method = RequestMethod.POST)
+    @RequestMapping(value = "password/{userId}", method = RequestMethod.PUT)
     @ResponseBody
-    public CommonResult changePassword(@RequestBody Map<String, Object> params) {
+    public CommonResult changePassword(@RequestBody Map<String, Object> params, @PathVariable("userId") Integer
+            userId) {
 
-        // 得到用户名和密码，用户名就是phone
-        Integer userId = (Integer) params.get(Constant.ID);
-        String password = (String) params.get(Constant.PASSWORD);
+        String oldPassword = (String) params.get("oldPassword");
+        String newPassword = (String) params.get("newPassword");
 
-        String md5Password;
+        User user = this.userService.queryById(userId);
+
+        String oldPasswordMD5;
         try {
-            md5Password = MD5Util.generate(password);
+            oldPasswordMD5 = MD5Util.generate(oldPassword);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return CommonResult.failure("md5加密失败！");
+        }
+
+        if (!oldPasswordMD5.equals(user.getPassword())) {
+            return CommonResult.failure("修改失败，原密码输入错误");
+        }
+
+        String newPasswordMD5;
+        try {
+            newPasswordMD5 = MD5Util.generate(newPassword);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return CommonResult.failure("md5加密失败");
         }
 
-        User user = this.userService.queryById(userId);
-        user.setPassword(md5Password);
+        user.setPassword(newPasswordMD5);
         this.userService.update(user);
-
-        logger.info("{}的密码修改为：{}", user.getName(), password);
 
         return CommonResult.success("密码修改成功");
     }
 
 
+    /**
+     * 修改用户头像
+     *
+     * @param file
+     * @param id
+     * @return
+     */
     @RequestMapping(value = "avatar", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult uploadAvatar(@RequestParam("file") MultipartFile file, Integer id) {
+
         User user = this.userService.queryById(id);
         if (user == null) {
             return CommonResult.failure("上传失败，用户不存在");
@@ -432,7 +484,7 @@ public class UserController {
         String fileName;
         if (!file.isEmpty()) {
 
-            fileName = id + FileUtil.getExtensionName(file.getOriginalFilename());
+            fileName = id + "." + FileUtil.getExtensionName(file.getOriginalFilename());
 
             try {
                 Streams.copy(file.getInputStream(), new FileOutputStream(this.propertyService.filePath + "avatar/" +
@@ -449,6 +501,6 @@ public class UserController {
             return CommonResult.failure("头像上传失败");
         }
 
-        return CommonResult.success("头像上传成功", this.propertyService.filePath + "/avatar/" + fileName);
+        return CommonResult.success("头像上传成功", "/avatar/" + fileName);
     }
 }

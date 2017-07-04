@@ -177,6 +177,7 @@ public class LoginController {
                 propertyService.issuer,
                 targetUser.getUsername(),
                 targetUser.getRole(),
+                "/avatar/" + targetUser.getAvatar(),
                 propertyService.tokenDuration,
                 propertyService.apiKeySecret);
 

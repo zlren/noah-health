@@ -259,13 +259,14 @@ public class ResultInputController {
     /**
      * 生成excel表打印
      *
-     * @param params
+     * @param inputId
      * @return
      */
-    @RequestMapping(value = "download", method = RequestMethod.GET)
-    public CommonResult downloadResultInputWithDetail(@RequestBody Map<String, Integer> params) {
+    @RequestMapping(value = "download/{inputId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult downloadResultInputWithDetail(@PathVariable("inputId") Integer inputId) {
 
-        Integer inputId = params.get("inputId");
+        logger.info("进来了！！！！");
 
         ResultInput resultInput = this.resultInputService.queryById(inputId);
         if (resultInput == null) {
@@ -282,12 +283,14 @@ public class ResultInputController {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet inputSheet = workbook.createSheet(secondName);
+        inputSheet.setDefaultColumnWidth(13);
+        inputSheet.setDefaultRowHeight((short) (1.6 * 256));
 
         // 第一行，6个单元格合并，检查亚类
         {
             XSSFRow firstRow = inputSheet.createRow((short) 0);
             XSSFCell firstRowCell = firstRow.createCell((short) 0);
-            firstRowCell.setCellValue("血常规");
+            firstRowCell.setCellValue(secondName);
 
             XSSFFont firstFont = workbook.createFont();
             firstFont.setColor(XSSFFont.COLOR_RED); // 红色
@@ -319,17 +322,31 @@ public class ResultInputController {
             boldStyle.setFont(boldFont);
             boldStyle.setAlignment(XSSFCellStyle.ALIGN_CENTER);
 
-            List<String> content = Arrays.asList("检查项目名称", "系统分类", "参考值及单位", "301医院", "检查结果");
-            for (int i = 0; i < 5; i++) {
-                XSSFCell cell = secondRow.createCell((short) i);
-                cell.setCellStyle(boldStyle);
-                cell.setCellValue(content.get(i));
-            }
+
+            XSSFCell cell0 = secondRow.createCell((short) 0);
+            cell0.setCellStyle(boldStyle);
+            cell0.setCellValue("检查项目名称");
+
+            XSSFCell cell1 = secondRow.createCell((short) 1);
+            cell1.setCellStyle(boldStyle);
+            cell1.setCellValue("系统分类");
+
+            XSSFCell cell2 = secondRow.createCell((short) 2);
+            cell2.setCellStyle(boldStyle);
+            cell2.setCellValue("参考值及单位");
+
+            XSSFCell cell3 = secondRow.createCell((short) 3);
+            cell3.setCellStyle(boldStyle);
+            cell3.setCellValue("301医院");
+
+            XSSFCell cell4 = secondRow.createCell((short) 4);
+            cell4.setCellStyle(boldStyle);
+            cell4.setCellValue("检查结果");
         }
 
         {
             int i = 2;
-            resultInputDetailExtendList.forEach(resultInputDetailExtend -> {
+            for (ResultInputDetailExtend resultInputDetailExtend : resultInputDetailExtendList) {
                 XSSFRow row = inputSheet.createRow((short) i);
 
                 XSSFCell cell0 = row.createCell((short) 0);
@@ -346,15 +363,16 @@ public class ResultInputController {
 
                 XSSFCell cell4 = row.createCell((short) 4);
                 cell4.setCellValue(resultInputDetailExtend.getValue());
-            });
 
+                i++;
+            }
         }
 
         String fileName = this.propertyService.filePath + "input/" + inputId + ".xlsx";
 
         try {
-            FileOutputStream out = new FileOutputStream(
-                    new File(fileName));
+            FileOutputStream out = new FileOutputStream(new File(fileName));
+            // OutputStream out = response.getOutputStream();
             workbook.write(out);
             out.close();
         } catch (IOException e) {
@@ -362,6 +380,6 @@ public class ResultInputController {
             return CommonResult.failure("下载失败");
         }
 
-        return CommonResult.success("下载成功", "/" + fileName);
+        return CommonResult.success("下载成功", "/input/" + inputId + ".xlsx");
     }
 }
