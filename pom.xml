@@ -251,6 +251,13 @@
             <version>${commons-fileupload.version}</version>
         </dependency>
 
+        <!-- Excel -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.14</version>
+        </dependency>
+
         <!-- 分页插件 -->
         <dependency>
             <groupId>com.github.miemiedev</groupId>

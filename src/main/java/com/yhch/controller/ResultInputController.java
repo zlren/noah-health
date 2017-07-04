@@ -7,12 +7,13 @@ import com.yhch.bean.Identity;
 import com.yhch.bean.PageResult;
 import com.yhch.bean.input.ResultInputDetailExtend;
 import com.yhch.bean.input.ResultInputExtend;
-import com.yhch.pojo.CategoryThird;
 import com.yhch.pojo.ResultInput;
 import com.yhch.pojo.ResultInputDetail;
 import com.yhch.service.*;
 import com.yhch.util.TimeUtil;
 import com.yhch.util.Validator;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -46,6 +50,9 @@ public class ResultInputController {
 
     @Autowired
     private CategoryThirdService categoryThirdService;
+
+    @Autowired
+    private PropertyService propertyService;
 
     /**
      * 在input表增加一条记录
@@ -102,19 +109,8 @@ public class ResultInputController {
         record.setResultInputId(inputId);
         List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.queryListByWhere(record);
 
-        List<ResultInputDetailExtend> resultInputDetailExtendList = new ArrayList<>();
-
-        resultInputDetailList.forEach(resultInputDetail -> {
-
-            CategoryThird categoryThird = this.categoryThirdService.queryById(resultInputDetail.getThirdId());
-            String thirdName = categoryThird.getName();
-            String referenceValue = categoryThird.getReferenceValue();
-            String systemCategory = categoryThird.getSystemCategory();
-            String hospital = categoryThird.getHospital();
-
-            resultInputDetailExtendList.add(new
-                    ResultInputDetailExtend(resultInputDetail, thirdName, referenceValue, systemCategory, hospital));
-        });
+        List<ResultInputDetailExtend> resultInputDetailExtendList = this.resultInputDetailService
+                .extendFromResultInputDetailList(resultInputDetailList);
 
         return CommonResult.success("查询成功", resultInputDetailExtendList);
     }
@@ -162,29 +158,30 @@ public class ResultInputController {
         Date time = TimeUtil.parseTime((String) params.get(Constant.TIME));
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-        Set<Integer> memberSet = this.userService.queryMemberIdSetUnderEmployee(identity);
+        String role = identity.getRole();
 
-        List<ResultInput> resultInputList = this.resultInputService.queryInputList(memberSet, status, userName,
+        // 一级用户无此权限
+        if (role.equals(Constant.USER_1)) {
+            return CommonResult.failure("无此权限");
+        }
+
+        Set<Integer> usersSet = new HashSet<>();
+        if (this.userService.checkMember(identity.getRole())) { // 二级、三级用户
+            // member只能查看自己的数据，且是已通过的
+            usersSet.add(Integer.valueOf(identity.getId()));
+            status = Constant.YI_TONG_GUO;
+        } else {
+            // 职员
+            usersSet = this.userService.queryMemberIdSetUnderEmployee(identity);
+        }
+
+        List<ResultInput> resultInputList = this.resultInputService.queryInputList(usersSet, status, userName,
                 inputerName, checkerName, secondName, hospital, time, pageNow, pageSize);
 
         PageResult pageResult = new PageResult(new PageInfo<>(resultInputList));
 
-        List<ResultInputExtend> resultInputExtendList = new ArrayList<>();
-
-
-        resultInputList.forEach(resultInput -> {
-
-            String userNameExtend = this.userService.queryById(resultInput.getUserId()).getName();
-            String checkerNameExtend = null;
-            if (resultInput.getCheckerId() != null) {
-                checkerNameExtend = this.userService.queryById(resultInput.getCheckerId()).getName();
-            }
-            String inputerNameExtend = this.userService.queryById(resultInput.getInputerId()).getName();
-            String secondNameExtend = this.categorySecondService.queryById(resultInput.getSecondId()).getName();
-
-            resultInputExtendList.add(new ResultInputExtend(resultInput, userNameExtend, secondNameExtend,
-                    inputerNameExtend, checkerNameExtend));
-        });
+        List<ResultInputExtend> resultInputExtendList = this.resultInputService.extendFromResultInputList
+                (resultInputList);
 
         pageResult.setData(resultInputExtendList);
 
@@ -257,5 +254,114 @@ public class ResultInputController {
             return CommonResult.failure("参数错误");
         }
 
+    }
+
+    /**
+     * 生成excel表打印
+     *
+     * @param params
+     * @return
+     */
+    @RequestMapping(value = "download", method = RequestMethod.GET)
+    public CommonResult downloadResultInputWithDetail(@RequestBody Map<String, Integer> params) {
+
+        Integer inputId = params.get("inputId");
+
+        ResultInput resultInput = this.resultInputService.queryById(inputId);
+        if (resultInput == null) {
+            return CommonResult.failure("下载失败，不存在的记录");
+        }
+
+        ResultInputDetail record = new ResultInputDetail();
+        record.setResultInputId(inputId);
+        List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.queryListByWhere(record);
+        List<ResultInputDetailExtend> resultInputDetailExtendList = this.resultInputDetailService
+                .extendFromResultInputDetailList(resultInputDetailList);
+
+        String secondName = this.categorySecondService.queryById(resultInput.getSecondId()).getName();
+
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet inputSheet = workbook.createSheet(secondName);
+
+        // 第一行，6个单元格合并，检查亚类
+        {
+            XSSFRow firstRow = inputSheet.createRow((short) 0);
+            XSSFCell firstRowCell = firstRow.createCell((short) 0);
+            firstRowCell.setCellValue("血常规");
+
+            XSSFFont firstFont = workbook.createFont();
+            firstFont.setColor(XSSFFont.COLOR_RED); // 红色
+            firstFont.setBoldweight(XSSFFont.BOLDWEIGHT_BOLD); // 加粗
+            firstFont.setFontHeightInPoints((short) 14);
+
+            XSSFCellStyle firstStyle = workbook.createCellStyle();
+            firstStyle.setFont(firstFont);
+            firstStyle.setAlignment(XSSFCellStyle.ALIGN_CENTER);
+
+            firstRowCell.setCellStyle(firstStyle);
+
+            inputSheet.addMergedRegion(new CellRangeAddress(
+                    0, //first firstRow (0-based)
+                    0, //last firstRow (0-based)
+                    0, //first column (0-based)
+                    4 //last column (0-based)
+            ));
+        }
+
+        // 第二行表头，5个单元格分别是，检查项目名称，系统分类，参考值及单位，301医院和检查结果
+        {
+            XSSFRow secondRow = inputSheet.createRow((short) 1);
+
+            XSSFFont boldFont = workbook.createFont();
+            boldFont.setBoldweight(XSSFFont.BOLDWEIGHT_BOLD); // 加粗
+
+            XSSFCellStyle boldStyle = workbook.createCellStyle();
+            boldStyle.setFont(boldFont);
+            boldStyle.setAlignment(XSSFCellStyle.ALIGN_CENTER);
+
+            List<String> content = Arrays.asList("检查项目名称", "系统分类", "参考值及单位", "301医院", "检查结果");
+            for (int i = 0; i < 5; i++) {
+                XSSFCell cell = secondRow.createCell((short) i);
+                cell.setCellStyle(boldStyle);
+                cell.setCellValue(content.get(i));
+            }
+        }
+
+        {
+            int i = 2;
+            resultInputDetailExtendList.forEach(resultInputDetailExtend -> {
+                XSSFRow row = inputSheet.createRow((short) i);
+
+                XSSFCell cell0 = row.createCell((short) 0);
+                cell0.setCellValue(resultInputDetailExtend.thirdName);
+
+                XSSFCell cell1 = row.createCell((short) 1);
+                cell1.setCellValue(resultInputDetailExtend.systemCategory);
+
+                XSSFCell cell2 = row.createCell((short) 2);
+                cell2.setCellValue(resultInputDetailExtend.referenceValue);
+
+                XSSFCell cell3 = row.createCell((short) 3);
+                cell3.setCellValue(resultInputDetailExtend.hospital);
+
+                XSSFCell cell4 = row.createCell((short) 4);
+                cell4.setCellValue(resultInputDetailExtend.getValue());
+            });
+
+        }
+
+        String fileName = this.propertyService.filePath + "input/" + inputId + ".xlsx";
+
+        try {
+            FileOutputStream out = new FileOutputStream(
+                    new File(fileName));
+            workbook.write(out);
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return CommonResult.failure("下载失败");
+        }
+
+        return CommonResult.success("下载成功", "/" + fileName);
     }
 }

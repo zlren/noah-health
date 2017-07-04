@@ -240,12 +240,27 @@ public class UserService extends BaseService<User> {
      * @param userName
      * @return
      */
-    public Set<Integer> getIdSetByUserNameLike(String userName) {
+    public Set<Integer> getMemberIdSetByUserNameLike(String userName) {
+        return getIdSetByUserNameLike(userName, "会员");
+    }
+
+
+    public Set<Integer> getEmployeeIdSetByUserNameLike(String userName) {
+        return this.getIdSetByUserNameLike(userName, "职员");
+    }
+
+    public Set<Integer> getIdSetByUserNameLike(String userName, String role) {
 
         Example userExample = new Example(User.class);
         Example.Criteria userCriteria = userExample.createCriteria();
         userCriteria.andLike("name", "%" + userName + "%");
-        userCriteria.andLike("role", "%会员%");
+
+        if (role.equals("会员")) {
+            userCriteria.andLike("role", "%会员%");
+        } else {
+            userCriteria.andNotLike("role", "%会员%");
+        }
+
         List<User> userList = this.getMapper().selectByExample(userExample);
 
         Set<Integer> userIdSet = new HashSet<>();

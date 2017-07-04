@@ -11,6 +11,8 @@ public class User {
 
     private String password;
 
+    private String avatar;
+
     private String name;
 
     private String role;
@@ -63,6 +65,20 @@ public class User {
      */
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    /**
+     * @return avatar
+     */
+    public String getAvatar() {
+        return avatar;
+    }
+
+    /**
+     * @param avatar
+     */
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     /**

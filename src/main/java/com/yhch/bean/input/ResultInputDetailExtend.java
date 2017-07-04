@@ -13,6 +13,15 @@ public class ResultInputDetailExtend extends ResultInputDetail {
     public String systemCategory;
     public String hospital;
 
+    /**
+     * 构造函数
+     *
+     * @param resultInputDetail
+     * @param thirdName
+     * @param referenceValue
+     * @param systemCategory
+     * @param hospital
+     */
     public ResultInputDetailExtend(ResultInputDetail resultInputDetail, String thirdName, String referenceValue,
                                    String systemCategory, String hospital) {
         BeanUtils.copyProperties(resultInputDetail, this);

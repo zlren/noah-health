@@ -2,6 +2,7 @@ package com.yhch.service;
 
 import com.github.pagehelper.PageHelper;
 import com.yhch.bean.Constant;
+import com.yhch.bean.input.ResultInputExtend;
 import com.yhch.pojo.CategoryThird;
 import com.yhch.pojo.ResultInput;
 import com.yhch.pojo.ResultInputDetail;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -72,15 +74,15 @@ public class ResultInputService extends BaseService<ResultInput> {
 
         if (!Validator.checkEmpty(userName)) {
             // fixme userIdSet是旗下的人，和这里得到的userName对应的idSet可以做交集！！！
-            criteria.andIn("userId", this.userService.getIdSetByUserNameLike(userName));
+            criteria.andIn("userId", this.userService.getMemberIdSetByUserNameLike(userName));
         }
 
         if (!Validator.checkEmpty(inputerName)) {
-            criteria.andIn("inputerId", this.userService.getIdSetByUserNameLike(inputerName));
+            criteria.andIn("inputerId", this.userService.getEmployeeIdSetByUserNameLike(inputerName));
         }
 
         if (!Validator.checkEmpty(checkerName)) {
-            criteria.andIn("checkerId", this.userService.getIdSetByUserNameLike(checkerName));
+            criteria.andIn("checkerId", this.userService.getEmployeeIdSetByUserNameLike(checkerName));
         }
 
         if (!Validator.checkEmpty(secondName)) {
@@ -127,4 +129,32 @@ public class ResultInputService extends BaseService<ResultInput> {
             this.resultInputDetailService.save(resultInputDetail);
         });
     }
+
+    /**
+     * 将resultInputList转为resultInputExtendList
+     *
+     * @param resultInputList
+     * @return
+     */
+    public List<ResultInputExtend> extendFromResultInputList(List<ResultInput> resultInputList) {
+
+        List<ResultInputExtend> resultInputExtendList = new ArrayList<>();
+
+        resultInputList.forEach(resultInput -> {
+
+            String userNameExtend = this.userService.queryById(resultInput.getUserId()).getName();
+            String checkerNameExtend = null;
+            if (resultInput.getCheckerId() != null) {
+                checkerNameExtend = this.userService.queryById(resultInput.getCheckerId()).getName();
+            }
+            String inputerNameExtend = this.userService.queryById(resultInput.getInputerId()).getName();
+            String secondNameExtend = this.categorySecondService.queryById(resultInput.getSecondId()).getName();
+
+            resultInputExtendList.add(new ResultInputExtend(resultInput, userNameExtend, secondNameExtend,
+                    inputerNameExtend, checkerNameExtend));
+        });
+
+        return resultInputExtendList;
+    }
+
 }

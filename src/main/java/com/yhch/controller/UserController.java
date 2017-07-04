@@ -8,14 +8,19 @@ import com.yhch.bean.rolecheck.RequiredRoles;
 import com.yhch.pojo.User;
 import com.yhch.service.PropertyService;
 import com.yhch.service.UserService;
+import com.yhch.util.FileUtil;
 import com.yhch.util.MD5Util;
 import com.yhch.util.Validator;
+import org.apache.commons.fileupload.util.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
@@ -413,5 +418,37 @@ public class UserController {
         logger.info("{}的密码修改为：{}", user.getName(), password);
 
         return CommonResult.success("密码修改成功");
+    }
+
+
+    @RequestMapping(value = "avatar", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult uploadAvatar(@RequestParam("file") MultipartFile file, Integer id) {
+        User user = this.userService.queryById(id);
+        if (user == null) {
+            return CommonResult.failure("上传失败，用户不存在");
+        }
+
+        String fileName;
+        if (!file.isEmpty()) {
+
+            fileName = id + FileUtil.getExtensionName(file.getOriginalFilename());
+
+            try {
+                Streams.copy(file.getInputStream(), new FileOutputStream(this.propertyService.filePath + "avatar/" +
+                                fileName),
+                        true);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return CommonResult.failure("头像上传失败");
+            }
+
+            user.setAvatar(fileName);
+            this.userService.update(user);
+        } else {
+            return CommonResult.failure("头像上传失败");
+        }
+
+        return CommonResult.success("头像上传成功", this.propertyService.filePath + "/avatar/" + fileName);
     }
 }
