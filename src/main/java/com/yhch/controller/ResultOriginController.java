@@ -242,8 +242,7 @@ public class ResultOriginController {
             usersSet.add(Integer.valueOf(identity.getId()));
             status = Constant.YI_TONG_GUO;
         } else {
-            List<User> users = this.userService.queryMemberListUnderEmployee(identity);
-            users.forEach(user -> usersSet.add(user.getId()));
+            usersSet = this.userService.queryMemberIdSetUnderEmployee(identity);
         }
 
         List<ResultOrigin> resultOriginList = this.resultOriginService.queryOriginList(usersSet, status, userName,

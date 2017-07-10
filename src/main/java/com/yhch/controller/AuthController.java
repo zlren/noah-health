@@ -2,7 +2,6 @@ package com.yhch.controller;
 
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
-import com.yhch.bean.Identity;
 import com.yhch.pojo.User;
 import com.yhch.service.PropertyService;
 import com.yhch.service.RedisService;
@@ -29,9 +28,9 @@ import java.util.Random;
  */
 @Controller
 @RequestMapping("auth")
-public class LoginController {
+public class AuthController {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private UserService userService;
@@ -114,9 +113,10 @@ public class LoginController {
             User user = new User();
             user.setUsername(username);
             user.setPassword(MD5Util.generate(password));
-            user.setPhone(phone);
+            // user.setPhone(phone);
             user.setRole(Constant.USER_1);
             user.setName(name);
+            user.setAvatar("avatar_default.png"); // 默认头像
             this.userService.save(user);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -124,6 +124,42 @@ public class LoginController {
         }
 
         return CommonResult.success("注册成功");
+    }
+
+
+    /**
+     * 会员登录
+     *
+     * @param params
+     * @return
+     */
+    @RequestMapping(value = "member/login", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult userLogin(@RequestBody Map<String, String> params) {
+
+        // 得到用户名和密码，用户名就是phone
+        String username = params.get(Constant.PHONE);
+        String password = params.get(Constant.PASSWORD);
+
+        return this.userService.login(username, password, "member");
+    }
+
+
+    /**
+     * 职员登录
+     *
+     * @param params
+     * @return
+     */
+    @RequestMapping(value = "employee/login", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult employeeLogin(@RequestBody Map<String, String> params) {
+
+        // 得到用户名和密码，用户名就是phone
+        String username = params.get(Constant.PHONE);
+        String password = params.get(Constant.PASSWORD);
+
+        return this.userService.login(username, password, "employee");
     }
 
 
@@ -137,53 +173,11 @@ public class LoginController {
     @ResponseBody
     public CommonResult login(@RequestBody Map<String, String> params) {
 
-        try {
-            Thread.sleep(600);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         // 得到用户名和密码，用户名就是phone
         String username = params.get(Constant.PHONE);
         String password = params.get(Constant.PASSWORD);
 
-        logger.info("{} 用户请求登录", username);
-
-        if (!this.userService.isExist(username)) {
-            return CommonResult.failure("用户不存在");
-        }
-
-        // 密码加密
-        String md5Password;
-        try {
-            md5Password = MD5Util.generate(password);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return CommonResult.failure("MD5加密失败");
-        }
-
-        // 从数据库中取出对应的user
-        User user = new User();
-        user.setUsername(username);
-        User targetUser = this.userService.queryOne(user);
-
-        // 检验密码
-        if (!targetUser.getPassword().equals(md5Password)) {
-            return CommonResult.failure("密码错误");
-        }
-
-        // 生成token
-        CommonResult result = userService.generateToken(targetUser.getId().toString(),
-                propertyService.issuer,
-                targetUser.getUsername(),
-                targetUser.getRole(),
-                "/avatar/" + targetUser.getAvatar(),
-                propertyService.tokenDuration,
-                propertyService.apiKeySecret);
-
-        ((Identity) result.getContent()).setName(targetUser.getName());
-
-        return result;
+        return this.userService.login(username, password, "null");
     }
 
 

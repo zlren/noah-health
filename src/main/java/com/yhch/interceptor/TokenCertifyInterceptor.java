@@ -41,7 +41,7 @@ public class TokenCertifyInterceptor implements HandlerInterceptor {
             //把identity存入session中(其中包含用户名、角色、过期时间戳等)
             request.getSession().setAttribute(Constant.IDENTITY, identity);
 
-            logger.info("用户：{}token有效", identity.getPhone());
+            logger.info("用户：{}token有效", identity.getUsername());
             return true;
 
         } catch (Exception e) {

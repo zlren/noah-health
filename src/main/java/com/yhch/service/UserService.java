@@ -5,13 +5,16 @@ import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
 import com.yhch.pojo.User;
+import com.yhch.util.MD5Util;
 import com.yhch.util.TokenUtil;
 import com.yhch.util.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +24,9 @@ import java.util.Set;
 public class UserService extends BaseService<User> {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+    @Autowired
+    private PropertyService propertyService;
 
     /**
      * 检查用户名是否重复
@@ -36,6 +42,74 @@ public class UserService extends BaseService<User> {
 
 
     /**
+     * 登录验证
+     *
+     * @param username
+     * @param password
+     * @param type
+     * @return
+     */
+    public CommonResult login(String username, String password, String type) {
+
+        try {
+            Thread.sleep(600);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        logger.info("{} 用户请求登录", username);
+
+        if (!this.isExist(username)) {
+            return CommonResult.failure("用户不存在");
+        }
+
+        // 密码加密
+        String md5Password;
+        try {
+            md5Password = MD5Util.generate(password);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return CommonResult.failure("MD5加密失败");
+        }
+
+        // 从数据库中取出对应的user
+        User record = new User();
+        record.setUsername(username);
+        User targetUser = this.queryOne(record);
+
+        if (type.equals("member")) {
+            if (!this.checkMember(targetUser.getRole())) {
+                return CommonResult.failure("请选择正确的登录入口");
+            }
+        } else if (type.equals("employee")) {
+            if (this.checkMember(targetUser.getRole())) {
+                return CommonResult.failure("请选择正确的登录入口");
+            }
+        } else {
+            // 目前的分支
+        }
+
+        // 检验密码
+        if (!targetUser.getPassword().equals(md5Password)) {
+            return CommonResult.failure("密码错误");
+        }
+
+        // 生成token
+        CommonResult result = this.generateToken(targetUser.getId().toString(),
+                propertyService.issuer,
+                targetUser.getUsername(),
+                targetUser.getRole(),
+                "/avatar/" + targetUser.getAvatar(),
+                propertyService.tokenDuration,
+                propertyService.apiKeySecret);
+
+        ((Identity) result.getContent()).setName(targetUser.getName());
+
+        return result;
+    }
+
+
+    /**
      * 为通过登录验证的用户生成token
      *
      * @param id
@@ -46,14 +120,14 @@ public class UserService extends BaseService<User> {
      * @param apiKeySecret
      * @return
      */
-    public CommonResult generateToken(String id, String issuer, String phone, String role, String avatar, Long
+    public CommonResult generateToken(String id, String issuer, String username, String role, String avatar, Long
             duration, String
-            apiKeySecret) {
+                                              apiKeySecret) {
 
         Identity identity = new Identity();
         identity.setId(id);
         identity.setIssuer(issuer);
-        identity.setPhone(phone);
+        // identity.setPhone(phone);
         identity.setRole(role);
         identity.setDuration(duration);
         identity.setAvatar(avatar);
@@ -75,10 +149,11 @@ public class UserService extends BaseService<User> {
      * @param phone
      * @param name
      * @param type
+     * @param identity
      * @return
      */
     public List<User> queryUserList(Integer pageNow, Integer pageSize, String role, String phone, String name, String
-            type) {
+            type, Identity identity) {
 
         Example example = new Example(User.class);
         Example.Criteria criteria = example.createCriteria();
@@ -88,18 +163,21 @@ public class UserService extends BaseService<User> {
         }
 
         if (!Validator.checkEmpty(phone)) {
-            criteria.andLike(Constant.PHONE, "%" + phone + "%");
+            criteria.andLike(Constant.USERNAME, "%" + phone + "%");
         }
 
         if (!Validator.checkEmpty(role)) {
             criteria.andLike(Constant.ROLE, "%" + role + "%");
         } else {
             if (type.equals(Constant.MEMBER)) {
-                criteria.andLike(Constant.ROLE, "%会员%");
+                // criteria.andLike(Constant.ROLE, "%会员%");
+                criteria.andIn("id", this.queryMemberIdSetUnderEmployee(identity));
             } else { // type.equals("Constant.EMPLOYEE")
                 criteria.andNotLike(Constant.ROLE, "%会员%");
+                criteria.andIn("id", this.queryStaffIdSetUnderManager(identity));
             }
         }
+
 
         PageHelper.startPage(pageNow, pageSize);
         return this.getMapper().selectByExample(example);
@@ -130,6 +208,7 @@ public class UserService extends BaseService<User> {
         return this.getMapper().selectByExample(example);
     }
 
+
     /**
      * 根据顾问查找对应的member
      *
@@ -157,6 +236,7 @@ public class UserService extends BaseService<User> {
         return this.getMapper().selectByExample(example);
     }
 
+
     /**
      * 查询旗下的会员
      *
@@ -171,7 +251,7 @@ public class UserService extends BaseService<User> {
 
         List<User> users = new ArrayList<>();
         if (role.equals(Constant.ARCHIVE_MANAGER) || role.equals(Constant.ARCHIVER) || role.equals(Constant.ADMIN)) {
-            // 档案部员工或者主管，所有的会员
+            // 档案部员工、主管以及超级管理员，所有的会员
             users = this.queryAllMembers();
         } else if (role.equals(Constant.ADVISE_MANAGER)) {
             users = this.queryMembersByAdviseMgrId(Integer.valueOf(id));
@@ -192,7 +272,43 @@ public class UserService extends BaseService<User> {
         List<User> memberList = this.queryMemberListUnderEmployee(identity);
         Set<Integer> memberSet = new HashSet<>();
         memberList.forEach(member -> memberSet.add(member.getId()));
+
+        if (memberSet.size() == 0) {
+            memberSet.add(-1); // 空的话会出错
+        }
+
         return memberSet;
+    }
+
+
+    /**
+     * 查询旗下职员
+     *
+     * @param identity
+     * @return
+     */
+    public Set<Integer> queryStaffIdSetUnderManager(Identity identity) {
+
+        String role = identity.getRole();
+        String id = identity.getId();
+
+        List<User> userList = null;
+
+        if (this.checkManager(role)) {
+            User record = new User();
+            record.setStaffMgrId(id);
+            userList = this.queryListByWhere(record);
+        } else if (this.checkAdmin(role)) {
+            Example userExample = new Example(User.class);
+            Example.Criteria userCriteria = userExample.createCriteria();
+            userCriteria.andNotLike("role", "%会员%");
+            userList = this.getMapper().selectByExample(userExample);
+        }
+
+        Set<Integer> staffSet = new HashSet<>();
+        userList.forEach(staff -> staffSet.add(staff.getId()));
+
+        return staffSet;
     }
 
 

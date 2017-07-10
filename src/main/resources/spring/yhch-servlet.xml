@@ -17,6 +17,8 @@
         <mvc:interceptor>
             <mvc:mapping path="/**"/>
             <mvc:exclude-mapping path="/auth/login"/>
+            <mvc:exclude-mapping path="/auth/member/login"/>
+            <mvc:exclude-mapping path="/auth/employee/login"/>
             <mvc:exclude-mapping path="/auth/register"/>
             <mvc:exclude-mapping path="/auth/send_sms"/>
             <mvc:exclude-mapping path="/auth/login_denied"/>

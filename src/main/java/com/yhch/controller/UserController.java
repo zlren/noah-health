@@ -3,10 +3,12 @@ package com.yhch.controller;
 import com.github.pagehelper.PageInfo;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
+import com.yhch.bean.Identity;
 import com.yhch.bean.PageResult;
 import com.yhch.bean.rolecheck.RequiredRoles;
 import com.yhch.pojo.User;
 import com.yhch.service.PropertyService;
+import com.yhch.service.RedisService;
 import com.yhch.service.UserService;
 import com.yhch.util.FileUtil;
 import com.yhch.util.MD5Util;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpSession;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -40,6 +43,9 @@ public class UserController {
 
     @Autowired
     private PropertyService propertyService;
+
+    @Autowired
+    private RedisService redisService;
 
 
     /**
@@ -64,7 +70,7 @@ public class UserController {
         } else {
             user.setName(name);
             user.setUsername(phone);
-            user.setPhone(phone);
+            // user.setPhone(phone);
             user.setRole(role);
         }
 
@@ -80,13 +86,15 @@ public class UserController {
         }
 
         User record = new User();
-        record.setPhone(phone);
+        // record.setPhone(phone);
+        record.setUsername(phone);
         if (this.userService.queryOne(record) != null) {
             return CommonResult.failure("手机号已注册");
         }
 
         try {
             user.setPassword(MD5Util.generate(propertyService.defaultPassword));
+            user.setAvatar("avatar_default.png"); // 默认头像
             this.userService.save(user);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -132,9 +140,12 @@ public class UserController {
             if (this.userService.checkMember(user.getRole()) && this.userService.checkMember(role)) {
                 // 以前是会员，现在也是会员
 
-            } else if (this.userService.checkStaff(user.getRole()) &&
-                    (this.userService.checkStaff(role) || this.userService.checkAdmin(role)) &&
-                    !user.getRole().equals(role)) {
+            } else if (
+                    this.userService.checkStaff(user.getRole()) // 以前是员工
+                            &&
+                            (this.userService.checkStaff(role) || this.userService.checkAdmin(role)) // 现在是员工或者admin
+                            &&
+                            !user.getRole().equals(role)) { // 并且是不同的员工
                 // 从员工改为（不同的员工或者admin）
 
                 // 只有user的staffId不为null，表示的是顾问
@@ -238,6 +249,7 @@ public class UserController {
 
         if (staffMgrId != null) {
             user.setStaffMgrId(String.valueOf(staffMgrId));
+            logger.info("staffMgrId是 {}!!!!", staffMgrId);
         }
 
         this.userService.update(user);
@@ -321,7 +333,28 @@ public class UserController {
         }
 
         if (!Validator.checkEmpty(phone)) {
-            user.setPhone(phone);
+
+            User record = new User();
+            // record.setPhone(phone);
+            record.setUsername(phone);
+            // fixme 实际上手机号是不允许重复的，queryOne在查询的时候如果查到了多于1个就会报异常，也许现在数据库里面的东西不是很规范存在重复
+            // fixme 先改成List吧
+            try {
+                if (this.userService.queryOne(record) != null) {
+                    return CommonResult.failure("此手机号已注册");
+                }
+            } catch (Exception ignored) {
+                return CommonResult.failure("此手机号已注册");
+            }
+
+            String inputCode = (String) params.get(Constant.INPUT_CODE);
+
+            String code = this.redisService.get(Constant.REDIS_PRE_CODE + phone);
+            if (code == null || !code.equals(inputCode)) {
+                return CommonResult.failure("验证码错误");
+            }
+
+            // user.setPhone(phone);
             user.setUsername(phone);
         }
 
@@ -392,7 +425,8 @@ public class UserController {
      */
     @RequestMapping(value = "{type}/list", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult queryMember(@RequestBody Map<String, Object> params, @PathVariable("type") String type) {
+    public CommonResult queryMember(@RequestBody Map<String, Object> params, @PathVariable("type") String type,
+                                    HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
@@ -401,7 +435,10 @@ public class UserController {
         String phone = (String) params.get(Constant.PHONE);
         String name = (String) params.get(Constant.NAME);
 
-        List<User> userList = this.userService.queryUserList(pageNow, pageSize, role, phone, name, type);
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+
+        List<User> userList = this.userService.queryUserList(pageNow, pageSize, role, phone, name, type, identity);
+
         if (type.equals(Constant.MEMBER)) {
             userList.forEach(user -> {
                 User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
@@ -488,8 +525,7 @@ public class UserController {
 
             try {
                 Streams.copy(file.getInputStream(), new FileOutputStream(this.propertyService.filePath + "avatar/" +
-                                fileName),
-                        true);
+                        fileName), true);
             } catch (IOException e) {
                 e.printStackTrace();
                 return CommonResult.failure("头像上传失败");

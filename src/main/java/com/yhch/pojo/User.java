@@ -17,7 +17,7 @@ public class User {
 
     private String role;
 
-    private String phone;
+    // private String phone;
 
     @Column(name = "staff_id")
     private String staffId;
@@ -109,19 +109,19 @@ public class User {
         this.role = role;
     }
 
-    /**
-     * @return phone
-     */
-    public String getPhone() {
-        return phone;
-    }
-
-    /**
-     * @param phone
-     */
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+    // /**
+    //  * @return phone
+    //  */
+    // public String getPhone() {
+    //     return phone;
+    // }
+    //
+    // /**
+    //  * @param phone
+    //  */
+    // public void setPhone(String phone) {
+    //     this.phone = phone;
+    // }
 
     /**
      * @return staff_id

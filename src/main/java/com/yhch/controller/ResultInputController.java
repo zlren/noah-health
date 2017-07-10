@@ -1,5 +1,6 @@
 package com.yhch.controller;
 
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
@@ -9,6 +10,7 @@ import com.yhch.bean.input.ResultInputDetailExtend;
 import com.yhch.bean.input.ResultInputExtend;
 import com.yhch.pojo.ResultInput;
 import com.yhch.pojo.ResultInputDetail;
+import com.yhch.pojo.User;
 import com.yhch.service.*;
 import com.yhch.util.TimeUtil;
 import com.yhch.util.Validator;
@@ -19,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -66,9 +69,7 @@ public class ResultInputController {
 
         Integer userId = (Integer) params.get("userId");
         Integer secondId = (Integer) params.get("secondId");
-        Integer checkerId = (Integer) params.get("checkerId");
-        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-        Integer inputerId = Integer.valueOf(identity.getId());
+        Integer inputerId = Integer.valueOf(((Identity) session.getAttribute(Constant.IDENTITY)).getId());
         String status = Constant.LU_RU_ZHONG; // 初始状态为录入中
         String note = (String) params.get(Constant.NOTE);
         String hospital = (String) params.get("hospital");
@@ -77,7 +78,6 @@ public class ResultInputController {
         ResultInput resultInput = new ResultInput();
         resultInput.setUserId(userId);
         resultInput.setSecondId(secondId);
-        resultInput.setCheckerId(checkerId);
         resultInput.setInputerId(inputerId);
         resultInput.setStatus(status);
         resultInput.setNote(note);
@@ -87,11 +87,7 @@ public class ResultInputController {
         // 级联插入
         this.resultInputService.saveInputAndEmptyDetail(resultInput);
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("resultInputId", resultInput.getId());
-        result.put("secondName", this.categorySecondService.queryById(secondId).getName());
-
-        return CommonResult.success("添加成功", result);
+        return CommonResult.success("添加成功");
     }
 
 
@@ -135,8 +131,7 @@ public class ResultInputController {
 
 
     /**
-     * 根据userId查询此member的所有input记录，每个记录对应一个亚类
-     * 点击去才具体显示这个亚类的每个检查项目，这些信息从detail表中查询
+     * 本质就是条件查询user表的会员
      *
      * @param params
      * @param session
@@ -144,18 +139,12 @@ public class ResultInputController {
      */
     @RequestMapping(value = "list", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult queryResultInputByUserId(@RequestBody Map<String, Object> params, HttpSession session) {
+    public CommonResult queryResultInputList(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
-
-        String status = (String) params.get(Constant.STATUS);
         String userName = (String) params.get("userName");
-        String inputerName = (String) params.get("inputerName");
-        String checkerName = (String) params.get("checkerName");
-        String secondName = (String) params.get("secondName");
-        String hospital = (String) params.get("hospital");
-        Date time = TimeUtil.parseTime((String) params.get(Constant.TIME));
+
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
         String role = identity.getRole();
@@ -167,25 +156,67 @@ public class ResultInputController {
 
         Set<Integer> usersSet = new HashSet<>();
         if (this.userService.checkMember(identity.getRole())) { // 二级、三级用户
-            // member只能查看自己的数据，且是已通过的
+            // member只能查看自己
             usersSet.add(Integer.valueOf(identity.getId()));
-            status = Constant.YI_TONG_GUO;
         } else {
             // 职员
             usersSet = this.userService.queryMemberIdSetUnderEmployee(identity);
+
         }
 
-        List<ResultInput> resultInputList = this.resultInputService.queryInputList(usersSet, status, userName,
-                inputerName, checkerName, secondName, hospital, time, pageNow, pageSize);
 
-        PageResult pageResult = new PageResult(new PageInfo<>(resultInputList));
+        Example example = new Example(User.class);
+        Example.Criteria userCriteria = example.createCriteria();
+
+        if (!Validator.checkEmpty(userName)) {
+            userCriteria.andLike(Constant.NAME, "%" + userName + "%");
+        }
+
+        userCriteria.andLike("role", "%会员%");
+        userCriteria.andIn("id", usersSet);
+
+        PageHelper.startPage(pageNow, pageSize);
+        List<User> userList = this.userService.getMapper().selectByExample(example);
+
+        return CommonResult.success("查询成功", new PageResult(new PageInfo<>(userList)));
+    }
+
+
+    /**
+     * 根据userId查询单个member的所有检查亚类
+     *
+     * @param userId
+     * @return
+     */
+    @RequestMapping(value = "list/{userId}", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult queryResultListByUserId(@PathVariable("userId") Integer userId) {
+
+        ResultInput resultInputRecord = new ResultInput();
+        resultInputRecord.setUserId(userId);
+        Example example = new Example(ResultInput.class);
+        example.setOrderByClause("time DESC"); // 倒叙
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("userId", userId);
+        List<ResultInput> resultInputList = this.resultInputService.getMapper().selectByExample(example);
+
+        // List<ResultInput> resultInputList = this.resultInputService.queryListByWhere(resultInputRecord);
 
         List<ResultInputExtend> resultInputExtendList = this.resultInputService.extendFromResultInputList
                 (resultInputList);
 
-        pageResult.setData(resultInputExtendList);
+        resultInputExtendList.forEach(resultInputExtend -> {
 
-        return CommonResult.success("查询成功", pageResult);
+            ResultInputDetail resultInputDetailRecord = new ResultInputDetail();
+            resultInputDetailRecord.setResultInputId(resultInputExtend.getId());
+            List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.queryListByWhere
+                    (resultInputDetailRecord);
+
+            resultInputExtend.data = this.resultInputDetailService.extendFromResultInputDetailList
+                    (resultInputDetailList);
+        });
+
+        return CommonResult.success("查询成功", resultInputExtendList);
     }
 
 
