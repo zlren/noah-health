@@ -4,10 +4,12 @@ import com.github.pagehelper.PageHelper;
 import com.yhch.bean.Constant;
 import com.yhch.pojo.ResultOrigin;
 import com.yhch.util.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -17,6 +19,9 @@ import java.util.Set;
  */
 @Service
 public class ResultOriginService extends BaseService<ResultOrigin> {
+
+    @Autowired
+    private UserService userService;
 
     public List<ResultOrigin> queryOriginList(Set<Integer> userIdSet, String status, String userName,
                                               String uploaderName, String checkerName, Date time, Integer pageNow,
@@ -29,26 +34,30 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
             criteria.andEqualTo(Constant.STATUS, status);
         }
 
+        // !!!
+        Set<Integer> valueIdSet = new HashSet<>();
+        valueIdSet.addAll(userIdSet);
         if (!Validator.checkEmpty(userName)) {
-            criteria.andLike("userName", "%" + userName + "%");
+            valueIdSet.retainAll(this.userService.getMemberIdSetByUserNameLike(userName));
         }
+        criteria.andIn("userId", valueIdSet);
 
         if (!Validator.checkEmpty(uploaderName)) {
-            criteria.andLike("uploaderName", "%" + uploaderName + "%");
+            criteria.andIn("uploaderId", this.userService.getEmployeeIdSetByUserNameLike(uploaderName));
         }
 
         if (!Validator.checkEmpty(checkerName)) {
-            criteria.andLike("checkerName", "%" + checkerName + "%");
+            criteria.andIn("checkerId", this.userService.getEmployeeIdSetByUserNameLike(checkerName));
         }
 
         if (time != null) {
             criteria.andEqualTo("time", time);
         }
 
-        // 只能查看旗下的人的资料
-        if (userIdSet != null && userIdSet.size() > 0) {
-            criteria.andIn("userId", userIdSet);
-        }
+        // // 只能查看旗下的人的资料
+        // if (userIdSet != null && userIdSet.size() > 0) {
+        //     criteria.andIn("userId", userIdSet);
+        // }
 
         PageHelper.startPage(pageNow, pageSize);
         return this.getMapper().selectByExample(example);

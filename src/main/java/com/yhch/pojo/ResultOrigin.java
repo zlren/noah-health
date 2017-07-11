@@ -1,7 +1,7 @@
 package com.yhch.pojo;
 
-import javax.persistence.*;
 import java.util.Date;
+import javax.persistence.*;
 
 @Table(name = "result_origin")
 public class ResultOrigin {
@@ -12,22 +12,13 @@ public class ResultOrigin {
     @Column(name = "user_id")
     private Integer userId;
 
-    @Column(name = "user_name")
-    private String userName;
-
     private Date time;
 
     @Column(name = "uploader_id")
     private Integer uploaderId;
 
-    @Column(name = "uploader_name")
-    private String uploaderName;
-
     @Column(name = "checker_id")
     private Integer checkerId;
-
-    @Column(name = "checker_name")
-    private String checkerName;
 
     private String status;
 
@@ -66,20 +57,6 @@ public class ResultOrigin {
     }
 
     /**
-     * @return user_name
-     */
-    public String getUserName() {
-        return userName;
-    }
-
-    /**
-     * @param userName
-     */
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    /**
      * @return time
      */
     public Date getTime() {
@@ -108,20 +85,6 @@ public class ResultOrigin {
     }
 
     /**
-     * @return uploader_name
-     */
-    public String getUploaderName() {
-        return uploaderName;
-    }
-
-    /**
-     * @param uploaderName
-     */
-    public void setUploaderName(String uploaderName) {
-        this.uploaderName = uploaderName;
-    }
-
-    /**
      * @return checker_id
      */
     public Integer getCheckerId() {
@@ -133,20 +96,6 @@ public class ResultOrigin {
      */
     public void setCheckerId(Integer checkerId) {
         this.checkerId = checkerId;
-    }
-
-    /**
-     * @return checker_name
-     */
-    public String getCheckerName() {
-        return checkerName;
-    }
-
-    /**
-     * @param checkerName
-     */
-    public void setCheckerName(String checkerName) {
-        this.checkerName = checkerName;
     }
 
     /**

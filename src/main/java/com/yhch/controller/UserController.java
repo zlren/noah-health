@@ -3,19 +3,27 @@ package com.yhch.controller;
 import com.github.pagehelper.PageInfo;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
+import com.yhch.bean.Identity;
 import com.yhch.bean.PageResult;
 import com.yhch.bean.rolecheck.RequiredRoles;
 import com.yhch.pojo.User;
 import com.yhch.service.PropertyService;
+import com.yhch.service.RedisService;
 import com.yhch.service.UserService;
+import com.yhch.util.FileUtil;
 import com.yhch.util.MD5Util;
 import com.yhch.util.Validator;
+import org.apache.commons.fileupload.util.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpSession;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +43,9 @@ public class UserController {
 
     @Autowired
     private PropertyService propertyService;
+
+    @Autowired
+    private RedisService redisService;
 
 
     /**
@@ -59,7 +70,7 @@ public class UserController {
         } else {
             user.setName(name);
             user.setUsername(phone);
-            user.setPhone(phone);
+            // user.setPhone(phone);
             user.setRole(role);
         }
 
@@ -75,13 +86,15 @@ public class UserController {
         }
 
         User record = new User();
-        record.setPhone(phone);
+        // record.setPhone(phone);
+        record.setUsername(phone);
         if (this.userService.queryOne(record) != null) {
             return CommonResult.failure("手机号已注册");
         }
 
         try {
             user.setPassword(MD5Util.generate(propertyService.defaultPassword));
+            user.setAvatar("avatar_default.png"); // 默认头像
             this.userService.save(user);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -93,70 +106,19 @@ public class UserController {
 
 
     /**
-     * 查询用户信息
+     * 修改别的用户的信息
      *
-     * @param userId
-     * @return
-     */
-    @RequestMapping(value = "{userId}", method = RequestMethod.GET)
-    @ResponseBody
-    public CommonResult queryById(@PathVariable("userId") Integer userId) {
-
-        User user = this.userService.queryById(userId);
-        if (user == null) {
-            return CommonResult.failure("用户不存在");
-        }
-
-        String role = user.getRole();
-
-        if (role.equals(Constant.USER_1) || role.equals(Constant.USER_2) || role.equals
-                (Constant.USER_3)) {
-            User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
-            user.setStaffMgrId(this.userService.queryById(Integer.valueOf(adviser.getStaffMgrId())).getName());
-        } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ARCHIVER)) {
-            // user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
-        }
-
-        return CommonResult.success("查询成功", user);
-    }
-
-
-    /**
-     * 删除用户
-     *
-     * @param userId
-     * @return
-     */
-    @RequestMapping(value = "{userId}", method = RequestMethod.DELETE)
-    @ResponseBody
-    @RequiredRoles(roles = {"系统管理员"})
-    public CommonResult deleteById(@PathVariable("userId") Integer userId) {
-
-        User user = this.userService.queryById(userId);
-        if (user == null) {
-            return CommonResult.failure("用户不存在");
-        }
-
-        this.userService.deleteById(userId);
-        logger.info("删除用户：{}", user.getName());
-
-        return CommonResult.success("删除成功");
-    }
-
-
-    /**
-     * 修改一个用户
-     *
-     * @param userId
      * @param params
      * @return
      */
-    @RequestMapping(value = "{userId}", method = RequestMethod.PUT)
+    @RequestMapping(method = RequestMethod.PUT)
     @ResponseBody
-    public CommonResult updateById(@PathVariable("userId") Integer userId, @RequestBody Map<String, Object> params) {
+    public CommonResult updateOtherUser(@RequestBody Map<String, Object> params) {
 
-        String name = (String) params.get(Constant.NAME);
-        String phone = (String) params.get(Constant.PHONE);
+        Integer userId = (Integer) params.get("userId");
+        // 修改别的用户的时候不能修改name和phone
+        // String name = (String) params.get(Constant.NAME);
+        // String phone = (String) params.get(Constant.PHONE);
         String role = (String) params.get(Constant.ROLE);
         Integer adviserId = (Integer) params.get(Constant.STAFF_ID);
         Integer staffMgrId = (Integer) params.get(Constant.STAFF_MGR_ID);
@@ -164,23 +126,26 @@ public class UserController {
         // 未修改的user
         User user = this.userService.queryById(userId);
 
-        if (!Validator.checkEmpty(name)) {
-            user.setName(name);
-        }
-
-        if (!Validator.checkEmpty(phone)) {
-            user.setPhone(phone);
-            user.setUsername(phone);
-        }
+        // if (!Validator.checkEmpty(name)) {
+        //     user.setName(name);
+        // }
+        //
+        // if (!Validator.checkEmpty(phone)) {
+        //     user.setPhone(phone);
+        //     user.setUsername(phone);
+        // }
 
         // role
         if (!Validator.checkEmpty(role)) {
             if (this.userService.checkMember(user.getRole()) && this.userService.checkMember(role)) {
                 // 以前是会员，现在也是会员
 
-            } else if (this.userService.checkStaff(user.getRole()) &&
-                    (this.userService.checkStaff(role) || this.userService.checkAdmin(role)) &&
-                    !user.getRole().equals(role)) {
+            } else if (
+                    this.userService.checkStaff(user.getRole()) // 以前是员工
+                            &&
+                            (this.userService.checkStaff(role) || this.userService.checkAdmin(role)) // 现在是员工或者admin
+                            &&
+                            !user.getRole().equals(role)) { // 并且是不同的员工
                 // 从员工改为（不同的员工或者admin）
 
                 // 只有user的staffId不为null，表示的是顾问
@@ -284,10 +249,116 @@ public class UserController {
 
         if (staffMgrId != null) {
             user.setStaffMgrId(String.valueOf(staffMgrId));
+            logger.info("staffMgrId是 {}!!!!", staffMgrId);
         }
 
         this.userService.update(user);
 
+        return CommonResult.success("修改成功");
+    }
+
+
+    /**
+     * 查询用户信息
+     *
+     * @param userId
+     * @return
+     */
+    @RequestMapping(value = "{userId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult queryById(@PathVariable("userId") Integer userId) {
+
+        User user = this.userService.queryById(userId);
+        if (user == null) {
+            return CommonResult.failure("用户不存在");
+        }
+
+        String role = user.getRole();
+
+        if (role.equals(Constant.USER_1) || role.equals(Constant.USER_2) || role.equals
+                (Constant.USER_3)) {
+            User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
+            user.setStaffMgrId(this.userService.queryById(Integer.valueOf(adviser.getStaffMgrId())).getName());
+        } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ARCHIVER)) {
+            // user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
+        }
+
+        return CommonResult.success("查询成功", user);
+    }
+
+
+    /**
+     * 删除用户
+     *
+     * @param userId
+     * @return
+     */
+    @RequestMapping(value = "{userId}", method = RequestMethod.DELETE)
+    @ResponseBody
+    @RequiredRoles(roles = {"系统管理员"})
+    public CommonResult deleteById(@PathVariable("userId") Integer userId) {
+
+        User user = this.userService.queryById(userId);
+        if (user == null) {
+            return CommonResult.failure("用户不存在");
+        }
+
+        this.userService.deleteById(userId);
+        logger.info("删除用户：{}", user.getName());
+
+        return CommonResult.success("删除成功");
+    }
+
+
+    /**
+     * 用户自己修改自己
+     *
+     * @param userId
+     * @param params
+     * @return
+     */
+    @RequestMapping(value = "{userId}", method = RequestMethod.PUT)
+    @ResponseBody
+    public CommonResult updateById(@PathVariable("userId") Integer userId, @RequestBody Map<String, Object> params) {
+
+        // 自己可以修改自己的name和phone
+        String name = (String) params.get(Constant.NAME);
+        String phone = (String) params.get(Constant.PHONE);
+
+        // 未修改的user
+        User user = this.userService.queryById(userId);
+
+        if (!Validator.checkEmpty(name)) {
+            user.setName(name);
+        }
+
+        if (!Validator.checkEmpty(phone)) {
+
+            User record = new User();
+            // record.setPhone(phone);
+            record.setUsername(phone);
+            // fixme 实际上手机号是不允许重复的，queryOne在查询的时候如果查到了多于1个就会报异常，也许现在数据库里面的东西不是很规范存在重复
+            // fixme 先改成List吧
+            try {
+                if (this.userService.queryOne(record) != null) {
+                    return CommonResult.failure("此手机号已注册");
+                }
+            } catch (Exception ignored) {
+                return CommonResult.failure("此手机号已注册");
+            }
+
+            String inputCode = (String) params.get(Constant.INPUT_CODE);
+
+            String code = this.redisService.get(Constant.REDIS_PRE_CODE + phone);
+            if (code == null || !code.equals(inputCode)) {
+                return CommonResult.failure("验证码错误");
+            }
+
+            // user.setPhone(phone);
+            user.setUsername(phone);
+        }
+
+        this.userService.update(user);
         return CommonResult.success("修改成功");
     }
 
@@ -354,7 +425,8 @@ public class UserController {
      */
     @RequestMapping(value = "{type}/list", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult queryMember(@RequestBody Map<String, Object> params, @PathVariable("type") String type) {
+    public CommonResult queryMember(@RequestBody Map<String, Object> params, @PathVariable("type") String type,
+                                    HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
@@ -363,7 +435,10 @@ public class UserController {
         String phone = (String) params.get(Constant.PHONE);
         String name = (String) params.get(Constant.NAME);
 
-        List<User> userList = this.userService.queryUserList(pageNow, pageSize, role, phone, name, type);
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+
+        List<User> userList = this.userService.queryUserList(pageNow, pageSize, role, phone, name, type, identity);
+
         if (type.equals(Constant.MEMBER)) {
             userList.forEach(user -> {
                 User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
@@ -390,28 +465,78 @@ public class UserController {
      * @param params
      * @return
      */
-    @RequestMapping(value = "password", method = RequestMethod.POST)
+    @RequestMapping(value = "password/{userId}", method = RequestMethod.PUT)
     @ResponseBody
-    public CommonResult changePassword(@RequestBody Map<String, Object> params) {
+    public CommonResult changePassword(@RequestBody Map<String, Object> params, @PathVariable("userId") Integer
+            userId) {
 
-        // 得到用户名和密码，用户名就是phone
-        Integer userId = (Integer) params.get(Constant.ID);
-        String password = (String) params.get(Constant.PASSWORD);
+        String oldPassword = (String) params.get("oldPassword");
+        String newPassword = (String) params.get("newPassword");
 
-        String md5Password;
+        User user = this.userService.queryById(userId);
+
+        String oldPasswordMD5;
         try {
-            md5Password = MD5Util.generate(password);
+            oldPasswordMD5 = MD5Util.generate(oldPassword);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return CommonResult.failure("md5加密失败！");
+        }
+
+        if (!oldPasswordMD5.equals(user.getPassword())) {
+            return CommonResult.failure("修改失败，原密码输入错误");
+        }
+
+        String newPasswordMD5;
+        try {
+            newPasswordMD5 = MD5Util.generate(newPassword);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return CommonResult.failure("md5加密失败");
         }
 
-        User user = this.userService.queryById(userId);
-        user.setPassword(md5Password);
+        user.setPassword(newPasswordMD5);
         this.userService.update(user);
 
-        logger.info("{}的密码修改为：{}", user.getName(), password);
-
         return CommonResult.success("密码修改成功");
+    }
+
+
+    /**
+     * 修改用户头像
+     *
+     * @param file
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "avatar", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult uploadAvatar(@RequestParam("file") MultipartFile file, Integer id) {
+
+        User user = this.userService.queryById(id);
+        if (user == null) {
+            return CommonResult.failure("上传失败，用户不存在");
+        }
+
+        String fileName;
+        if (!file.isEmpty()) {
+
+            fileName = id + "." + FileUtil.getExtensionName(file.getOriginalFilename());
+
+            try {
+                Streams.copy(file.getInputStream(), new FileOutputStream(this.propertyService.filePath + "avatar/" +
+                        fileName), true);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return CommonResult.failure("头像上传失败");
+            }
+
+            user.setAvatar(fileName);
+            this.userService.update(user);
+        } else {
+            return CommonResult.failure("头像上传失败");
+        }
+
+        return CommonResult.success("头像上传成功", "/avatar/" + fileName);
     }
 }

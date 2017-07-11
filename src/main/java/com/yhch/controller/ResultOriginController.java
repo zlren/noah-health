@@ -5,6 +5,7 @@ import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
 import com.yhch.bean.PageResult;
+import com.yhch.bean.origin.ResultOriginExtend;
 import com.yhch.pojo.ResultOrigin;
 import com.yhch.pojo.User;
 import com.yhch.service.PropertyService;
@@ -125,17 +126,10 @@ public class ResultOriginController {
         }
 
         ResultOrigin resultOrigin = new ResultOrigin();
-
         resultOrigin.setUserId(userId);
-        resultOrigin.setUserName(this.userService.queryById(userId).getName());
-
         resultOrigin.setTime(time);
-
         resultOrigin.setUploaderId(uploaderId);
-        resultOrigin.setUploaderName(this.userService.queryById(uploaderId).getName());
-
         resultOrigin.setCheckerId(null);
-        resultOrigin.setCheckerName(null);
 
         // 初始状态上传中
         resultOrigin.setStatus(Constant.SHANG_CHUAN_ZHONG);
@@ -219,7 +213,7 @@ public class ResultOriginController {
      */
     @RequestMapping(value = "list", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult showFilteredResultOriginList(@RequestBody Map<String, Object> params, HttpSession session) {
+    public CommonResult showResultOriginList(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
@@ -241,14 +235,41 @@ public class ResultOriginController {
         }
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-        List<User> users = this.userService.queryMembersUnderEmployee(identity);
+
         Set<Integer> usersSet = new HashSet<>();
-        users.forEach(user -> usersSet.add(user.getId()));
+        if (this.userService.checkMember(identity.getRole())) {
+            // member只能查看自己的原始数据，且是已通过的
+            usersSet.add(Integer.valueOf(identity.getId()));
+            status = Constant.YI_TONG_GUO;
+        } else {
+            usersSet = this.userService.queryMemberIdSetUnderEmployee(identity);
+        }
 
         List<ResultOrigin> resultOriginList = this.resultOriginService.queryOriginList(usersSet, status, userName,
                 uploaderName, checkerName, time, pageNow, pageSize);
+        PageResult pageResult = new PageResult(new PageInfo<>(resultOriginList));
 
-        return CommonResult.success("查询成功", new PageResult(new PageInfo<>(resultOriginList)));
+        List<ResultOriginExtend> resultOriginExtendList = new ArrayList<>();
+
+        resultOriginList.forEach(resultOrigin -> {
+
+            String userNameExtend = this.userService.queryById(resultOrigin.getUserId()).getName();
+            String checkerNameExtend = null;
+            if (resultOrigin.getCheckerId() != null) {
+                checkerNameExtend = this.userService.queryById(resultOrigin.getCheckerId()).getName();
+            }
+            String uploaderNameExtend = this.userService.queryById(resultOrigin.getUploaderId()).getName();
+
+
+            ResultOriginExtend resultOriginExtend = new ResultOriginExtend(resultOrigin, userNameExtend,
+                    checkerNameExtend, uploaderNameExtend);
+
+            resultOriginExtendList.add(resultOriginExtend);
+        });
+
+        pageResult.setData(resultOriginExtendList);
+
+        return CommonResult.success("查询成功", pageResult);
     }
 
 
@@ -263,33 +284,8 @@ public class ResultOriginController {
     public CommonResult queryMemberUnderEmployee(HttpSession session) {
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-        List<User> users = this.userService.queryMembersUnderEmployee(identity);
+        List<User> users = this.userService.queryMemberListUnderEmployee(identity);
         return CommonResult.success("查询成功", users);
-    }
-
-
-    /**
-     * 根据userId查询对应的所有原始数据列表
-     *
-     * @param userId
-     * @param params
-     * @return
-     */
-    @RequestMapping(value = "user/{userId}", method = RequestMethod.POST)
-    @ResponseBody
-    public CommonResult showResultOriginByUser(@PathVariable("userId") Integer userId, @RequestBody Map<String,
-            Object> params) {
-
-        Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
-        Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
-
-        ResultOrigin record = new ResultOrigin();
-        record.setUserId(userId);
-
-        PageInfo<ResultOrigin> resultOriginPageInfo = this.resultOriginService.queryPageListByWhere(pageNow,
-                pageSize, record);
-
-        return CommonResult.success("查询成功", new PageResult(resultOriginPageInfo));
     }
 
 
@@ -420,8 +416,6 @@ public class ResultOriginController {
             }
 
             resultOrigin.setCheckerId(checkerId);
-            resultOrigin.setCheckerName(checkerName);
-
             resultOrigin.setStatus(Constant.WEI_TONG_GUO);
             resultOrigin.setReason(reason);
             this.resultOriginService.update(resultOrigin);
@@ -431,8 +425,6 @@ public class ResultOriginController {
         } else if (status.equals(Constant.YI_TONG_GUO)) { // 通过，已通过
 
             resultOrigin.setCheckerId(checkerId);
-            resultOrigin.setCheckerName(checkerName);
-
             resultOrigin.setStatus(Constant.YI_TONG_GUO);
             this.resultOriginService.update(resultOrigin);
 

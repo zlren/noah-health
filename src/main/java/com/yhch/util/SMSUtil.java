@@ -1,7 +1,7 @@
 package com.yhch.util;
 
 import com.yhch.bean.CommonResult;
-import com.yhch.controller.LoginController;
+import com.yhch.controller.AuthController;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SMSUtil {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(LoginController.class);
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final static String HTTP_URL = "http://apis.baidu.com/kingtto_media/106sms/106sms";
     private final static String API_KEY = "xxxx";
