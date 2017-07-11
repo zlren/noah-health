@@ -128,6 +128,7 @@ public class UserService extends BaseService<User> {
         return this.getMapper().selectByExample(example);
     }
 
+
     /**
      * 根据顾问查找对应的member
      *
@@ -154,6 +155,7 @@ public class UserService extends BaseService<User> {
         criteria.andLike("role", "%会员%");
         return this.getMapper().selectByExample(example);
     }
+
 
     /**
      * 查询旗下的会员
