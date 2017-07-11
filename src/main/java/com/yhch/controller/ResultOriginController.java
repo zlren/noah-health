@@ -180,10 +180,7 @@ public class ResultOriginController {
         }
 
         Integer userId = (Integer) params.get(Constant.USER_ID);
-        Integer secondId = (Integer) params.get(Constant.SECOND_ID);
         Integer uploaderId = (Integer) params.get(Constant.UPLOADER_ID);
-        String isPass = (String) params.get(Constant.IS_PASS);
-        String isInput = (String) params.get(Constant.IS_INPUT);
 
         if (userId != null) {
             resultOrigin.setUserId(userId);
@@ -192,12 +189,6 @@ public class ResultOriginController {
         if (uploaderId != null) {
             resultOrigin.setUploaderId(uploaderId);
         }
-        // if (isPass != null) {
-        //     resultOrigin.setIsPass(isPass);
-        // }
-        // if (isInput != null) {
-        //     resultOrigin.setIsInput(isInput);
-        // }
 
         this.resultOriginService.update(resultOrigin);
 
@@ -236,16 +227,10 @@ public class ResultOriginController {
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
-        Set<Integer> usersSet = new HashSet<>();
-        if (this.userService.checkMember(identity.getRole())) {
-            // member只能查看自己的原始数据，且是已通过的
-            usersSet.add(Integer.valueOf(identity.getId()));
-            status = Constant.YI_TONG_GUO;
-        } else {
-            usersSet = this.userService.queryMemberIdSetUnderEmployee(identity);
-        }
+        Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
+        Set<String> statusSet = this.userService.getStatusSetUnderRole(identity);
 
-        List<ResultOrigin> resultOriginList = this.resultOriginService.queryOriginList(usersSet, status, userName,
+        List<ResultOrigin> resultOriginList = this.resultOriginService.queryOriginList(memberSet, statusSet, status, userName,
                 uploaderName, checkerName, time, pageNow, pageSize);
         PageResult pageResult = new PageResult(new PageInfo<>(resultOriginList));
 
@@ -395,7 +380,6 @@ public class ResultOriginController {
         // checker
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
         Integer checkerId = Integer.valueOf(identity.getId());
-        String checkerName = this.userService.queryById(checkerId).getName();
 
         if (status.equals(Constant.DAI_SHEN_HE)) { // 提交，待审核
 
