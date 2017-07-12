@@ -161,7 +161,6 @@ public class ResultInputController {
         } else {
             // 职员
             usersSet = this.userService.queryMemberIdSetUnderEmployee(identity);
-
         }
 
 

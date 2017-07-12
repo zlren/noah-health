@@ -62,13 +62,13 @@ public class TokenUtil {
 
         String[] subjectInfos = claims.getSubject().split(",");
         String id = subjectInfos[0];
-        String phone = subjectInfos[1];
+        String username = subjectInfos[1];
         String role = subjectInfos[2];
 
         // 封装成pojo
         Identity identity = new Identity();
         identity.setId(id);
-        identity.setUsername(phone);
+        identity.setUsername(username);
         identity.setRole(role);
         identity.setDuration(claims.getExpiration().getTime());
 
