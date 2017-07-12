@@ -23,18 +23,37 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
     @Autowired
     private UserService userService;
 
-    public List<ResultOrigin> queryOriginList(Set<Integer> userIdSet, String status, String userName,
+    /**
+     *
+     * @param userIdSet
+     * @param statusSet
+     * @param status
+     * @param userName
+     * @param uploaderName
+     * @param checkerName
+     * @param time
+     * @param pageNow
+     * @param pageSize
+     * @return
+     */
+    public List<ResultOrigin> queryOriginList(Set<Integer> userIdSet, Set<String> statusSet, String status, String userName,
                                               String uploaderName, String checkerName, Date time, Integer pageNow,
                                               Integer pageSize) {
 
         Example example = new Example(ResultOrigin.class);
         Example.Criteria criteria = example.createCriteria();
 
+        // status
+        Set<String> valueStatusSet = new HashSet<>();
+        valueStatusSet.addAll(statusSet);
         if (!Validator.checkEmpty(status)) {
-            criteria.andEqualTo(Constant.STATUS, status);
+            Set<String> t = new HashSet<>();
+            t.add(status);
+            valueStatusSet.retainAll(t);
         }
+        criteria.andIn(Constant.STATUS, valueStatusSet);
 
-        // !!!
+        // id和name共同考虑
         Set<Integer> valueIdSet = new HashSet<>();
         valueIdSet.addAll(userIdSet);
         if (!Validator.checkEmpty(userName)) {
@@ -53,11 +72,6 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
         if (time != null) {
             criteria.andEqualTo("time", time);
         }
-
-        // // 只能查看旗下的人的资料
-        // if (userIdSet != null && userIdSet.size() > 0) {
-        //     criteria.andIn("userId", userIdSet);
-        // }
 
         PageHelper.startPage(pageNow, pageSize);
         return this.getMapper().selectByExample(example);

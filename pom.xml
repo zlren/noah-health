@@ -322,8 +322,8 @@
                     <path>/</path>
 
                     <!-- 系统热部署配置 118.89.227.189 -->
-                    <url>http://118.89.227.189:8080/manager/text</url>
-                    <!--<url>http://10.109.247.127:8080/manager/text</url>-->
+                    <!--<url>http://118.89.227.189:8080/manager/text</url>-->
+                    <url>http://10.109.247.127:8080/manager/text</url>
                     <username>tomcat</username>
                     <password>tomcat</password>
 

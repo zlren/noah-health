@@ -54,7 +54,7 @@ public class ResultInputService extends BaseService<ResultInput> {
 
         ResultInputDetail record = new ResultInputDetail();
         record.setResultInputId(resultInput.getId());
-        // this.resultInputDetailService.deleteByWhere(record);
+        this.resultInputDetailService.deleteByWhere(record);
 
         this.deleteById(inputId);
 

@@ -114,8 +114,9 @@ public class UserService extends BaseService<User> {
      *
      * @param id
      * @param issuer
-     * @param phone
+     * @param username
      * @param role
+     * @param avatar
      * @param duration
      * @param apiKeySecret
      * @return
@@ -127,7 +128,7 @@ public class UserService extends BaseService<User> {
         Identity identity = new Identity();
         identity.setId(id);
         identity.setIssuer(issuer);
-        // identity.setPhone(phone);
+        identity.setUsername(username);
         identity.setRole(role);
         identity.setDuration(duration);
         identity.setAvatar(avatar);
@@ -171,13 +172,12 @@ public class UserService extends BaseService<User> {
         } else {
             if (type.equals(Constant.MEMBER)) {
                 // criteria.andLike(Constant.ROLE, "%会员%");
-                criteria.andIn("id", this.queryMemberIdSetUnderEmployee(identity));
+                criteria.andIn("id", this.queryMemberIdSetUnderRole(identity));
             } else { // type.equals("Constant.EMPLOYEE")
                 criteria.andNotLike(Constant.ROLE, "%会员%");
                 criteria.andIn("id", this.queryStaffIdSetUnderManager(identity));
             }
         }
-
 
         PageHelper.startPage(pageNow, pageSize);
         return this.getMapper().selectByExample(example);
@@ -267,14 +267,18 @@ public class UserService extends BaseService<User> {
      * @param identity
      * @return
      */
-    public Set<Integer> queryMemberIdSetUnderEmployee(Identity identity) {
+    public Set<Integer> queryMemberIdSetUnderRole(Identity identity) {
 
-        List<User> memberList = this.queryMemberListUnderEmployee(identity);
         Set<Integer> memberSet = new HashSet<>();
-        memberList.forEach(member -> memberSet.add(member.getId()));
 
-        if (memberSet.size() == 0) {
-            memberSet.add(-1); // 空的话会出错
+        if (this.checkMember(identity.getRole())) {
+            memberSet.add(Integer.valueOf(identity.getId()));
+        } else {
+            List<User> memberList = this.queryMemberListUnderEmployee(identity);
+            memberList.forEach(member -> memberSet.add(member.getId()));
+            if (memberSet.size() == 0) {
+                memberSet.add(-1); // 空的话会出错
+            }
         }
 
         return memberSet;
@@ -386,4 +390,32 @@ public class UserService extends BaseService<User> {
 
         return userIdSet;
     }
+
+
+    /**
+     * 根据角色返回可用的状态集合
+     *
+     * @param identity
+     * @return
+     */
+    public Set<String> getStatusSetUnderRole(Identity identity) {
+
+        String role = identity.getRole();
+        Set<String> statusSet = new HashSet<>();
+
+        if (role.equals(Constant.ARCHIVER) || role.equals(Constant.ADMIN)) {
+            statusSet.add(Constant.WEI_TONG_GUO);
+            statusSet.add(Constant.YI_TONG_GUO);
+            statusSet.add(Constant.LU_RU_ZHONG);
+            statusSet.add(Constant.DAI_SHEN_HE);
+            statusSet.add(Constant.SHANG_CHUAN_ZHONG);
+        } else if (role.equals(Constant.ARCHIVE_MANAGER)) { // 档案部主管
+            statusSet.add(Constant.DAI_SHEN_HE);
+        } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ADVISE_MANAGER) || this.checkMember(role)) {
+            statusSet.add(Constant.YI_TONG_GUO);
+        }
+
+        return statusSet;
+    }
+
 }

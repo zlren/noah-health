@@ -145,15 +145,14 @@ public class ResultInputController {
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
         String userName = (String) params.get("userName");
 
-
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-        String role = identity.getRole();
 
         // 一级用户无此权限
-        if (role.equals(Constant.USER_1)) {
+        if (identity.getRole().equals(Constant.USER_1)) {
             return CommonResult.failure("无此权限");
         }
 
+<<<<<<< HEAD
         Set<Integer> usersSet = new HashSet<>();
         if (this.userService.checkMember(identity.getRole())) { // 二级、三级用户
             // member只能查看自己
@@ -164,6 +163,8 @@ public class ResultInputController {
         }
 
 
+=======
+>>>>>>> aae767fd14665b5681e006899ee4529b3d5b9937
         Example example = new Example(User.class);
         Example.Criteria userCriteria = example.createCriteria();
 
@@ -171,7 +172,13 @@ public class ResultInputController {
             userCriteria.andLike(Constant.NAME, "%" + userName + "%");
         }
 
-        userCriteria.andLike("role", "%会员%");
+        // 化验医技数据，一级用户没有
+        Set<String> twoOrThree = new HashSet<>();
+        twoOrThree.add(Constant.USER_2);
+        twoOrThree.add(Constant.USER_3);
+        userCriteria.andIn("role", twoOrThree);
+
+        Set<Integer> usersSet = this.userService.queryMemberIdSetUnderRole(identity);
         userCriteria.andIn("id", usersSet);
 
         PageHelper.startPage(pageNow, pageSize);
@@ -189,14 +196,17 @@ public class ResultInputController {
      */
     @RequestMapping(value = "list/{userId}", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult queryResultListByUserId(@PathVariable("userId") Integer userId) {
+    public CommonResult queryResultListByUserId(@PathVariable("userId") Integer userId, HttpSession session) {
 
-        ResultInput resultInputRecord = new ResultInput();
-        resultInputRecord.setUserId(userId);
         Example example = new Example(ResultInput.class);
         example.setOrderByClause("time DESC"); // 倒叙
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("userId", userId);
+
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+        Set<String> statusSet = this.userService.getStatusSetUnderRole(identity);
+        criteria.andIn(Constant.STATUS, statusSet);
+
         List<ResultInput> resultInputList = this.resultInputService.getMapper().selectByExample(example);
 
         // List<ResultInput> resultInputList = this.resultInputService.queryListByWhere(resultInputRecord);
