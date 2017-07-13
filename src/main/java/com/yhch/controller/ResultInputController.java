@@ -152,19 +152,6 @@ public class ResultInputController {
             return CommonResult.failure("无此权限");
         }
 
-<<<<<<< HEAD
-        Set<Integer> usersSet = new HashSet<>();
-        if (this.userService.checkMember(identity.getRole())) { // 二级、三级用户
-            // member只能查看自己
-            usersSet.add(Integer.valueOf(identity.getId()));
-        } else {
-            // 职员
-            usersSet = this.userService.queryMemberIdSetUnderEmployee(identity);
-        }
-
-
-=======
->>>>>>> aae767fd14665b5681e006899ee4529b3d5b9937
         Example example = new Example(User.class);
         Example.Criteria userCriteria = example.createCriteria();
 

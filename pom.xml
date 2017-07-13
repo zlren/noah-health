@@ -6,7 +6,7 @@
 
     <groupId>com</groupId>
     <artifactId>yhch</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>war</packaging>
 
     <!-- 集中定义依赖版本号 -->
@@ -284,6 +284,18 @@
             <version>2.8.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-core</artifactId>
+            <version>3.2.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <!--<systemPath>C:/Users/zlren/.m2/zlren/aliyun-java-sdk-dysmsapi-1.0.0-SNAPSHOT.jar</systemPath>-->
+        </dependency>
 
     </dependencies>
 
@@ -322,8 +334,8 @@
                     <path>/</path>
 
                     <!-- 系统热部署配置 118.89.227.189 -->
-                    <!--<url>http://118.89.227.189:8080/manager/text</url>-->
                     <url>http://10.109.247.127:8080/manager/text</url>
+                    <!--<url>http://47.92.91.99:8080/manager/text</url>-->
                     <username>tomcat</username>
                     <password>tomcat</password>
 

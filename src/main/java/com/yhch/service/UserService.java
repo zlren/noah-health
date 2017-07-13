@@ -403,11 +403,15 @@ public class UserService extends BaseService<User> {
         String role = identity.getRole();
         Set<String> statusSet = new HashSet<>();
 
-        if (role.equals(Constant.ARCHIVER) || role.equals(Constant.ADMIN)) {
+        if (role.equals(Constant.ADMIN)) {
             statusSet.add(Constant.WEI_TONG_GUO);
             statusSet.add(Constant.YI_TONG_GUO);
             statusSet.add(Constant.LU_RU_ZHONG);
             statusSet.add(Constant.DAI_SHEN_HE);
+            statusSet.add(Constant.SHANG_CHUAN_ZHONG);
+        } else if (role.equals(Constant.ARCHIVER)) { // 档案部员工只能查看未通过和录入中的
+            statusSet.add(Constant.WEI_TONG_GUO);
+            statusSet.add(Constant.LU_RU_ZHONG);
             statusSet.add(Constant.SHANG_CHUAN_ZHONG);
         } else if (role.equals(Constant.ARCHIVE_MANAGER)) { // 档案部主管
             statusSet.add(Constant.DAI_SHEN_HE);

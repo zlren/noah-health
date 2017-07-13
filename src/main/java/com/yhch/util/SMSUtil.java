@@ -1,50 +1,117 @@
 package com.yhch.util;
 
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
+import com.aliyuncs.exceptions.ClientException;
+import com.aliyuncs.profile.DefaultProfile;
+import com.aliyuncs.profile.IClientProfile;
 import com.yhch.bean.CommonResult;
-import com.yhch.controller.AuthController;
 import org.slf4j.LoggerFactory;
 
 /**
- * 短信验证码
+ * 短信验证码工具类
  * Created by zlren on 2017/6/6.
  */
 public class SMSUtil {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(AuthController.class);
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SMSUtil.class);
 
-    private final static String HTTP_URL = "http://apis.baidu.com/kingtto_media/106sms/106sms";
-    private final static String API_KEY = "xxxx";
+    private static final String accessKeyId = "LTAI4uAz2DR2gLw0";
+    private static final String accessKeySecret = "4XPs6rkIUlzRKnoGHkitVy1VtBl8jJ";
 
+    private static final String product = "Dysmsapi";
+    private static final String domain = "dysmsapi.aliyuncs.com";
 
-    public static CommonResult send(String phone, String code, String content) throws Exception {
+    /**
+     * 发送验证码
+     *
+     * @param phone
+     * @param code
+     * @return
+     * @throws ClientException
+     */
+    public static CommonResult send(String phone, String code) throws ClientException {
 
         if (!Validator.checkMobile(phone)) {
             return CommonResult.failure("手机号无效");
         }
-        
-        // String myUrl = HTTP_URL;
-        // BufferedReader reader;
-        // String result;
-        // StringBuilder stringBuilder = new StringBuilder();
-        //
-        // String httpArg = "mobile=" + phone + "&content=" + URLEncoder.encode(content, "UTF-8") + "&tag=2";
-        // myUrl = myUrl + "?" + httpArg;
-        // URL url = new URL(myUrl);
-        // HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        // connection.setRequestMethod("GET");
-        // connection.setRequestProperty("apikey", API_KEY);
-        // connection.connect();
-        // InputStream is = connection.getInputStream();
-        // reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-        // String strRead;
-        // while ((strRead = reader.readLine()) != null) {
-        //     stringBuilder.append(strRead);
-        //     stringBuilder.append("\r\n");
-        // }
-        // reader.close();
-        // result = stringBuilder.toString();
 
-        // return result;
-        return CommonResult.success("验证码发送成功");
+        try {
+
+            SendSmsResponse response = sendSms(phone, code);
+            Thread.sleep(1000);
+
+            // 查明细
+            if (response.getCode() != null && response.getCode().equals("OK")) {
+                return CommonResult.success("验证码发送成功");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return CommonResult.failure("验证码发送失败，请稍后重试");
+        }
+
+        return CommonResult.failure("验证码发送失败，请稍后重试");
     }
+
+    /**
+     * 发送验证码
+     *
+     * @param phone
+     * @param code
+     * @return
+     * @throws ClientException
+     */
+    private static SendSmsResponse sendSms(String phone, String code) throws ClientException {
+
+        System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
+        System.setProperty("sun.net.client.defaultReadTimeout", "10000");
+
+        IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKeyId, accessKeySecret);
+        DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+        IAcsClient acsClient = new DefaultAcsClient(profile);
+
+        SendSmsRequest request = new SendSmsRequest();
+        request.setPhoneNumbers(phone);
+        request.setSignName("我的宿舍");
+        request.setTemplateCode("SMS_77230064");
+        request.setTemplateParam("{\"code\":\"" + code + "\"}");
+
+        return acsClient.getAcsResponse(request);
+    }
+
+
+    // private static QuerySendDetailsResponse querySendDetails(String bizId) throws ClientException {
+    //
+    //     // 可自助调整超时时间
+    //     System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
+    //     System.setProperty("sun.net.client.defaultReadTimeout", "10000");
+    //
+    //     // 初始化acsClient,暂不支持region化
+    //     IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKeyId, accessKeySecret);
+    //     DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+    //     IAcsClient acsClient = new DefaultAcsClient(profile);
+    //
+    //     // 组装请求对象
+    //     QuerySendDetailsRequest request = new QuerySendDetailsRequest();
+    //     // 必填-号码
+    //     request.setPhoneNumber("15000000000");
+    //     // 可选-流水号
+    //     request.setBizId(bizId);
+    //     //必填-发送日期 支持30天内记录查询，格式yyyyMMdd
+    //     SimpleDateFormat ft = new SimpleDateFormat("yyyyMMdd");
+    //     request.setSendDate(ft.format(new Date()));
+    //     //必填-页大小
+    //     request.setPageSize(10L);
+    //     //必填-当前页码从1开始计数
+    //     request.setCurrentPage(1L);
+    //
+    //     //hint 此处可能会抛出异常，注意catch
+    //     QuerySendDetailsResponse querySendDetailsResponse = acsClient.getAcsResponse(request);
+    //
+    //     return querySendDetailsResponse;
+    // }
+
 }

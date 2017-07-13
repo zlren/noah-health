@@ -335,10 +335,7 @@ public class UserController {
         if (!Validator.checkEmpty(phone)) {
 
             User record = new User();
-            // record.setPhone(phone);
             record.setUsername(phone);
-            // fixme 实际上手机号是不允许重复的，queryOne在查询的时候如果查到了多于1个就会报异常，也许现在数据库里面的东西不是很规范存在重复
-            // fixme 先改成List吧
             try {
                 if (this.userService.queryOne(record) != null) {
                     return CommonResult.failure("此手机号已注册");
@@ -350,11 +347,12 @@ public class UserController {
             String inputCode = (String) params.get(Constant.INPUT_CODE);
 
             String code = this.redisService.get(Constant.REDIS_PRE_CODE + phone);
-            if (code == null || !code.equals(inputCode)) {
+            if (code == null) {
+                return CommonResult.failure("验证码过期");
+            } else if (!code.equals(inputCode)) {
                 return CommonResult.failure("验证码错误");
             }
 
-            // user.setPhone(phone);
             user.setUsername(phone);
         }
 

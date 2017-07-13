@@ -7,7 +7,6 @@ import com.yhch.service.PropertyService;
 import com.yhch.service.RedisService;
 import com.yhch.service.UserService;
 import com.yhch.util.MD5Util;
-import com.yhch.util.SMSUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +52,12 @@ public class AuthController {
 
         String phone = params.get(Constant.PHONE);
 
+        User record = new User();
+        record.setUsername(phone);
+        if (this.userService.queryOne(record) != null) {
+            return CommonResult.failure("此号码已注册");
+        }
+
         if (redisService.get(phone) != null) {
             return CommonResult.failure("请1分钟后再试");
         }
@@ -60,16 +65,15 @@ public class AuthController {
         StringBuilder code = new StringBuilder();
         Random random = new Random();
         for (int i = 0; i < propertyService.smsCodeLen; i++) {
-            // code.append(String.valueOf(random.nextInt(10)));
-            code.append(i);
+            code.append(String.valueOf(random.nextInt(10)));
         }
 
-        String smsText = "【医海慈航】您的注册验证码为" + code + "，一分钟内有效";
-        logger.info("用户{}： {}", phone, smsText);
+        logger.info("验证码，手机号：{}，验证码：{}", phone, code);
 
         CommonResult result;
         try {
-            result = SMSUtil.send(phone, String.valueOf(code), smsText);
+            result = CommonResult.success("发送成功");
+            // result = SMSUtil.send(phone, String.valueOf(code));
         } catch (Exception e) {
             e.printStackTrace();
             return CommonResult.failure("短信发送失败，请重试");
@@ -101,7 +105,9 @@ public class AuthController {
         logger.info("inputCode = {}", inputCode);
 
         String code = redisService.get(Constant.REDIS_PRE_CODE + phone);
-        if (code == null || !code.equals(inputCode)) {
+        if (code == null) {
+            return CommonResult.failure("验证码过期");
+        } else if (!code.equals(inputCode)) {
             return CommonResult.failure("验证码错误");
         }
 
