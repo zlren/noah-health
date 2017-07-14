@@ -76,7 +76,7 @@ public class SMSUtil {
         SendSmsRequest request = new SendSmsRequest();
         request.setPhoneNumbers(phone);
         request.setSignName("我的宿舍");
-        request.setTemplateCode("SMS_77230064");
+        request.setTemplateCode("SMS_77355063");
         request.setTemplateParam("{\"code\":\"" + code + "\"}");
 
         return acsClient.getAcsResponse(request);

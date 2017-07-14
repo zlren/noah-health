@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * RedisService
  * Created by zlren on 2017/6/11.
  */
 @Service

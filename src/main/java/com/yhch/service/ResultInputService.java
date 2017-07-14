@@ -61,6 +61,19 @@ public class ResultInputService extends BaseService<ResultInput> {
         return true;
     }
 
+    /**
+     * @param userIdSet
+     * @param status
+     * @param userName
+     * @param inputerName
+     * @param checkerName
+     * @param secondName
+     * @param hospital
+     * @param time
+     * @param pageNow
+     * @param pageSize
+     * @return
+     */
     public List<ResultInput> queryInputList(Set<Integer> userIdSet, String status, String userName, String
             inputerName, String checkerName, String secondName, String hospital, Date time, Integer pageNow, Integer
                                                     pageSize) {

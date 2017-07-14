@@ -287,14 +287,13 @@
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>aliyun-java-sdk-core</artifactId>
-            <version>3.2.3</version>
+            <version>3.2.2</version>
         </dependency>
 
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
             <version>1.0.0-SNAPSHOT</version>
-            <!--<systemPath>C:/Users/zlren/.m2/zlren/aliyun-java-sdk-dysmsapi-1.0.0-SNAPSHOT.jar</systemPath>-->
         </dependency>
 
     </dependencies>

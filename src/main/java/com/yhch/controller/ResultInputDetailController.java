@@ -2,11 +2,13 @@ package com.yhch.controller;
 
 import com.yhch.bean.CommonResult;
 import com.yhch.pojo.ResultInputDetail;
-import com.yhch.service.CategoryThirdService;
 import com.yhch.service.ResultInputDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +24,6 @@ public class ResultInputDetailController {
 
     @Autowired
     private ResultInputDetailService resultInputDetailService;
-
-    @Autowired
-    private CategoryThirdService categoryThirdService;
-
 
     /**
      * 为一条result-input记录添加详细信息（多个result-input-detail）
