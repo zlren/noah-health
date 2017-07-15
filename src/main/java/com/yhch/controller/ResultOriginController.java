@@ -197,7 +197,7 @@ public class ResultOriginController {
 
 
     /**
-     * 条件分页查询通过或者未通过的列表
+     * 条件分页查询原始数据列表
      *
      * @param params
      * @return
@@ -230,7 +230,7 @@ public class ResultOriginController {
         Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
         Set<String> statusSet = this.userService.getStatusSetUnderRole(identity);
 
-        List<ResultOrigin> resultOriginList = this.resultOriginService.queryOriginList(memberSet, statusSet, status, userName,
+        List<ResultOrigin> resultOriginList = this.resultOriginService.queryOriginList(identity, memberSet, statusSet, status, userName,
                 uploaderName, checkerName, time, pageNow, pageSize);
         PageResult pageResult = new PageResult(new PageInfo<>(resultOriginList));
 

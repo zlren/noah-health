@@ -289,6 +289,7 @@ public class UserController {
 
     /**
      * 删除用户
+     * role改为已删除，username加上_deleted的后缀
      *
      * @param userId
      * @return
@@ -303,7 +304,11 @@ public class UserController {
             return CommonResult.failure("用户不存在");
         }
 
-        this.userService.deleteById(userId);
+        // this.userService.deleteById(userId);
+        user.setRole("已删除");
+        user.setUsername(user.getUsername() + "_deleted");
+        this.userService.update(user);
+
         logger.info("删除用户：{}", user.getName());
 
         return CommonResult.success("删除成功");

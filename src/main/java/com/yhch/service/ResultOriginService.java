@@ -2,6 +2,7 @@ package com.yhch.service;
 
 import com.github.pagehelper.PageHelper;
 import com.yhch.bean.Constant;
+import com.yhch.bean.Identity;
 import com.yhch.pojo.ResultOrigin;
 import com.yhch.util.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
 
     /**
      *
+     * @param identity
      * @param userIdSet
      * @param statusSet
      * @param status
@@ -36,7 +38,7 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
      * @param pageSize
      * @return
      */
-    public List<ResultOrigin> queryOriginList(Set<Integer> userIdSet, Set<String> statusSet, String status, String userName,
+    public List<ResultOrigin> queryOriginList(Identity identity, Set<Integer> userIdSet, Set<String> statusSet, String status, String userName,
                                               String uploaderName, String checkerName, Date time, Integer pageNow,
                                               Integer pageSize) {
 
@@ -61,6 +63,13 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
         }
         criteria.andIn("userId", valueIdSet);
 
+        // 能按上传者筛选的只有系统管理员和档案部主管
+        // 档案部主管查询的时候，查出那些是自己的档案部员工上传的记录
+        Set<Integer> valueUploaderIdSet = new HashSet<>();
+        if (identity.getRole().equals(Constant.ARCHIVE_MANAGER)) {
+            valueUploaderIdSet.addAll(this.userService.queryArchiverIdSetByArchiveMgrId(Integer.valueOf(identity.getId())));
+        }
+
         if (!Validator.checkEmpty(uploaderName)) {
             criteria.andIn("uploaderId", this.userService.getEmployeeIdSetByUserNameLike(uploaderName));
         }
@@ -70,7 +79,8 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
         }
 
         if (time != null) {
-            criteria.andEqualTo("time", time);
+            // criteria.andEqualTo("time", time);
+            criteria.andBetween("time", time, time);
         }
 
         PageHelper.startPage(pageNow, pageSize);

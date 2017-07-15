@@ -176,7 +176,7 @@ public class ResultInputController {
 
 
     /**
-     * 根据userId查询单个member的所有检查亚类
+     * 根据userId查询单个member的所有检查结果
      *
      * @param userId
      * @return
@@ -187,6 +187,7 @@ public class ResultInputController {
 
         Example example = new Example(ResultInput.class);
         example.setOrderByClause("time DESC"); // 倒叙
+
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("userId", userId);
 

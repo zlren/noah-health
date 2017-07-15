@@ -72,7 +72,7 @@ public class AuthController {
 
         CommonResult result;
         try {
-            result = CommonResult.success("发送成功");
+            result = CommonResult.success("发送成功", code);
             // result = SMSUtil.send(phone, String.valueOf(code));
         } catch (Exception e) {
             e.printStackTrace();

@@ -357,30 +357,43 @@ public class UserService extends BaseService<User> {
     }
 
     /**
-     * 根据姓名模糊匹配，将匹配的结果的id组成set返回
+     * 模糊匹配姓名，查询会员
      *
      * @param userName
      * @return
      */
     public Set<Integer> getMemberIdSetByUserNameLike(String userName) {
-        return getIdSetByUserNameLike(userName, "会员");
+        return getIdSetByUserNameLikeAndRole(userName, "会员");
     }
 
 
+    /**
+     * 模糊匹配姓名，查询职员
+     *
+     * @param userName
+     * @return
+     */
     public Set<Integer> getEmployeeIdSetByUserNameLike(String userName) {
-        return this.getIdSetByUserNameLike(userName, "职员");
+        return this.getIdSetByUserNameLikeAndRole(userName, "职员");
     }
 
-    public Set<Integer> getIdSetByUserNameLike(String userName, String role) {
+    /**
+     * 根据姓名和角色模糊匹配，将匹配的结果的id组成set返回
+     *
+     * @param name
+     * @param role
+     * @return
+     */
+    public Set<Integer> getIdSetByUserNameLikeAndRole(String name, String role) {
 
         Example userExample = new Example(User.class);
         Example.Criteria userCriteria = userExample.createCriteria();
-        userCriteria.andLike("name", "%" + userName + "%");
+        userCriteria.andLike("name", "%" + name + "%");
 
-        if (role.equals("会员")) {
-            userCriteria.andLike("role", "%会员%");
-        } else {
+        if (role.equals("职员")) {
             userCriteria.andNotLike("role", "%会员%");
+        } else {
+            userCriteria.andLike("role", "%" + role + "%");
         }
 
         List<User> userList = this.getMapper().selectByExample(userExample);
@@ -389,6 +402,29 @@ public class UserService extends BaseService<User> {
         userList.forEach(user -> userIdSet.add(user.getId()));
 
         return userIdSet;
+    }
+
+
+    /**
+     * 根据档案部主管，查询自己治下的档案部员工的id集合
+     *
+     * @param archiverMgrId
+     * @return
+     */
+    public Set<Integer> queryArchiverIdSetByArchiveMgrId(Integer archiverMgrId) {
+
+        Example userExample = new Example(User.class);
+        Example.Criteria userCriteria = userExample.createCriteria();
+
+        userCriteria.andEqualTo("staffMgrId", archiverMgrId);
+        userCriteria.andEqualTo("role", Constant.ARCHIVER);
+
+        List<User> archiverList = this.getMapper().selectByExample(userExample);
+
+        Set<Integer> archiverIdSet = new HashSet<>();
+        archiverList.forEach(archiver -> archiverIdSet.add(archiver.getId()));
+
+        return archiverIdSet;
     }
 
 
