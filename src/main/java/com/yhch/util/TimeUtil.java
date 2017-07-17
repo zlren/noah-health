@@ -9,6 +9,12 @@ import java.util.Date;
  */
 public class TimeUtil {
 
+    /**
+     * 解析时间
+     *
+     * @param timeString
+     * @return
+     */
     public static Date parseTime(String timeString) {
 
         if (!Validator.checkEmpty(timeString)) {
@@ -21,5 +27,17 @@ public class TimeUtil {
         }
 
         return null;
+    }
+
+    /**
+     * 得到当前时间
+     *
+     * @return
+     * @throws ParseException
+     */
+    public static Date getCurrentTime() throws ParseException {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String format = simpleDateFormat.format(new Date());
+        return simpleDateFormat.parse(format);
     }
 }

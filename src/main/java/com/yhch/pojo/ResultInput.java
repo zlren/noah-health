@@ -17,6 +17,9 @@ public class ResultInput {
 
     private String hospital;
 
+    @Column(name = "input_time")
+    private Date inputTime;
+
     private Date time;
 
     @Column(name = "inputer_id")
@@ -85,6 +88,20 @@ public class ResultInput {
      */
     public void setHospital(String hospital) {
         this.hospital = hospital;
+    }
+
+    /**
+     * @return input_time
+     */
+    public Date getInputTime() {
+        return inputTime;
+    }
+
+    /**
+     * @param inputTime
+     */
+    public void setInputTime(Date inputTime) {
+        this.inputTime = inputTime;
     }
 
     /**

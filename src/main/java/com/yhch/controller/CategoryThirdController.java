@@ -57,12 +57,12 @@ public class CategoryThirdController {
 
         Integer secondId = (Integer) params.get(Constant.SECOND_ID);
         String name = (String) params.get(Constant.NAME);
-        String systemCategory = (String) params.get(Constant.SYSTEM_CATEGORY);
+        // String systemCategory = (String) params.get(Constant.SYSTEM_CATEGORY);
         String referenceValue = (String) params.get(Constant.REFERENCE_VALUE);
-        String hospital = (String) params.get(Constant.HOSPITAL);
+        // String hospital = (String) params.get(Constant.HOSPITAL);
 
-        // 没有检查hospital是否为空
-        if (secondId == null || Validator.checkEmpty(name) || Validator.checkEmpty(systemCategory) || Validator
+        // 没有检查hospital是否为空  || Validator.checkEmpty(systemCategory)
+        if (secondId == null || Validator.checkEmpty(name) || Validator
                 .checkEmpty(referenceValue)) {
             return CommonResult.failure("添加失败，信息不完整");
         }
@@ -75,9 +75,9 @@ public class CategoryThirdController {
             return CommonResult.failure("添加失败，已经存在的检查项目");
         }
 
-        categoryThird.setSystemCategory(systemCategory);
+        // categoryThird.setSystemCategory(systemCategory);
         categoryThird.setReferenceValue(referenceValue);
-        categoryThird.setHospital(hospital);
+        // categoryThird.setHospital(hospital);
 
         this.categoryThirdService.save(categoryThird);
 
@@ -145,9 +145,9 @@ public class CategoryThirdController {
 
         // 根据id去改
         categoryThird.setId(thirdId);
-        categoryThird.setSystemCategory(systemCategory);
+        // categoryThird.setSystemCategory(systemCategory);
         categoryThird.setReferenceValue(referenceValue);
-        categoryThird.setHospital(hospital);
+        // categoryThird.setHospital(hospital);
 
         this.categoryThirdService.update(categoryThird);
 

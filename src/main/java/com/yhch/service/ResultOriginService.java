@@ -5,6 +5,7 @@ import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
 import com.yhch.pojo.ResultOrigin;
 import com.yhch.util.Validator;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
@@ -21,67 +22,129 @@ import java.util.Set;
 @Service
 public class ResultOriginService extends BaseService<ResultOrigin> {
 
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ResultOriginService.class);
+
     @Autowired
     private UserService userService;
 
     /**
+     * 条件查询
      *
      * @param identity
-     * @param userIdSet
-     * @param statusSet
+     * @param pageNow
+     * @param pageSize
      * @param status
      * @param userName
      * @param uploaderName
      * @param checkerName
-     * @param time
-     * @param pageNow
-     * @param pageSize
+     * @param beginTime
+     * @param endTime
      * @return
      */
-    public List<ResultOrigin> queryOriginList(Identity identity, Set<Integer> userIdSet, Set<String> statusSet, String status, String userName,
-                                              String uploaderName, String checkerName, Date time, Integer pageNow,
-                                              Integer pageSize) {
+    public List<ResultOrigin> queryResultOriginList(Identity identity, Integer pageNow, Integer pageSize, String
+            status, String userName, String uploaderName, String checkerName, Date beginTime, Date endTime) {
+
+        String identityId = identity.getId();
+        String identityRole = identity.getRole();
 
         Example example = new Example(ResultOrigin.class);
-        Example.Criteria criteria = example.createCriteria();
+        Example.Criteria originCriteria = example.createCriteria();
 
-        // status
-        Set<String> valueStatusSet = new HashSet<>();
-        valueStatusSet.addAll(statusSet);
-        if (!Validator.checkEmpty(status)) {
-            Set<String> t = new HashSet<>();
-            t.add(status);
-            valueStatusSet.retainAll(t);
-        }
-        criteria.andIn(Constant.STATUS, valueStatusSet);
+        example.setOrderByClause("time desc");
 
-        // id和name共同考虑
-        Set<Integer> valueIdSet = new HashSet<>();
-        valueIdSet.addAll(userIdSet);
-        if (!Validator.checkEmpty(userName)) {
-            valueIdSet.retainAll(this.userService.getMemberIdSetByUserNameLike(userName));
-        }
-        criteria.andIn("userId", valueIdSet);
+        {   // 时间和状态的筛选是统一的
 
-        // 能按上传者筛选的只有系统管理员和档案部主管
-        // 档案部主管查询的时候，查出那些是自己的档案部员工上传的记录
-        Set<Integer> valueUploaderIdSet = new HashSet<>();
-        if (identity.getRole().equals(Constant.ARCHIVE_MANAGER)) {
-            valueUploaderIdSet.addAll(this.userService.queryArchiverIdSetByArchiveMgrId(Integer.valueOf(identity.getId())));
+            // 时间
+            if (beginTime != null && endTime != null) {
+                originCriteria.andBetween("time", beginTime, endTime);
+            }
+
+            // 状态
+            Set<String> statusSet = this.userService.getStatusSetUnderRole(identity);
+            if (!Validator.checkEmpty(status)) {
+                Set<String> t = new HashSet<>();
+                t.add(status);
+                statusSet.retainAll(t);
+            }
+            originCriteria.andIn(Constant.STATUS, statusSet);
         }
 
-        if (!Validator.checkEmpty(uploaderName)) {
-            criteria.andIn("uploaderId", this.userService.getEmployeeIdSetByUserNameLike(uploaderName));
+
+        if (this.userService.checkAdmin(identityRole)) { // 系统管理员
+
+            if (!Validator.checkEmpty(status)) {
+                originCriteria.andEqualTo("status", status);
+            }
+
+            if (!Validator.checkEmpty(userName)) {
+                originCriteria.andIn("userId", this.userService.getMemberIdSetByUserNameLike(userName));
+            }
+
+            // 上传者，档案部员工或者管理员
+            if (!Validator.checkEmpty(uploaderName)) {
+                originCriteria.andIn("uploaderId", this.userService.getIdSetByUserNameLikeAndRole(uploaderName,
+                        "档案部员工"));
+            }
+
+            // 审核者可以是管理员，也可以是档案部主管
+            if (!Validator.checkEmpty(checkerName)) {
+
+                Set<Integer> adminSet = this.userService.getIdSetByUserNameLikeAndRole(checkerName, "管理员");
+                Set<Integer> mgrSet = this.userService.getIdSetByUserNameLikeAndRole(checkerName, "档案部主管");
+                adminSet.retainAll(mgrSet);
+
+                originCriteria.andIn("checkerId", adminSet);
+            }
+
+        } else if (this.userService.checkArchiverManager(identityRole)) { // 档案部主管
+
+            // 档案部主管对应的档案部员工
+            // 根据上传者筛选后，就不用筛选审核者了，反正都是自己的员工做的
+            Set<Integer> archiverIdSet = this.userService.queryArchiverIdSetByArchiveMgrId(identityId);
+            if (!Validator.checkEmpty(uploaderName)) {
+                archiverIdSet.retainAll(this.userService.getIdSetByUserNameLikeAndRole(uploaderName, Constant
+                        .ARCHIVER));
+            }
+            originCriteria.andIn("uploaderId", archiverIdSet);
+
+            Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
+            if (!Validator.checkEmpty(userName)) {
+                memberSet.retainAll(this.userService.getMemberIdSetByUserNameLike(userName));
+            }
+            originCriteria.andIn("userId", memberSet);
+
+        } else if (this.userService.checkArchiver(identityRole)) { // 档案部员工
+
+            // 只能看自己
+            originCriteria.andEqualTo("uploaderId", identityId);
+
+        } else if (this.userService.checkAdviseManager(identityRole)) { // 顾问部主管
+
+            // 重在对userId的筛选，挑出是自己的顾问员工对应的会员
+            Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
+
+            if (!Validator.checkEmpty(userName)) {
+                memberSet.retainAll(this.userService.getMemberIdSetByUserNameLike(userName));
+            }
+            originCriteria.andIn("userId", memberSet);
+
+        } else if (this.userService.checkAdviser(identityRole)) { // 顾问部员工
+
+            // 重在对userId的筛选，挑出是自己的顾问员工对应的会员
+            Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
+
+            if (!Validator.checkEmpty(userName)) {
+                memberSet.retainAll(this.userService.getMemberIdSetByUserNameLike(userName));
+            }
+            originCriteria.andIn("userId", memberSet);
+
+        } else if (this.userService.checkMember(identityRole)) {
+
+            // 重在对userId的筛选，挑出是自己的顾问员工对应的会员
+            Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
+            originCriteria.andIn("userId", memberSet);
         }
 
-        if (!Validator.checkEmpty(checkerName)) {
-            criteria.andIn("checkerId", this.userService.getEmployeeIdSetByUserNameLike(checkerName));
-        }
-
-        if (time != null) {
-            // criteria.andEqualTo("time", time);
-            criteria.andBetween("time", time, time);
-        }
 
         PageHelper.startPage(pageNow, pageSize);
         return this.getMapper().selectByExample(example);

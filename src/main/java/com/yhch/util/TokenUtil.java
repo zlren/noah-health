@@ -35,7 +35,7 @@ public class TokenUtil {
         Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
 
         //Let's set the JWT Claims
-        JwtBuilder builder = Jwts.builder().setId(identity.getId())
+        JwtBuilder builder = Jwts.builder().setId(String.valueOf(identity.getId()))
                 .setIssuedAt(now)
                 .setSubject(identity.getId() + "," + identity.getUsername() + "," + identity.getRole())
                 .setIssuer(identity.getIssuer())

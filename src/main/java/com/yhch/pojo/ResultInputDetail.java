@@ -16,6 +16,8 @@ public class ResultInputDetail {
 
     private String value;
 
+    private String normal;
+
     /**
      * @return id
      */
@@ -70,5 +72,19 @@ public class ResultInputDetail {
      */
     public void setValue(String value) {
         this.value = value;
+    }
+
+    /**
+     * @return normal
+     */
+    public String getNormal() {
+        return normal;
+    }
+
+    /**
+     * @param normal
+     */
+    public void setNormal(String normal) {
+        this.normal = normal;
     }
 }

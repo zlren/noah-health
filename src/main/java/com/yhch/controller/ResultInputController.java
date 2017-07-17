@@ -1,6 +1,5 @@
 package com.yhch.controller;
 
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
@@ -8,6 +7,7 @@ import com.yhch.bean.Identity;
 import com.yhch.bean.PageResult;
 import com.yhch.bean.input.ResultInputDetailExtend;
 import com.yhch.bean.input.ResultInputExtend;
+import com.yhch.bean.user.UserExtend;
 import com.yhch.pojo.ResultInput;
 import com.yhch.pojo.ResultInputDetail;
 import com.yhch.pojo.User;
@@ -21,13 +21,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import tk.mybatis.mapper.entity.Example;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 化验、医技数据管理
@@ -68,6 +70,16 @@ public class ResultInputController {
     public CommonResult addResultInput(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer userId = (Integer) params.get("userId");
+
+        {
+            User record = new User();
+            record.setId(userId);
+            if (this.userService.queryOne(record).getRole().equals(Constant.USER_1)) {
+                // 1级用户没有此权限
+                return CommonResult.failure("一级用户无此权限");
+            }
+        }
+
         Integer secondId = (Integer) params.get("secondId");
         Integer inputerId = Integer.valueOf(((Identity) session.getAttribute(Constant.IDENTITY)).getId());
         String status = Constant.LU_RU_ZHONG; // 初始状态为录入中
@@ -83,6 +95,13 @@ public class ResultInputController {
         resultInput.setNote(note);
         resultInput.setHospital(hospital);
         resultInput.setTime(time);
+        try {
+            resultInput.setInputTime(TimeUtil.getCurrentTime());
+            logger.info("{}", resultInput.getInputTime());
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return CommonResult.failure("解析时间出错");
+        }
 
         // 级联插入
         this.resultInputService.saveInputAndEmptyDetail(resultInput);
@@ -139,39 +158,20 @@ public class ResultInputController {
      */
     @RequestMapping(value = "list", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult queryResultInputList(@RequestBody Map<String, Object> params, HttpSession session) {
+    public CommonResult queryResultInputUserList(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
         String userName = (String) params.get("userName");
-
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
-        // 一级用户无此权限
-        if (identity.getRole().equals(Constant.USER_1)) {
-            return CommonResult.failure("无此权限");
-        }
+        List<User> userList = this.resultInputService.queryResultInputUserList(identity, userName, pageNow, pageSize);
+        PageResult pageResult = new PageResult(new PageInfo<>(userList));
 
-        Example example = new Example(User.class);
-        Example.Criteria userCriteria = example.createCriteria();
+        List<UserExtend> userExtendList = this.userService.extendFromUser(userList);
+        pageResult.setData(userExtendList);
 
-        if (!Validator.checkEmpty(userName)) {
-            userCriteria.andLike(Constant.NAME, "%" + userName + "%");
-        }
-
-        // 化验医技数据，一级用户没有
-        Set<String> twoOrThree = new HashSet<>();
-        twoOrThree.add(Constant.USER_2);
-        twoOrThree.add(Constant.USER_3);
-        userCriteria.andIn("role", twoOrThree);
-
-        Set<Integer> usersSet = this.userService.queryMemberIdSetUnderRole(identity);
-        userCriteria.andIn("id", usersSet);
-
-        PageHelper.startPage(pageNow, pageSize);
-        List<User> userList = this.userService.getMapper().selectByExample(example);
-
-        return CommonResult.success("查询成功", new PageResult(new PageInfo<>(userList)));
+        return CommonResult.success("查询成功", pageResult);
     }
 
 
@@ -183,21 +183,18 @@ public class ResultInputController {
      */
     @RequestMapping(value = "list/{userId}", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult queryResultListByUserId(@PathVariable("userId") Integer userId, HttpSession session) {
-
-        Example example = new Example(ResultInput.class);
-        example.setOrderByClause("time DESC"); // 倒叙
-
-        Example.Criteria criteria = example.createCriteria();
-        criteria.andEqualTo("userId", userId);
+    public CommonResult queryResultAndDetailListByUserId(@PathVariable("userId") Integer userId, HttpSession session,
+                                                         @RequestBody Map<String, Object> params) {
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-        Set<String> statusSet = this.userService.getStatusSetUnderRole(identity);
-        criteria.andIn(Constant.STATUS, statusSet);
+        String type = (String) params.get("type");
+        String status = (String) params.get(Constant.STATUS);
+        Integer secondId = (Integer) params.get(Constant.SECOND_ID);
+        Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
+        Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
 
-        List<ResultInput> resultInputList = this.resultInputService.getMapper().selectByExample(example);
-
-        // List<ResultInput> resultInputList = this.resultInputService.queryListByWhere(resultInputRecord);
+        List<ResultInput> resultInputList = this.resultInputService.queryResultAndDetailListByUserId(identity,
+                userId, type, status, secondId, beginTime, endTime);
 
         List<ResultInputExtend> resultInputExtendList = this.resultInputService.extendFromResultInputList
                 (resultInputList);
@@ -380,8 +377,8 @@ public class ResultInputController {
                 XSSFCell cell0 = row.createCell((short) 0);
                 cell0.setCellValue(resultInputDetailExtend.thirdName);
 
-                XSSFCell cell1 = row.createCell((short) 1);
-                cell1.setCellValue(resultInputDetailExtend.systemCategory);
+                // XSSFCell cell1 = row.createCell((short) 1);
+                // cell1.setCellValue(resultInputDetailExtend.systemCategory);
 
                 XSSFCell cell2 = row.createCell((short) 2);
                 cell2.setCellValue(resultInputDetailExtend.referenceValue);

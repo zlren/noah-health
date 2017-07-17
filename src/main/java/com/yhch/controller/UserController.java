@@ -6,6 +6,7 @@ import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
 import com.yhch.bean.PageResult;
 import com.yhch.bean.rolecheck.RequiredRoles;
+import com.yhch.bean.user.UserExtend;
 import com.yhch.pojo.User;
 import com.yhch.service.PropertyService;
 import com.yhch.service.RedisService;
@@ -80,7 +81,7 @@ public class UserController {
                 if (staffMgrId == null) {
                     return CommonResult.failure("添加失败，信息不完整");
                 } else {
-                    user.setStaffMgrId(String.valueOf(staffMgrId));
+                    user.setStaffMgrId(staffMgrId);
                 }
             }
         }
@@ -151,7 +152,7 @@ public class UserController {
                 // 只有user的staffId不为null，表示的是顾问
                 // 之前是顾问员工，现在是财务或者档案员工，如果存在以此顾问员工为顾问的会员，则无法修改
                 User record = new User();
-                record.setStaffId(String.valueOf(userId));
+                record.setStaffId(userId);
 
                 List<User> adviserList = this.userService.queryListByWhere(record);
                 if (adviserList != null && adviserList.size() > 0) {
@@ -170,7 +171,7 @@ public class UserController {
                 // 从主管改成（不同的主管或者admin）
 
                 User record = new User();
-                record.setStaffMgrId(String.valueOf(userId));
+                record.setStaffMgrId(userId);
 
                 List<User> staffList = this.userService.queryListByWhere(record);
                 if (staffList != null && staffList.size() > 0) {
@@ -188,7 +189,7 @@ public class UserController {
                 if (user.getRole().equals(Constant.ADVISER)) {
 
                     User record = new User();
-                    record.setStaffId(String.valueOf(userId));
+                    record.setStaffId(userId);
 
                     List<User> memberList = this.userService.queryListByWhere(record);
                     if (memberList != null && memberList.size() > 0) {
@@ -204,7 +205,7 @@ public class UserController {
 
                 // 存在以此主管为主管的员工，则不允许修改
                 User record = new User();
-                record.setStaffMgrId(String.valueOf(userId));
+                record.setStaffMgrId(userId);
 
                 List<User> staffList = this.userService.queryListByWhere(record);
                 if (staffList != null && staffList.size() > 0) {
@@ -242,13 +243,13 @@ public class UserController {
 
         // 只有会员的staff_id不为null
         if (adviserId != null) {
-            String adviseMgrId = this.userService.queryById(adviserId).getStaffMgrId();
-            user.setStaffId(String.valueOf(adviserId));
+            Integer adviseMgrId = this.userService.queryById(adviserId).getStaffMgrId();
+            user.setStaffId(adviserId);
             user.setStaffMgrId(adviseMgrId);
         }
 
         if (staffMgrId != null) {
-            user.setStaffMgrId(String.valueOf(staffMgrId));
+            user.setStaffMgrId(staffMgrId);
             logger.info("staffMgrId是 {}!!!!", staffMgrId);
         }
 
@@ -273,17 +274,19 @@ public class UserController {
             return CommonResult.failure("用户不存在");
         }
 
-        String role = user.getRole();
+        UserExtend userExtend = this.userService.extendFromUser(user);
 
-        if (role.equals(Constant.USER_1) || role.equals(Constant.USER_2) || role.equals
-                (Constant.USER_3)) {
-            User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
-            user.setStaffMgrId(this.userService.queryById(Integer.valueOf(adviser.getStaffMgrId())).getName());
-        } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ARCHIVER)) {
-            // user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
-        }
+        // String role = user.getRole();
+        //
+        // if (role.equals(Constant.USER_1) || role.equals(Constant.USER_2) || role.equals
+        //         (Constant.USER_3)) {
+        //     // User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
+        //     // user.setStaffMgrId(this.userService.queryById(adviser.getStaffMgrId()).getName());
+        // } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ARCHIVER)) {
+        //     // user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
+        // }
 
-        return CommonResult.success("查询成功", user);
+        return CommonResult.success("查询成功", userExtend);
     }
 
 
@@ -405,7 +408,7 @@ public class UserController {
             Integer adviseMgrId = adviseMgrTemp.getId();
 
             User adviser = new User();
-            adviser.setStaffMgrId(String.valueOf(adviseMgrId));
+            adviser.setStaffMgrId(adviseMgrId);
             adviser.setRole(Constant.ADVISER);
             List<User> adviserList = this.userService.queryListByWhere(adviser);
 
@@ -441,24 +444,28 @@ public class UserController {
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
         List<User> userList = this.userService.queryUserList(pageNow, pageSize, role, phone, name, type, identity);
+        PageResult pageResult = new PageResult(new PageInfo<>(userList));
 
-        if (type.equals(Constant.MEMBER)) {
-            userList.forEach(user -> {
-                User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
-                user.setStaffId(adviser.getName());
-                user.setStaffMgrId(this.userService.queryById(Integer.valueOf(adviser.getStaffMgrId())).getName());
-            });
-        } else if (type.equals(Constant.EMPLOYEE)) {
-            userList.forEach(user -> {
-                if (user.getRole().equals(Constant.ADVISER) || user.getRole().equals(Constant.ARCHIVER)) {
-                    user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
-                }
-            });
-        }
+        // if (type.equals(Constant.MEMBER)) {
+        //     userList.forEach(user -> {
+        //         User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
+        //         user.setStaffId(adviser.getName());
+        //         user.setStaffMgrId(this.userService.queryById(Integer.valueOf(adviser.getStaffMgrId())).getName());
+        //     });
+        // } else if (type.equals(Constant.EMPLOYEE)) {
+        //     userList.forEach(user -> {
+        //         if (user.getRole().equals(Constant.ADVISER) || user.getRole().equals(Constant.ARCHIVER)) {
+        //             user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
+        //         }
+        //     });
+        // }
+
+        List<UserExtend> userExtendList = this.userService.extendFromUser(userList);
+        pageResult.setData(userExtendList);
 
         logger.info("pageNow: {}, pageSize: {}, role: {}, phone: {}, name: {}", pageNow, pageSize, role, phone, name);
 
-        return CommonResult.success("查询成功", new PageResult(new PageInfo<>(userList)));
+        return CommonResult.success("查询成功", pageResult);
     }
 
 
@@ -478,16 +485,19 @@ public class UserController {
 
         User user = this.userService.queryById(userId);
 
-        String oldPasswordMD5;
-        try {
-            oldPasswordMD5 = MD5Util.generate(oldPassword);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return CommonResult.failure("md5加密失败！");
-        }
+        // 找回密码的时候没有oldPassword
+        if (!Validator.checkEmpty(oldPassword)) {
+            String oldPasswordMD5;
+            try {
+                oldPasswordMD5 = MD5Util.generate(oldPassword);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+                return CommonResult.failure("md5加密失败！");
+            }
 
-        if (!oldPasswordMD5.equals(user.getPassword())) {
-            return CommonResult.failure("修改失败，原密码输入错误");
+            if (!oldPasswordMD5.equals(user.getPassword())) {
+                return CommonResult.failure("修改失败，原密码输入错误");
+            }
         }
 
         String newPasswordMD5;

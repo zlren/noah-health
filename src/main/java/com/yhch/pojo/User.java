@@ -1,11 +1,18 @@
 package com.yhch.pojo;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import java.util.Date;
 
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(name = "member_num")
+    private String memberNum;
 
     private String username;
 
@@ -17,13 +24,13 @@ public class User {
 
     private String role;
 
-    // private String phone;
-
     @Column(name = "staff_id")
-    private String staffId;
+    private Integer staffId;
 
     @Column(name = "staff_mgr_id")
-    private String staffMgrId;
+    private Integer staffMgrId;
+
+    private Date valid;
 
     /**
      * @return id
@@ -37,6 +44,20 @@ public class User {
      */
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    /**
+     * @return member_num
+     */
+    public String getMemberNum() {
+        return memberNum;
+    }
+
+    /**
+     * @param memberNum
+     */
+    public void setMemberNum(String memberNum) {
+        this.memberNum = memberNum;
     }
 
     /**
@@ -109,45 +130,45 @@ public class User {
         this.role = role;
     }
 
-    // /**
-    //  * @return phone
-    //  */
-    // public String getPhone() {
-    //     return phone;
-    // }
-    //
-    // /**
-    //  * @param phone
-    //  */
-    // public void setPhone(String phone) {
-    //     this.phone = phone;
-    // }
-
     /**
      * @return staff_id
      */
-    public String getStaffId() {
+    public Integer getStaffId() {
         return staffId;
     }
 
     /**
      * @param staffId
      */
-    public void setStaffId(String staffId) {
+    public void setStaffId(Integer staffId) {
         this.staffId = staffId;
     }
 
     /**
      * @return staff_mgr_id
      */
-    public String getStaffMgrId() {
+    public Integer getStaffMgrId() {
         return staffMgrId;
     }
 
     /**
      * @param staffMgrId
      */
-    public void setStaffMgrId(String staffMgrId) {
+    public void setStaffMgrId(Integer staffMgrId) {
         this.staffMgrId = staffMgrId;
+    }
+
+    /**
+     * @return valid
+     */
+    public Date getValid() {
+        return valid;
+    }
+
+    /**
+     * @param valid
+     */
+    public void setValid(Date valid) {
+        this.valid = valid;
     }
 }

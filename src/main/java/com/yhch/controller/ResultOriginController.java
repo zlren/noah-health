@@ -11,6 +11,7 @@ import com.yhch.pojo.User;
 import com.yhch.service.PropertyService;
 import com.yhch.service.ResultOriginService;
 import com.yhch.service.UserService;
+import com.yhch.util.TimeUtil;
 import com.yhch.util.Validator;
 import org.apache.commons.fileupload.util.Streams;
 import org.slf4j.Logger;
@@ -131,6 +132,12 @@ public class ResultOriginController {
         resultOrigin.setUploaderId(uploaderId);
         resultOrigin.setCheckerId(null);
 
+        try {
+            resultOrigin.setInputTime(TimeUtil.getCurrentTime());
+        } catch (ParseException e) {
+            return CommonResult.failure("解析时间出错");
+        }
+
         // 初始状态上传中
         resultOrigin.setStatus(Constant.SHANG_CHUAN_ZHONG);
 
@@ -204,7 +211,7 @@ public class ResultOriginController {
      */
     @RequestMapping(value = "list", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult showResultOriginList(@RequestBody Map<String, Object> params, HttpSession session) {
+    public CommonResult queryResultOriginList(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
@@ -214,24 +221,29 @@ public class ResultOriginController {
         String uploaderName = (String) params.get("uploaderName");
         String checkerName = (String) params.get("checkerName");
 
-        Date time = null;
-        String timeString = (String) params.get(Constant.TIME);
-        if (!Validator.checkEmpty(timeString)) {
-            try {
-                time = new SimpleDateFormat("yyyy-MM-dd").parse(timeString);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return CommonResult.failure("查询失败，日期解析错误");
-            }
-        }
+        // Date beginTime = null;
+        // Date endTime = null;
+        // String beginTimeString = (String) params.get("beginTime");
+        // String endTimeString = (String) params.get("endTime");
+        // if (!Validator.checkEmpty(beginTimeString) && !Validator.checkEmpty(endTimeString)) {
+        //     try {
+        //         beginTime = new SimpleDateFormat("yyyy-MM-dd").parse(beginTimeString);
+        //         endTime = new SimpleDateFormat("yyyy-MM-dd").parse(endTimeString);
+        //     } catch (ParseException e) {
+        //         e.printStackTrace();
+        //         return CommonResult.failure("查询失败，日期解析错误");
+        //     }
+        // }
+
+        Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
+        Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
-        Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
-        Set<String> statusSet = this.userService.getStatusSetUnderRole(identity);
+        List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginList(identity, pageNow,
+                pageSize, status, userName, uploaderName, checkerName, beginTime, endTime);
 
-        List<ResultOrigin> resultOriginList = this.resultOriginService.queryOriginList(identity, memberSet, statusSet, status, userName,
-                uploaderName, checkerName, time, pageNow, pageSize);
+
         PageResult pageResult = new PageResult(new PageInfo<>(resultOriginList));
 
         List<ResultOriginExtend> resultOriginExtendList = new ArrayList<>();

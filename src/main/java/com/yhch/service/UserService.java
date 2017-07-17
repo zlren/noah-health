@@ -4,6 +4,7 @@ import com.github.pagehelper.PageHelper;
 import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
+import com.yhch.bean.user.UserExtend;
 import com.yhch.pojo.User;
 import com.yhch.util.MD5Util;
 import com.yhch.util.TokenUtil;
@@ -159,6 +160,8 @@ public class UserService extends BaseService<User> {
         Example example = new Example(User.class);
         Example.Criteria criteria = example.createCriteria();
 
+        example.setOrderByClause("field(role,'三级会员','二级会员','一级会员','系统管理员','档案部主管','顾问部主管','档案部员工','顾问部员工')");
+
         if (!Validator.checkEmpty(name)) {
             criteria.andLike(Constant.NAME, "%" + name + "%");
         }
@@ -193,7 +196,7 @@ public class UserService extends BaseService<User> {
     public List<User> queryMembersByAdviseMgrId(Integer adviseMgrId) {
 
         User record = new User();
-        record.setStaffMgrId(String.valueOf(adviseMgrId));
+        record.setStaffMgrId(adviseMgrId);
         record.setRole(Constant.ADVISER);
         List<User> adviserList = this.queryListByWhere(record);
 
@@ -217,7 +220,7 @@ public class UserService extends BaseService<User> {
      */
     public List<User> queryMembersByAdviseId(Integer adviserId) {
         User record = new User();
-        record.setStaffId(String.valueOf(adviserId));
+        record.setStaffId(adviserId);
         return this.queryListByWhere(record);
     }
 
@@ -251,7 +254,7 @@ public class UserService extends BaseService<User> {
 
         List<User> users = new ArrayList<>();
         if (role.equals(Constant.ARCHIVE_MANAGER) || role.equals(Constant.ARCHIVER) || role.equals(Constant.ADMIN)) {
-            // 档案部员工、主管以及超级管理员，所有的会员
+            // 档案部员工、档案部主管以及超级管理员，所有的会员
             users = this.queryAllMembers();
         } else if (role.equals(Constant.ADVISE_MANAGER)) {
             users = this.queryMembersByAdviseMgrId(Integer.valueOf(id));
@@ -276,9 +279,10 @@ public class UserService extends BaseService<User> {
         } else {
             List<User> memberList = this.queryMemberListUnderEmployee(identity);
             memberList.forEach(member -> memberSet.add(member.getId()));
-            if (memberSet.size() == 0) {
-                memberSet.add(-1); // 空的话会出错
-            }
+        }
+
+        if (memberSet.size() == 0) {
+            memberSet.add(-1); // 空的话会出错
         }
 
         return memberSet;
@@ -300,7 +304,7 @@ public class UserService extends BaseService<User> {
 
         if (this.checkManager(role)) {
             User record = new User();
-            record.setStaffMgrId(id);
+            record.setStaffMgrId(Integer.valueOf(id));
             userList = this.queryListByWhere(record);
         } else if (this.checkAdmin(role)) {
             Example userExample = new Example(User.class);
@@ -347,6 +351,46 @@ public class UserService extends BaseService<User> {
     }
 
     /**
+     * 档案部主管
+     *
+     * @param role
+     * @return
+     */
+    public boolean checkArchiverManager(String role) {
+        return role.equals(Constant.ARCHIVE_MANAGER);
+    }
+
+    /**
+     * 档案部员工
+     *
+     * @param role
+     * @return
+     */
+    public boolean checkArchiver(String role) {
+        return role.equals(Constant.ARCHIVER);
+    }
+
+    /**
+     * 顾问部主管
+     *
+     * @param role
+     * @return
+     */
+    public boolean checkAdviseManager(String role) {
+        return role.equals(Constant.ADVISE_MANAGER);
+    }
+
+    /**
+     * 顾问
+     *
+     * @param role
+     * @return
+     */
+    public boolean checkAdviser(String role) {
+        return role.equals(Constant.ADVISER);
+    }
+
+    /**
      * 系统管理员
      *
      * @param role
@@ -388,6 +432,7 @@ public class UserService extends BaseService<User> {
 
         Example userExample = new Example(User.class);
         Example.Criteria userCriteria = userExample.createCriteria();
+
         userCriteria.andLike("name", "%" + name + "%");
 
         if (role.equals("职员")) {
@@ -401,6 +446,11 @@ public class UserService extends BaseService<User> {
         Set<Integer> userIdSet = new HashSet<>();
         userList.forEach(user -> userIdSet.add(user.getId()));
 
+        // 结果为空的话查询会出错
+        if (userIdSet.size() == 0) {
+            userIdSet.add(-1);
+        }
+
         return userIdSet;
     }
 
@@ -411,7 +461,7 @@ public class UserService extends BaseService<User> {
      * @param archiverMgrId
      * @return
      */
-    public Set<Integer> queryArchiverIdSetByArchiveMgrId(Integer archiverMgrId) {
+    public Set<Integer> queryArchiverIdSetByArchiveMgrId(String archiverMgrId) {
 
         Example userExample = new Example(User.class);
         Example.Criteria userCriteria = userExample.createCriteria();
@@ -423,6 +473,10 @@ public class UserService extends BaseService<User> {
 
         Set<Integer> archiverIdSet = new HashSet<>();
         archiverList.forEach(archiver -> archiverIdSet.add(archiver.getId()));
+
+        if (archiverIdSet.size() == 0) {
+            archiverIdSet.add(-1);
+        }
 
         return archiverIdSet;
     }
@@ -439,7 +493,7 @@ public class UserService extends BaseService<User> {
         String role = identity.getRole();
         Set<String> statusSet = new HashSet<>();
 
-        if (role.equals(Constant.ADMIN)) {
+        if (role.equals(Constant.ADMIN)) { // 系统管理员
             statusSet.add(Constant.WEI_TONG_GUO);
             statusSet.add(Constant.YI_TONG_GUO);
             statusSet.add(Constant.LU_RU_ZHONG);
@@ -449,6 +503,7 @@ public class UserService extends BaseService<User> {
             statusSet.add(Constant.WEI_TONG_GUO);
             statusSet.add(Constant.LU_RU_ZHONG);
             statusSet.add(Constant.SHANG_CHUAN_ZHONG);
+            statusSet.add(Constant.DAI_SHEN_HE);
         } else if (role.equals(Constant.ARCHIVE_MANAGER)) { // 档案部主管
             statusSet.add(Constant.DAI_SHEN_HE);
         } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ADVISE_MANAGER) || this.checkMember(role)) {
@@ -458,4 +513,35 @@ public class UserService extends BaseService<User> {
         return statusSet;
     }
 
+
+    /**
+     * 拓展user，补全
+     *
+     * @param userList
+     * @return
+     */
+    public List<UserExtend> extendFromUser(List<User> userList) {
+
+        List<UserExtend> userExtendList = new ArrayList<>();
+        userList.forEach(user -> userExtendList.add(extendFromUser(user)));
+        return userExtendList;
+    }
+
+
+    public UserExtend extendFromUser(User user) {
+
+        String staffName = null;
+        String staffMgrName = null;
+
+        user.setPassword(null); // 防止md5值外泄
+
+        if (this.checkMember(user.getRole())) {
+            staffName = this.queryById(user.getStaffId()).getName();
+            staffMgrName = this.queryById(this.queryById(user.getStaffId()).getStaffMgrId()).getName();
+        } else if (this.checkStaff(user.getRole())) {
+            staffMgrName = this.queryById(user.getStaffMgrId()).getName();
+        }
+
+        return new UserExtend(user, staffName, staffMgrName);
+    }
 }

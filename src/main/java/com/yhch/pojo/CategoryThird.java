@@ -16,13 +16,8 @@ public class CategoryThird {
     @Column(name = "en_short")
     private String enShort;
 
-    @Column(name = "system_category")
-    private String systemCategory;
-
     @Column(name = "reference_value")
     private String referenceValue;
-
-    private String hospital;
 
     /**
      * @return id
@@ -81,20 +76,6 @@ public class CategoryThird {
     }
 
     /**
-     * @return system_category
-     */
-    public String getSystemCategory() {
-        return systemCategory;
-    }
-
-    /**
-     * @param systemCategory
-     */
-    public void setSystemCategory(String systemCategory) {
-        this.systemCategory = systemCategory;
-    }
-
-    /**
      * @return reference_value
      */
     public String getReferenceValue() {
@@ -106,19 +87,5 @@ public class CategoryThird {
      */
     public void setReferenceValue(String referenceValue) {
         this.referenceValue = referenceValue;
-    }
-
-    /**
-     * @return hospital
-     */
-    public String getHospital() {
-        return hospital;
-    }
-
-    /**
-     * @param hospital
-     */
-    public void setHospital(String hospital) {
-        this.hospital = hospital;
     }
 }

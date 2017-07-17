@@ -10,7 +10,6 @@ public class ResultInputDetailExtend extends ResultInputDetail {
 
     public String thirdName;
     public String referenceValue;
-    public String systemCategory;
     public String hospital;
 
     /**
@@ -19,15 +18,13 @@ public class ResultInputDetailExtend extends ResultInputDetail {
      * @param resultInputDetail
      * @param thirdName
      * @param referenceValue
-     * @param systemCategory
      * @param hospital
      */
     public ResultInputDetailExtend(ResultInputDetail resultInputDetail, String thirdName, String referenceValue,
-                                   String systemCategory, String hospital) {
+                                   String hospital) {
         BeanUtils.copyProperties(resultInputDetail, this);
         this.thirdName = thirdName;
         this.referenceValue = referenceValue;
-        this.systemCategory = systemCategory;
         this.hospital = hospital;
     }
 }

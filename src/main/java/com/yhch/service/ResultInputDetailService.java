@@ -18,6 +18,9 @@ public class ResultInputDetailService extends BaseService<ResultInputDetail> {
     @Autowired
     private CategoryThirdService categoryThirdService;
 
+    @Autowired
+    private ResultInputService resultInputService;
+
     /**
      * 将list中的数据插入数据库
      *
@@ -42,11 +45,12 @@ public class ResultInputDetailService extends BaseService<ResultInputDetail> {
             CategoryThird categoryThird = this.categoryThirdService.queryById(resultInputDetail.getThirdId());
             String thirdName = categoryThird.getName();
             String referenceValue = categoryThird.getReferenceValue();
-            String systemCategory = categoryThird.getSystemCategory();
-            String hospital = categoryThird.getHospital();
+            // String systemCategory = categoryThird.getSystemCategory();
+            // String hospital = categoryThird.getHospital();
+            String hospital = this.resultInputService.queryById(resultInputDetail.getResultInputId()).getHospital();
 
-            resultInputDetailExtendList.add(new
-                    ResultInputDetailExtend(resultInputDetail, thirdName, referenceValue, systemCategory, hospital));
+            resultInputDetailExtendList.add(new ResultInputDetailExtend(resultInputDetail, thirdName, referenceValue,
+                    hospital));
         });
 
         return resultInputDetailExtendList;
