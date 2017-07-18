@@ -131,10 +131,9 @@ public class ResultOriginController {
         resultOrigin.setTime(time);
         resultOrigin.setUploaderId(uploaderId);
         resultOrigin.setCheckerId(null);
-
         try {
-            resultOrigin.setInputTime(TimeUtil.getCurrentTime());
-        } catch (ParseException e) {
+            resultOrigin.setUploadTime(TimeUtil.getCurrentTime());
+        } catch (ParseException ignored) {
             return CommonResult.failure("解析时间出错");
         }
 
@@ -220,21 +219,6 @@ public class ResultOriginController {
         String userName = (String) params.get("userName");
         String uploaderName = (String) params.get("uploaderName");
         String checkerName = (String) params.get("checkerName");
-
-        // Date beginTime = null;
-        // Date endTime = null;
-        // String beginTimeString = (String) params.get("beginTime");
-        // String endTimeString = (String) params.get("endTime");
-        // if (!Validator.checkEmpty(beginTimeString) && !Validator.checkEmpty(endTimeString)) {
-        //     try {
-        //         beginTime = new SimpleDateFormat("yyyy-MM-dd").parse(beginTimeString);
-        //         endTime = new SimpleDateFormat("yyyy-MM-dd").parse(endTimeString);
-        //     } catch (ParseException e) {
-        //         e.printStackTrace();
-        //         return CommonResult.failure("查询失败，日期解析错误");
-        //     }
-        // }
-
         Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
 

@@ -61,6 +61,7 @@ public class UserController {
 
         String name = (String) params.get(Constant.NAME);
         String phone = (String) params.get(Constant.PHONE);
+        String memberNum = (String) params.get("memberNum");
         String role = (String) params.get(Constant.ROLE);
         Integer staffMgrId = (Integer) params.get(Constant.STAFF_MGR_ID);
 
@@ -71,8 +72,11 @@ public class UserController {
         } else {
             user.setName(name);
             user.setUsername(phone);
-            // user.setPhone(phone);
             user.setRole(role);
+        }
+
+        if (!Validator.checkEmpty(memberNum)) {
+            user.setMemberNum(memberNum);
         }
 
         // 是员工但并不是财务部员工，所以需要主管
@@ -87,7 +91,6 @@ public class UserController {
         }
 
         User record = new User();
-        // record.setPhone(phone);
         record.setUsername(phone);
         if (this.userService.queryOne(record) != null) {
             return CommonResult.failure("手机号已注册");
@@ -118,23 +121,23 @@ public class UserController {
 
         Integer userId = (Integer) params.get("userId");
         // 修改别的用户的时候不能修改name和phone
-        // String name = (String) params.get(Constant.NAME);
+        String name = (String) params.get(Constant.NAME);
         // String phone = (String) params.get(Constant.PHONE);
         String role = (String) params.get(Constant.ROLE);
         Integer adviserId = (Integer) params.get(Constant.STAFF_ID);
         Integer staffMgrId = (Integer) params.get(Constant.STAFF_MGR_ID);
+        String memberNum = (String) params.get("memberNum");
 
         // 未修改的user
         User user = this.userService.queryById(userId);
 
-        // if (!Validator.checkEmpty(name)) {
-        //     user.setName(name);
-        // }
-        //
-        // if (!Validator.checkEmpty(phone)) {
-        //     user.setPhone(phone);
-        //     user.setUsername(phone);
-        // }
+        if (!Validator.checkEmpty(name)) {
+            user.setName(name);
+        }
+
+        if (!Validator.checkEmpty(memberNum)) {
+            user.setMemberNum(memberNum);
+        }
 
         // role
         if (!Validator.checkEmpty(role)) {
@@ -250,7 +253,6 @@ public class UserController {
 
         if (staffMgrId != null) {
             user.setStaffMgrId(staffMgrId);
-            logger.info("staffMgrId是 {}!!!!", staffMgrId);
         }
 
         this.userService.update(user);

@@ -7,6 +7,7 @@ import com.yhch.service.PropertyService;
 import com.yhch.service.RedisService;
 import com.yhch.service.UserService;
 import com.yhch.util.MD5Util;
+import com.yhch.util.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,6 @@ public class AuthController {
 
         String phone = params.get(Constant.PHONE);
 
-        // {
         User record = new User();
         record.setUsername(phone);
         User user = this.userService.queryOne(record);
@@ -66,13 +66,6 @@ public class AuthController {
                 return CommonResult.failure("此号码未注册");
             }
         }
-        // }
-
-        // User record = new User();
-        // record.setUsername(phone);
-        // if (this.userService.queryOne(record) != null) {
-        //     return CommonResult.failure("此号码已注册");
-        // }
 
         if (redisService.get(phone) != null) {
             return CommonResult.failure("请1分钟后再试");
@@ -139,6 +132,8 @@ public class AuthController {
             user.setRole(Constant.USER_1);
             user.setName(name);
             user.setAvatar("avatar_default.png"); // 默认头像
+            user.setMemberNum(null);
+            user.setValid(TimeUtil.getOneYearAfterTime()); // 默认有效期一年
             this.userService.save(user);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();

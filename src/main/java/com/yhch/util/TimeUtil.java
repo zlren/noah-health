@@ -2,6 +2,7 @@ package com.yhch.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -39,5 +40,20 @@ public class TimeUtil {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String format = simpleDateFormat.format(new Date());
         return simpleDateFormat.parse(format);
+    }
+
+
+    /**
+     * 返回一年后的时间
+     *
+     * @return
+     */
+    public static Date getOneYearAfterTime() {
+        Calendar calendar = Calendar.getInstance();
+        Date date = new Date();
+        calendar.setTime(date);
+        calendar.add(Calendar.YEAR, 1);
+        date = calendar.getTime();
+        return date;
     }
 }

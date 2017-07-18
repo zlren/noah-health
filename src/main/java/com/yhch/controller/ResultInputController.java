@@ -96,10 +96,8 @@ public class ResultInputController {
         resultInput.setHospital(hospital);
         resultInput.setTime(time);
         try {
-            resultInput.setInputTime(TimeUtil.getCurrentTime());
-            logger.info("{}", resultInput.getInputTime());
-        } catch (ParseException e) {
-            e.printStackTrace();
+            resultInput.setUploadTime(TimeUtil.getCurrentTime());
+        } catch (ParseException ignored) {
             return CommonResult.failure("解析时间出错");
         }
 

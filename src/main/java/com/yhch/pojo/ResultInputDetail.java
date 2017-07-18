@@ -16,6 +16,9 @@ public class ResultInputDetail {
 
     private String value;
 
+    /**
+     * true或者是false
+     */
     private String normal;
 
     /**
@@ -75,14 +78,18 @@ public class ResultInputDetail {
     }
 
     /**
-     * @return normal
+     * 获取true或者是false
+     *
+     * @return normal - true或者是false
      */
     public String getNormal() {
         return normal;
     }
 
     /**
-     * @param normal
+     * 设置true或者是false
+     *
+     * @param normal true或者是false
      */
     public void setNormal(String normal) {
         this.normal = normal;

@@ -1,7 +1,7 @@
 package com.yhch.pojo;
 
-import javax.persistence.*;
 import java.util.Date;
+import javax.persistence.*;
 
 @Table(name = "result_origin")
 public class ResultOrigin {
@@ -12,8 +12,8 @@ public class ResultOrigin {
     @Column(name = "user_id")
     private Integer userId;
 
-    @Column(name = "input_time")
-    private Date inputTime;
+    @Column(name = "upload_time")
+    private Date uploadTime;
 
     private Date time;
 
@@ -60,17 +60,17 @@ public class ResultOrigin {
     }
 
     /**
-     * @return input_time
+     * @return upload_time
      */
-    public Date getInputTime() {
-        return inputTime;
+    public Date getUploadTime() {
+        return uploadTime;
     }
 
     /**
-     * @param inputTime
+     * @param uploadTime
      */
-    public void setInputTime(Date inputTime) {
-        this.inputTime = inputTime;
+    public void setUploadTime(Date uploadTime) {
+        this.uploadTime = uploadTime;
     }
 
     /**

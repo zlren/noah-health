@@ -16,10 +16,7 @@ import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class UserService extends BaseService<User> {
@@ -43,6 +40,17 @@ public class UserService extends BaseService<User> {
 
 
     /**
+     * 用户是否在有效期内
+     *
+     * @param user
+     * @return true表示有效
+     */
+    public boolean checkValid(User user) {
+        return new Date().before(user.getValid());
+    }
+
+
+    /**
      * 登录验证
      *
      * @param username
@@ -60,9 +68,20 @@ public class UserService extends BaseService<User> {
 
         logger.info("{} 用户请求登录", username);
 
-        if (!this.isExist(username)) {
-            return CommonResult.failure("用户不存在");
+        {
+            User record = new User();
+            record.setUsername(username);
+            User user = this.queryOne(record);
+
+            if (user == null) {
+                return CommonResult.failure("登录失败：用户不存在");
+            }
+
+            if (!this.checkValid(user)) {
+                return CommonResult.failure("登录失败：过期无效的用户");
+            }
         }
+
 
         // 密码加密
         String md5Password;
@@ -521,9 +540,9 @@ public class UserService extends BaseService<User> {
      * @return
      */
     public List<UserExtend> extendFromUser(List<User> userList) {
-
         List<UserExtend> userExtendList = new ArrayList<>();
-        userList.forEach(user -> userExtendList.add(extendFromUser(user)));
+        // 过滤掉过期用户
+        userList.stream().filter(this::checkValid).forEach(user -> userExtendList.add(extendFromUser(user)));
         return userExtendList;
     }
 

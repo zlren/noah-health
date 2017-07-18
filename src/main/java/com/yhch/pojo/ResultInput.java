@@ -17,8 +17,8 @@ public class ResultInput {
 
     private String hospital;
 
-    @Column(name = "input_time")
-    private Date inputTime;
+    @Column(name = "upload_time")
+    private Date uploadTime;
 
     private Date time;
 
@@ -91,17 +91,17 @@ public class ResultInput {
     }
 
     /**
-     * @return input_time
+     * @return upload_time
      */
-    public Date getInputTime() {
-        return inputTime;
+    public Date getUploadTime() {
+        return uploadTime;
     }
 
     /**
-     * @param inputTime
+     * @param uploadTime
      */
-    public void setInputTime(Date inputTime) {
-        this.inputTime = inputTime;
+    public void setUploadTime(Date uploadTime) {
+        this.uploadTime = uploadTime;
     }
 
     /**
