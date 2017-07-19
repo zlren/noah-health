@@ -10,7 +10,7 @@
     </appender>
 
     <!-- 日志输出级别 -->
-    <root level="INFO">
+    <root level="debug">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

@@ -13,6 +13,7 @@ import com.yhch.service.RedisService;
 import com.yhch.service.UserService;
 import com.yhch.util.FileUtil;
 import com.yhch.util.MD5Util;
+import com.yhch.util.TimeUtil;
 import com.yhch.util.Validator;
 import org.apache.commons.fileupload.util.Streams;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class UserController {
 
 
     /**
-     * 添加员工或者主管
+     * 添加职员和会员
      *
      * @param params
      * @return
@@ -63,11 +64,14 @@ public class UserController {
         String phone = (String) params.get(Constant.PHONE);
         String memberNum = (String) params.get("memberNum");
         String role = (String) params.get(Constant.ROLE);
+        Integer validOfMonth = (Integer) params.get("valid");
         Integer staffMgrId = (Integer) params.get(Constant.STAFF_MGR_ID);
+        Integer staffId = (Integer) params.get("staffId");
 
         User user = new User();
 
-        if (Validator.checkEmpty(name) || Validator.checkEmpty(phone) || Validator.checkEmpty(role)) {
+        if (Validator.checkEmpty(name) || Validator.checkEmpty(phone) || Validator.checkEmpty(role) ||
+                (this.userService.checkMember(role) && staffId == null)) { // 会员却没有设置staffId
             return CommonResult.failure("添加失败，信息不完整");
         } else {
             user.setName(name);
@@ -94,6 +98,12 @@ public class UserController {
         record.setUsername(phone);
         if (this.userService.queryOne(record) != null) {
             return CommonResult.failure("手机号已注册");
+        }
+
+        // 设置有效期，以月为单位
+        if (this.userService.checkMember(role)) {
+            user.setValid(TimeUtil.getTimeAfterMonths(validOfMonth));
+            user.setStaffId(staffId);
         }
 
         try {
@@ -442,10 +452,12 @@ public class UserController {
         String role = (String) params.get(Constant.ROLE);
         String phone = (String) params.get(Constant.PHONE);
         String name = (String) params.get(Constant.NAME);
+        String memberNum = (String) params.get("memberNum");
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
-        List<User> userList = this.userService.queryUserList(pageNow, pageSize, role, phone, name, type, identity);
+        List<User> userList = this.userService.queryUserList(pageNow, pageSize, role, phone, name, memberNum, type,
+                identity);
         PageResult pageResult = new PageResult(new PageInfo<>(userList));
 
         // if (type.equals(Constant.MEMBER)) {

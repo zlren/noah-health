@@ -3,9 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
-
     <plugins>
-
         <!-- 配置分页助手（配置在通用mapper的前面） -->
         <plugin interceptor="com.github.pagehelper.PageHelper">
             <property name="dialect" value="mysql"/>
@@ -21,5 +19,4 @@
             <!--<property name="mappers" value="tk.mybatis.mapper.common.Mapper"/>-->
         <!--</plugin>-->
     </plugins>
-
 </configuration>

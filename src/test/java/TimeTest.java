@@ -15,5 +15,7 @@ public class TimeTest {
 
         System.out.println(now.before(oneYearAfterTime));
 
+        System.out.println(TimeUtil.getTimeAfterMonths(2));
+
     }
 }

@@ -17,9 +17,9 @@ public class ResultInputDetail {
     private String value;
 
     /**
-     * true或者是false
+     * 是否异常
      */
-    private String normal;
+    private Boolean normal;
 
     /**
      * @return id
@@ -77,21 +77,11 @@ public class ResultInputDetail {
         this.value = value;
     }
 
-    /**
-     * 获取true或者是false
-     *
-     * @return normal - true或者是false
-     */
-    public String getNormal() {
+    public Boolean getNormal() {
         return normal;
     }
 
-    /**
-     * 设置true或者是false
-     *
-     * @param normal true或者是false
-     */
-    public void setNormal(String normal) {
+    public void setNormal(Boolean normal) {
         this.normal = normal;
     }
 }

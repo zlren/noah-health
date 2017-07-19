@@ -33,15 +33,31 @@ public class ResultInputDetailController {
      */
     @RequestMapping(method = RequestMethod.PUT)
     @ResponseBody
-    public CommonResult addResultInputDetail(@RequestBody Map<Integer, String> params) {
+    public CommonResult addResultInputDetail(@RequestBody Map<String, String> params) {
 
         List<ResultInputDetail> dataToSaveList = new ArrayList<>();
 
-        for (Map.Entry<Integer, String> next : params.entrySet()) {
+        // 每一条检查记录有两个值，value和normal
+        // id-value: value
+        // id-normal: true/false
+        for (Map.Entry<String, String> next : params.entrySet()) {
             if (next.getValue() != null) {
+
+                String key = next.getKey();
+                String[] split = key.split("-");
+
                 ResultInputDetail resultInputDetail = new ResultInputDetail();
-                resultInputDetail.setId(next.getKey());
-                resultInputDetail.setValue(next.getValue());
+                resultInputDetail.setId(Integer.valueOf(split[0]));
+                if (split[1].equals("normal")) {
+                    if (next.getValue().equals("true")) {
+                        resultInputDetail.setNormal(true);
+                    } else {
+                        resultInputDetail.setNormal(false);
+                    }
+                } else if (split[1].equals("value")) {
+                    resultInputDetail.setValue(next.getValue());
+                }
+
                 dataToSaveList.add(resultInputDetail);
             }
         }

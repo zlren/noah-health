@@ -161,9 +161,11 @@ public class ResultInputController {
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
         String userName = (String) params.get("userName");
+        String memberNum = (String) params.get("memberNum");
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
-        List<User> userList = this.resultInputService.queryResultInputUserList(identity, userName, pageNow, pageSize);
+        List<User> userList = this.resultInputService.queryResultInputUserList(identity, userName, memberNum,
+                pageNow, pageSize);
         PageResult pageResult = new PageResult(new PageInfo<>(userList));
 
         List<UserExtend> userExtendList = this.userService.extendFromUser(userList);

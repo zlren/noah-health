@@ -9,6 +9,7 @@ import org.springframework.beans.BeanUtils;
  */
 public class ResultOriginExtend extends ResultOrigin {
 
+    public String memberNum;
     public String userName;
     public String checkerName;
     public String uploaderName;
@@ -17,13 +18,15 @@ public class ResultOriginExtend extends ResultOrigin {
      * 构造函数
      *
      * @param resultOrigin
+     * @param memberNum
      * @param userName
      * @param checkerName
      * @param uploaderName
      */
-    public ResultOriginExtend(ResultOrigin resultOrigin, String userName, String checkerName,
+    public ResultOriginExtend(ResultOrigin resultOrigin, String memberNum, String userName, String checkerName,
                               String uploaderName) {
         BeanUtils.copyProperties(resultOrigin, this);
+        this.memberNum = memberNum;
         this.userName = userName;
         this.checkerName = checkerName;
         this.uploaderName = uploaderName;

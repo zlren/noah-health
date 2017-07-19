@@ -219,13 +219,14 @@ public class ResultOriginController {
         String userName = (String) params.get("userName");
         String uploaderName = (String) params.get("uploaderName");
         String checkerName = (String) params.get("checkerName");
+        String memberNum = (String) params.get("memberNum");
         Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
         List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginList(identity, pageNow,
-                pageSize, status, userName, uploaderName, checkerName, beginTime, endTime);
+                pageSize, status, userName, uploaderName, checkerName, memberNum, beginTime, endTime);
 
 
         PageResult pageResult = new PageResult(new PageInfo<>(resultOriginList));
@@ -234,6 +235,7 @@ public class ResultOriginController {
 
         resultOriginList.forEach(resultOrigin -> {
 
+            String memberNumExtend = this.userService.queryById(resultOrigin.getUserId()).getMemberNum();
             String userNameExtend = this.userService.queryById(resultOrigin.getUserId()).getName();
             String checkerNameExtend = null;
             if (resultOrigin.getCheckerId() != null) {
@@ -241,9 +243,8 @@ public class ResultOriginController {
             }
             String uploaderNameExtend = this.userService.queryById(resultOrigin.getUploaderId()).getName();
 
-
-            ResultOriginExtend resultOriginExtend = new ResultOriginExtend(resultOrigin, userNameExtend,
-                    checkerNameExtend, uploaderNameExtend);
+            ResultOriginExtend resultOriginExtend = new ResultOriginExtend(resultOrigin, memberNumExtend,
+                    userNameExtend, checkerNameExtend, uploaderNameExtend);
 
             resultOriginExtendList.add(resultOriginExtend);
         });

@@ -42,7 +42,8 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
      * @return
      */
     public List<ResultOrigin> queryResultOriginList(Identity identity, Integer pageNow, Integer pageSize, String
-            status, String userName, String uploaderName, String checkerName, Date beginTime, Date endTime) {
+            status, String userName, String uploaderName, String checkerName, String memberNum, Date beginTime, Date
+                                                            endTime) {
 
         String identityId = identity.getId();
         String identityRole = identity.getRole();
@@ -76,9 +77,9 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
                 originCriteria.andEqualTo("status", status);
             }
 
-            if (!Validator.checkEmpty(userName)) {
-                originCriteria.andIn("userId", this.userService.getMemberIdSetByUserNameLike(userName));
-            }
+            // if (!Validator.checkEmpty(userName)) {
+            originCriteria.andIn("userId", this.userService.getMemberIdSetByNameAndMemberNumLike(userName, memberNum));
+            // }
 
             // 上传者，档案部员工或者管理员
             if (!Validator.checkEmpty(uploaderName)) {
@@ -108,9 +109,7 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
             originCriteria.andIn("uploaderId", archiverIdSet);
 
             Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
-            if (!Validator.checkEmpty(userName)) {
-                memberSet.retainAll(this.userService.getMemberIdSetByUserNameLike(userName));
-            }
+            memberSet.retainAll(this.userService.getMemberIdSetByNameAndMemberNumLike(userName, memberNum));
             originCriteria.andIn("userId", memberSet);
 
         } else if (this.userService.checkArchiver(identityRole)) { // 档案部员工
@@ -122,20 +121,14 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
 
             // 重在对userId的筛选，挑出是自己的顾问员工对应的会员
             Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
-
-            if (!Validator.checkEmpty(userName)) {
-                memberSet.retainAll(this.userService.getMemberIdSetByUserNameLike(userName));
-            }
+            memberSet.retainAll(this.userService.getMemberIdSetByNameAndMemberNumLike(userName, memberNum));
             originCriteria.andIn("userId", memberSet);
 
         } else if (this.userService.checkAdviser(identityRole)) { // 顾问部员工
 
             // 重在对userId的筛选，挑出是自己的顾问员工对应的会员
             Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
-
-            if (!Validator.checkEmpty(userName)) {
-                memberSet.retainAll(this.userService.getMemberIdSetByUserNameLike(userName));
-            }
+            memberSet.retainAll(this.userService.getMemberIdSetByNameAndMemberNumLike(userName, memberNum));
             originCriteria.andIn("userId", memberSet);
 
         } else if (this.userService.checkMember(identityRole)) {

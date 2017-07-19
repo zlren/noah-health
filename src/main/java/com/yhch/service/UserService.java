@@ -46,7 +46,7 @@ public class UserService extends BaseService<User> {
      * @return true表示有效
      */
     public boolean checkValid(User user) {
-        return new Date().before(user.getValid());
+        return !this.checkMember(user.getRole()) || new Date().before(user.getValid());
     }
 
 
@@ -174,12 +174,13 @@ public class UserService extends BaseService<User> {
      * @return
      */
     public List<User> queryUserList(Integer pageNow, Integer pageSize, String role, String phone, String name, String
-            type, Identity identity) {
+            memberNum, String type, Identity identity) {
 
         Example example = new Example(User.class);
         Example.Criteria criteria = example.createCriteria();
 
-        example.setOrderByClause("field(role,'三级会员','二级会员','一级会员','系统管理员','档案部主管','顾问部主管','档案部员工','顾问部员工')");
+        example.setOrderByClause("field(role,'三级会员','二级会员','一级会员','系统管理员','档案部主管','顾问部主管','档案部员工','顾问部员工', '财务部员工'), " +
+                "member_num desc");
 
         if (!Validator.checkEmpty(name)) {
             criteria.andLike(Constant.NAME, "%" + name + "%");
@@ -187,6 +188,10 @@ public class UserService extends BaseService<User> {
 
         if (!Validator.checkEmpty(phone)) {
             criteria.andLike(Constant.USERNAME, "%" + phone + "%");
+        }
+
+        if (!Validator.checkEmpty(memberNum)) {
+            criteria.andLike("memberNum", "%" + memberNum + "%");
         }
 
         if (!Validator.checkEmpty(role)) {
@@ -534,6 +539,55 @@ public class UserService extends BaseService<User> {
 
 
     /**
+     * 根据memberNum模糊匹配，返回所有的member的id组成的set
+     *
+     * @param memberNum
+     * @return
+     */
+    public Set<Integer> getMemberIdSetByMemberNumLike(String memberNum) {
+
+        Example userExample = new Example(User.class);
+        Example.Criteria userCriteria = userExample.createCriteria();
+
+        userCriteria.andLike("memberNum", "%" + memberNum + "%");
+        userCriteria.andLike("role", "%会员%");
+
+        List<User> memberList = this.getMapper().selectByExample(userExample);
+
+        Set<Integer> memberIdSet = new HashSet<>();
+        memberList.forEach(user -> memberIdSet.add(user.getId()));
+
+        // 结果为空的话查询会出错
+        if (memberIdSet.size() == 0) {
+            memberIdSet.add(-1);
+        }
+
+        return memberIdSet;
+    }
+
+
+    /**
+     * 同时根据会员姓名和会员编号去匹配
+     *
+     * @param name
+     * @param memberNum
+     * @return
+     */
+    public Set<Integer> getMemberIdSetByNameAndMemberNumLike(String name, String memberNum) {
+        if (name == null) {
+            name = "";
+        }
+        if (memberNum == null) {
+            memberNum = "";
+        }
+
+        Set<Integer> nameLike = this.getMemberIdSetByUserNameLike(name);
+        nameLike.retainAll(this.getMemberIdSetByMemberNumLike(memberNum));
+        return nameLike;
+    }
+
+
+    /**
      * 拓展user，补全
      *
      * @param userList
@@ -555,9 +609,13 @@ public class UserService extends BaseService<User> {
         user.setPassword(null); // 防止md5值外泄
 
         if (this.checkMember(user.getRole())) {
-            staffName = this.queryById(user.getStaffId()).getName();
-            staffMgrName = this.queryById(this.queryById(user.getStaffId()).getStaffMgrId()).getName();
-        } else if (this.checkStaff(user.getRole())) {
+            if (user.getStaffId() != null) {
+                staffName = this.queryById(user.getStaffId()).getName();
+                staffMgrName = this.queryById(this.queryById(user.getStaffId()).getStaffMgrId()).getName();
+            } else {
+                staffName = "<未设置顾问>";
+            }
+        } else if (user.getRole().equals(Constant.ARCHIVER) || user.getRole().equals(Constant.ADVISER)) {
             staffMgrName = this.queryById(user.getStaffMgrId()).getName();
         }
 

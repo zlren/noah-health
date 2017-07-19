@@ -175,19 +175,26 @@ public class ResultInputService extends BaseService<ResultInput> {
      *
      * @param identity
      * @param userName
+     * @param memberNum
      * @param pageNow
      * @param pageSize
      * @return
      */
-    public List<User> queryResultInputUserList(Identity identity, String userName, Integer pageNow, Integer pageSize) {
+    public List<User> queryResultInputUserList(Identity identity, String userName, String memberNum, Integer pageNow,
+                                               Integer pageSize) {
 
         Example example = new Example(User.class);
         Example.Criteria userCriteria = example.createCriteria();
 
-        example.setOrderByClause("role DESC");
+        example.setOrderByClause("field(role,'三级会员','二级会员','一级会员','系统管理员','档案部主管','顾问部主管','档案部员工','顾问部员工', '财务部员工'), " +
+                "member_num desc");
 
         if (!Validator.checkEmpty(userName)) {
             userCriteria.andLike(Constant.NAME, "%" + userName + "%");
+        }
+
+        if (!Validator.checkEmpty(memberNum)) {
+            userCriteria.andLike("memberNum", "%" + memberNum + "%");
         }
 
         // 化验医技数据，一级用户没有
@@ -208,11 +215,12 @@ public class ResultInputService extends BaseService<ResultInput> {
      *
      * @param identity
      * @param userId
-     * @param s
      * @param type
+     * @param status
      * @param secondId
      * @param beginTime
-     * @param endTime   @return
+     * @param endTime
+     * @return
      */
     public List<ResultInput> queryResultAndDetailListByUserId(Identity identity, Integer userId, String type, String
             status, Integer secondId, Date beginTime, Date endTime) {

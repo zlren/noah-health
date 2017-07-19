@@ -10,9 +10,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class PropertyService {
 
-    @Value("${page.rows}")
-    public int pageRows;
-
     @Value("${sms.code.len}")
     public int smsCodeLen;
 

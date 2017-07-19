@@ -49,10 +49,20 @@ public class TimeUtil {
      * @return
      */
     public static Date getOneYearAfterTime() {
+        return getTimeAfterMonths(12);
+    }
+
+    /**
+     * 返回几个月后的时间
+     *
+     * @param n
+     * @return
+     */
+    public static Date getTimeAfterMonths(Integer n) {
         Calendar calendar = Calendar.getInstance();
         Date date = new Date();
         calendar.setTime(date);
-        calendar.add(Calendar.YEAR, 1);
+        calendar.add(Calendar.MONTH, n);
         date = calendar.getTime();
         return date;
     }
