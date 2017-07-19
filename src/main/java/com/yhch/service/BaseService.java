@@ -62,6 +62,18 @@ public abstract class BaseService<T> {
         return this.mapper.select(record);
     }
 
+
+    /**
+     * 根据条件查询个数
+     *
+     * @param record
+     * @return
+     */
+    public Integer queryCountByWhere(T record) {
+        return this.mapper.selectCount(record);
+    }
+
+
     /**
      * 分页查询
      * 可以无条件查询所有记录，可以根据某一个属性进行完全匹配的查询

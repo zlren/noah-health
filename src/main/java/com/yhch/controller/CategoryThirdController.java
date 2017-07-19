@@ -145,9 +145,7 @@ public class CategoryThirdController {
 
         // 根据id去改
         categoryThird.setId(thirdId);
-        // categoryThird.setSystemCategory(systemCategory);
         categoryThird.setReferenceValue(referenceValue);
-        // categoryThird.setHospital(hospital);
 
         this.categoryThirdService.update(categoryThird);
 

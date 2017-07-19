@@ -77,10 +77,20 @@ public class ResultInputDetail {
         this.value = value;
     }
 
+    /**
+     * 获取是否异常
+     *
+     * @return normal - 是否异常
+     */
     public Boolean getNormal() {
         return normal;
     }
 
+    /**
+     * 设置是否异常
+     *
+     * @param normal 是否异常
+     */
     public void setNormal(Boolean normal) {
         this.normal = normal;
     }

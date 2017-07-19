@@ -1,7 +1,7 @@
 package com.yhch.pojo;
 
-import java.util.Date;
 import javax.persistence.*;
+import java.util.Date;
 
 @Table(name = "result_origin")
 public class ResultOrigin {
@@ -11,6 +11,9 @@ public class ResultOrigin {
 
     @Column(name = "user_id")
     private Integer userId;
+
+    @Column(name = "origin_category_second_id")
+    private Integer originCategorySecondId;
 
     @Column(name = "upload_time")
     private Date uploadTime;
@@ -57,6 +60,20 @@ public class ResultOrigin {
      */
     public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+
+    /**
+     * @return origin_category_second_id
+     */
+    public Integer getOriginCategorySecondId() {
+        return originCategorySecondId;
+    }
+
+    /**
+     * @param originCategorySecondId
+     */
+    public void setOriginCategorySecondId(Integer originCategorySecondId) {
+        this.originCategorySecondId = originCategorySecondId;
     }
 
     /**
