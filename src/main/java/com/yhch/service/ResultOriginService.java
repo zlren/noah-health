@@ -101,7 +101,7 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
 
             // 档案部主管对应的档案部员工
             // 根据上传者筛选后，就不用筛选审核者了，反正都是自己的员工做的
-            Set<Integer> archiverIdSet = this.userService.queryArchiverIdSetByArchiveMgrId(identityId);
+            Set<Integer> archiverIdSet = this.userService.queryArchiverIdSetByArchiveMgrId(Integer.valueOf(identityId));
             if (!Validator.checkEmpty(uploaderName)) {
                 archiverIdSet.retainAll(this.userService.getIdSetByUserNameLikeAndRole(uploaderName, Constant
                         .ARCHIVER));
@@ -121,6 +121,10 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
 
             // 重在对userId的筛选，挑出是自己的顾问员工对应的会员
             Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
+
+            logger.info("哈哈哈");
+            memberSet.forEach(member -> logger.info("{}", member));
+
             memberSet.retainAll(this.userService.getMemberIdSetByNameAndMemberNumLike(userName, memberNum));
             originCriteria.andIn("userId", memberSet);
 

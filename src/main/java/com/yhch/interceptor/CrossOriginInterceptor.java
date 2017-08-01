@@ -2,6 +2,7 @@ package com.yhch.interceptor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletResponse;
@@ -11,6 +12,7 @@ import java.io.IOException;
  * 拦截器添加跨域支持
  * Created by ken on 2017/6/8.
  */
+@Component
 public class CrossOriginInterceptor implements Filter {
 
 

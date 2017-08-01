@@ -25,47 +25,55 @@ public class RoleCheckInterceptor extends HandlerInterceptorAdapter {
 
     // 在调用方法之前执行拦截
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws
+            Exception {
+
         // 将handler强转为HandlerMethod, 前面已经证实这个handler就是HandlerMethod
-        HandlerMethod handlerMethod = (HandlerMethod) handler;
-        // 从方法处理器中获取出要调用的方法
-        Method method = handlerMethod.getMethod();
-        // 获取出方法上的Access注解
-        RequiredRoles roleCheck = method.getAnnotation(RequiredRoles.class);
-        if (roleCheck == null) {
-            // 如果注解为null, 说明不需要拦截, 直接放过
-            return true;
-        }
 
-        if (roleCheck.roles().length > 0) {
+        if (handler instanceof HandlerMethod) {
+            HandlerMethod handlerMethod = (HandlerMethod) handler;
 
-            for (String s : roleCheck.roles()) {
-                logger.info(s);
+            // 从方法处理器中获取出要调用的方法
+            Method method = handlerMethod.getMethod();
+
+            // 获取出方法上的Access注解
+            RequiredRoles roleCheck = method.getAnnotation(RequiredRoles.class);
+            if (roleCheck == null) {
+                // 如果注解为null, 说明不需要拦截, 直接放过
+                return true;
             }
 
-            // 如果权限配置不为空, 则取出配置值
-            String[] authorities = roleCheck.roles();
-            Set<String> authSet = new HashSet<>();
-            // 将权限加入一个set集合中
-            authSet.addAll(Arrays.asList(authorities));
-            // 这里我为了方便是直接参数传入权限, 在实际操作中应该是从参数中获取用户Id
-            // 到数据库权限表中查询用户拥有的权限集合, 与set集合中的权限进行对比完成权限校验
+            if (roleCheck.roles().length > 0) {
 
-            String role = ((Identity) request.getSession().getAttribute(Constant.IDENTITY)).getRole();
-            logger.info("用户的角色是 {}", role);
-            // String role = request.getParameter("role");
-            if (!Validator.checkEmpty(role)) {
-                if (authSet.contains(role)) {
-                    // 校验通过返回true, 否则拦截请求
-                    logger.info("权限校验通过");
-                    return true;
+                for (String s : roleCheck.roles()) {
+                    logger.info(s);
                 }
+
+                // 如果权限配置不为空, 则取出配置值
+                String[] authorities = roleCheck.roles();
+                Set<String> authSet = new HashSet<>();
+                // 将权限加入一个set集合中
+                authSet.addAll(Arrays.asList(authorities));
+                // 这里我为了方便是直接参数传入权限, 在实际操作中应该是从参数中获取用户Id
+                // 到数据库权限表中查询用户拥有的权限集合, 与set集合中的权限进行对比完成权限校验
+
+                String role = ((Identity) request.getSession().getAttribute(Constant.IDENTITY)).getRole();
+                logger.info("用户的角色是 {}", role);
+                // String role = request.getParameter("role");
+                if (!Validator.checkEmpty(role)) {
+                    if (authSet.contains(role)) {
+                        // 校验通过返回true, 否则拦截请求
+                        logger.info("权限校验通过");
+                        return true;
+                    }
+                }
+
+                logger.info("权限拒绝");
+                // 拦截之后应该返回公共结果, 这里没做处理
+                response.sendRedirect("/api/auth/role_denied");
             }
         }
 
-        logger.info("权限拒绝");
-        // 拦截之后应该返回公共结果, 这里没做处理
-        response.sendRedirect("/api/auth/role_denied");
-        return false;
+        return true;
     }
 }

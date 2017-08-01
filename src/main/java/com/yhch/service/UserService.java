@@ -142,8 +142,7 @@ public class UserService extends BaseService<User> {
      * @return
      */
     public CommonResult generateToken(String id, String issuer, String username, String role, String avatar, Long
-            duration, String
-                                              apiKeySecret) {
+            duration, String apiKeySecret) {
 
         Identity identity = new Identity();
         identity.setId(id);
@@ -153,6 +152,8 @@ public class UserService extends BaseService<User> {
         identity.setDuration(duration);
         identity.setAvatar(avatar);
         String token = TokenUtil.createToken(identity, apiKeySecret);
+
+        logger.info("生成的token：{}", token);
 
         // 封装返回前端(除了用户名、角色、时间戳保留，其余消去)
         identity.setToken(token);
@@ -200,6 +201,7 @@ public class UserService extends BaseService<User> {
             if (type.equals(Constant.MEMBER)) {
                 // criteria.andLike(Constant.ROLE, "%会员%");
                 criteria.andIn("id", this.queryMemberIdSetUnderRole(identity));
+                criteria.andGreaterThan("valid", new Date());
             } else { // type.equals("Constant.EMPLOYEE")
                 criteria.andNotLike(Constant.ROLE, "%会员%");
                 criteria.andIn("id", this.queryStaffIdSetUnderManager(identity));
@@ -224,14 +226,19 @@ public class UserService extends BaseService<User> {
         record.setRole(Constant.ADVISER);
         List<User> adviserList = this.queryListByWhere(record);
 
-        Set<String> adviserIdSet = new HashSet<>();
-
-        adviserList.forEach(advise -> adviserIdSet.add(String.valueOf(advise.getId())));
+        Set<Integer> adviserIdSet = new HashSet<Integer>() {
+            {
+                {
+                    add(-1);
+                }
+            }
+        };
+        adviserList.forEach(advise -> adviserIdSet.add(advise.getId()));
 
         Example example = new Example(User.class);
         Example.Criteria criteria = example.createCriteria();
 
-        criteria.andIn("staffId", adviserIdSet);
+        criteria.andIn("staffId", adviserIdSet); // 只有member的staffId不为null
         return this.getMapper().selectByExample(example);
     }
 
@@ -272,7 +279,7 @@ public class UserService extends BaseService<User> {
      */
     public List<User> queryMemberListUnderEmployee(Identity identity) {
 
-        // 当前用户的role和id
+        // 当前职员的role和id
         String role = identity.getRole();
         String id = identity.getId();
 
@@ -285,6 +292,7 @@ public class UserService extends BaseService<User> {
         } else if (role.equals(Constant.ADVISER)) {
             users = this.queryMembersByAdviseId(Integer.valueOf(id));
         }
+
         return users;
     }
 
@@ -296,7 +304,13 @@ public class UserService extends BaseService<User> {
      */
     public Set<Integer> queryMemberIdSetUnderRole(Identity identity) {
 
-        Set<Integer> memberSet = new HashSet<>();
+        Set<Integer> memberSet = new HashSet<Integer>() {
+            {
+                {
+                    add(-1);
+                }
+            }
+        };
 
         if (this.checkMember(identity.getRole())) {
             memberSet.add(Integer.valueOf(identity.getId()));
@@ -337,7 +351,13 @@ public class UserService extends BaseService<User> {
             userList = this.getMapper().selectByExample(userExample);
         }
 
-        Set<Integer> staffSet = new HashSet<>();
+        Set<Integer> staffSet = new HashSet<Integer>() {
+            {
+                {
+                    add(-1);
+                }
+            }
+        };
         userList.forEach(staff -> staffSet.add(staff.getId()));
 
         return staffSet;
@@ -467,7 +487,13 @@ public class UserService extends BaseService<User> {
 
         List<User> userList = this.getMapper().selectByExample(userExample);
 
-        Set<Integer> userIdSet = new HashSet<>();
+        Set<Integer> userIdSet = new HashSet<Integer>() {
+            {
+                {
+                    add(-1);
+                }
+            }
+        };
         userList.forEach(user -> userIdSet.add(user.getId()));
 
         // 结果为空的话查询会出错
@@ -485,7 +511,7 @@ public class UserService extends BaseService<User> {
      * @param archiverMgrId
      * @return
      */
-    public Set<Integer> queryArchiverIdSetByArchiveMgrId(String archiverMgrId) {
+    public Set<Integer> queryArchiverIdSetByArchiveMgrId(Integer archiverMgrId) {
 
         Example userExample = new Example(User.class);
         Example.Criteria userCriteria = userExample.createCriteria();
@@ -495,7 +521,13 @@ public class UserService extends BaseService<User> {
 
         List<User> archiverList = this.getMapper().selectByExample(userExample);
 
-        Set<Integer> archiverIdSet = new HashSet<>();
+        Set<Integer> archiverIdSet = new HashSet<Integer>() {
+            {
+                {
+                    add(-1);
+                }
+            }
+        };
         archiverList.forEach(archiver -> archiverIdSet.add(archiver.getId()));
 
         if (archiverIdSet.size() == 0) {
@@ -554,7 +586,13 @@ public class UserService extends BaseService<User> {
 
         List<User> memberList = this.getMapper().selectByExample(userExample);
 
-        Set<Integer> memberIdSet = new HashSet<>();
+        Set<Integer> memberIdSet = new HashSet<Integer>() {
+            {
+                {
+                    add(-1);
+                }
+            }
+        };
         memberList.forEach(user -> memberIdSet.add(user.getId()));
 
         // 结果为空的话查询会出错
@@ -574,6 +612,7 @@ public class UserService extends BaseService<User> {
      * @return
      */
     public Set<Integer> getMemberIdSetByNameAndMemberNumLike(String name, String memberNum) {
+
         if (name == null) {
             name = "";
         }
@@ -595,12 +634,18 @@ public class UserService extends BaseService<User> {
      */
     public List<UserExtend> extendFromUser(List<User> userList) {
         List<UserExtend> userExtendList = new ArrayList<>();
-        // 过滤掉过期用户
-        userList.stream().filter(this::checkValid).forEach(user -> userExtendList.add(extendFromUser(user)));
+        // 过滤掉过期用户 .stream().filter(this::checkValid)
+        userList.forEach(user -> userExtendList.add(extendFromUser(user)));
         return userExtendList;
     }
 
 
+    /**
+     * 从user拓展
+     *
+     * @param user
+     * @return
+     */
     public UserExtend extendFromUser(User user) {
 
         String staffName = null;

@@ -225,6 +225,9 @@ public class ResultInputService extends BaseService<ResultInput> {
     public List<ResultInput> queryResultAndDetailListByUserId(Identity identity, Integer userId, String type, String
             status, Integer secondId, Date beginTime, Date endTime) {
 
+        String identityRole = identity.getRole();
+        String identityId = identity.getId();
+
         Example example = new Example(ResultInput.class);
         Example.Criteria criteria = example.createCriteria();
 
@@ -254,6 +257,16 @@ public class ResultInputService extends BaseService<ResultInput> {
         } else {
             criteria.andIn("secondId", this.categorySecondService.getSecondIdSetByFirstType(type));
         }
+
+
+        // 档案部员工只能看到自己进行的任务
+        if (this.userService.checkArchiver(identityRole)) {
+            criteria.andEqualTo("inputerId", identityId);
+        } else if (this.userService.checkArchiverManager(identityRole)) {
+            criteria.andIn("inputerId", this.userService.queryArchiverIdSetByArchiveMgrId(Integer.valueOf
+                    (identityId)));
+        }
+
 
         return this.getMapper().selectByExample(example);
     }

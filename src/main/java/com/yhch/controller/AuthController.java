@@ -11,11 +11,7 @@ import com.yhch.util.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
@@ -26,7 +22,7 @@ import java.util.Random;
  * 登录、注册和首页跳转
  * Created by zlren on 2017/6/6.
  */
-@Controller
+@RestController
 @RequestMapping("auth")
 public class AuthController {
 
@@ -48,7 +44,6 @@ public class AuthController {
      * @return
      */
     @RequestMapping(value = "send_sms", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult sendSms(@RequestBody Map<String, String> params) {
 
         String phone = params.get(Constant.PHONE);
@@ -101,7 +96,6 @@ public class AuthController {
      * @return
      */
     @RequestMapping(value = "register", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult register(@RequestBody Map<String, String> params) {
 
         // username就是手机号
@@ -151,7 +145,6 @@ public class AuthController {
      * @return
      */
     @RequestMapping(value = "check_code", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult checkSMSCode(@RequestBody Map<String, String> params) {
 
         String inputCode = params.get(Constant.INPUT_CODE);
@@ -180,7 +173,6 @@ public class AuthController {
      * @return
      */
     @RequestMapping(value = "member/login", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult userLogin(@RequestBody Map<String, String> params) {
 
         // 得到用户名和密码，用户名就是phone
@@ -198,7 +190,6 @@ public class AuthController {
      * @return
      */
     @RequestMapping(value = "employee/login", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult employeeLogin(@RequestBody Map<String, String> params) {
 
         // 得到用户名和密码，用户名就是phone
@@ -216,7 +207,6 @@ public class AuthController {
      * @return
      */
     @RequestMapping(value = "login", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult login(@RequestBody Map<String, String> params) {
 
         // 得到用户名和密码，用户名就是phone
@@ -233,7 +223,6 @@ public class AuthController {
      * @return
      */
     @RequestMapping(value = "login_denied")
-    @ResponseBody
     public CommonResult loginDenied() {
         logger.info("login_denied");
         return CommonResult.failure("请先登录");
@@ -246,7 +235,6 @@ public class AuthController {
      * @return
      */
     @RequestMapping(value = "role_denied")
-    @ResponseBody
     public CommonResult roleDenied() {
         logger.info("role_denied");
         return CommonResult.failure("无此权限");

@@ -12,6 +12,8 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * JWT生成与验证token
@@ -21,7 +23,13 @@ public class TokenUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(TokenUtil.class);
 
-    //Sample method to construct a JWT
+    /**
+     * 生成token
+     *
+     * @param identity
+     * @param apiKeySecret
+     * @return
+     */
     public static String createToken(Identity identity, String apiKeySecret) {
 
         //The JWT signature algorithm we will be using to sign the token
@@ -34,10 +42,16 @@ public class TokenUtil {
         byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(apiKeySecret);
         Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
 
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", identity.getUsername());
+        claims.put("role", identity.getRole());
+        claims.put("id", identity.getId());
+
         //Let's set the JWT Claims
-        JwtBuilder builder = Jwts.builder().setId(String.valueOf(identity.getId()))
+        JwtBuilder builder = Jwts.builder()
+                .setClaims(claims)
+                .setId(identity.getId())
                 .setIssuedAt(now)
-                .setSubject(identity.getId() + "," + identity.getUsername() + "," + identity.getRole())
                 .setIssuer(identity.getIssuer())
                 .signWith(signatureAlgorithm, signingKey);
 
@@ -51,19 +65,26 @@ public class TokenUtil {
         }
 
         //Builds the JWT and serializes it to a compact, URL-safe string
-        logger.info("token生成成功");
+        logger.info("TOKEN生成成功");
         return builder.compact();
     }
 
+    /**
+     * 解析token
+     *
+     * @param token
+     * @param apiKeySecret
+     * @return
+     * @throws Exception
+     */
     public static Identity parseToken(String token, String apiKeySecret) throws Exception {
-        Claims claims = Jwts.parser()
-                .setSigningKey(DatatypeConverter.parseBase64Binary(apiKeySecret))
+
+        Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(apiKeySecret))
                 .parseClaimsJws(token).getBody();
 
-        String[] subjectInfos = claims.getSubject().split(",");
-        String id = subjectInfos[0];
-        String username = subjectInfos[1];
-        String role = subjectInfos[2];
+        String id = (String) claims.get("id");
+        String username = (String) claims.get("username");
+        String role = (String) claims.get("role");
 
         // 封装成pojo
         Identity identity = new Identity();

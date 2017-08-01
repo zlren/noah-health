@@ -3,8 +3,8 @@ package com.yhch.pojo;
 import java.util.Date;
 import javax.persistence.*;
 
-@Table(name = "result_origin")
-public class ResultOrigin {
+@Table(name = "result_health")
+public class ResultHealth {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -15,13 +15,13 @@ public class ResultOrigin {
     @Column(name = "second_id")
     private Integer secondId;
 
+    private Date time;
+
     @Column(name = "upload_time")
     private Date uploadTime;
 
-    private Date time;
-
-    @Column(name = "uploader_id")
-    private Integer uploaderId;
+    @Column(name = "inputer_id")
+    private Integer inputerId;
 
     @Column(name = "checker_id")
     private Integer checkerId;
@@ -32,7 +32,7 @@ public class ResultOrigin {
 
     private String reason;
 
-    private String path;
+    private String value;
 
     /**
      * @return id
@@ -77,20 +77,6 @@ public class ResultOrigin {
     }
 
     /**
-     * @return upload_time
-     */
-    public Date getUploadTime() {
-        return uploadTime;
-    }
-
-    /**
-     * @param uploadTime
-     */
-    public void setUploadTime(Date uploadTime) {
-        this.uploadTime = uploadTime;
-    }
-
-    /**
      * @return time
      */
     public Date getTime() {
@@ -105,17 +91,31 @@ public class ResultOrigin {
     }
 
     /**
-     * @return uploader_id
+     * @return upload_time
      */
-    public Integer getUploaderId() {
-        return uploaderId;
+    public Date getUploadTime() {
+        return uploadTime;
     }
 
     /**
-     * @param uploaderId
+     * @param uploadTime
      */
-    public void setUploaderId(Integer uploaderId) {
-        this.uploaderId = uploaderId;
+    public void setUploadTime(Date uploadTime) {
+        this.uploadTime = uploadTime;
+    }
+
+    /**
+     * @return inputer_id
+     */
+    public Integer getInputerId() {
+        return inputerId;
+    }
+
+    /**
+     * @param inputerId
+     */
+    public void setInputerId(Integer inputerId) {
+        this.inputerId = inputerId;
     }
 
     /**
@@ -175,16 +175,16 @@ public class ResultOrigin {
     }
 
     /**
-     * @return path
+     * @return value
      */
-    public String getPath() {
-        return path;
+    public String getValue() {
+        return value;
     }
 
     /**
-     * @param path
+     * @param value
      */
-    public void setPath(String path) {
-        this.path = path;
+    public void setValue(String value) {
+        this.value = value;
     }
 }

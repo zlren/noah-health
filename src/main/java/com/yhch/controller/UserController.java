@@ -27,6 +27,7 @@ import javax.servlet.http.HttpSession;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -138,6 +139,9 @@ public class UserController {
         Integer staffMgrId = (Integer) params.get(Constant.STAFF_MGR_ID);
         String memberNum = (String) params.get("memberNum");
 
+        String valid = (String) params.get("valid");
+        Date date = TimeUtil.parseTime(valid);
+
         // 未修改的user
         User user = this.userService.queryById(userId);
 
@@ -149,10 +153,15 @@ public class UserController {
             user.setMemberNum(memberNum);
         }
 
+        if (date != null) {
+            user.setValid(date);
+        }
+
         // role
         if (!Validator.checkEmpty(role)) {
             if (this.userService.checkMember(user.getRole()) && this.userService.checkMember(role)) {
                 // 以前是会员，现在也是会员
+
 
             } else if (
                     this.userService.checkStaff(user.getRole()) // 以前是员工
