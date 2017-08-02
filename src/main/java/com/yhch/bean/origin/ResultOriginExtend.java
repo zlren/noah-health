@@ -13,6 +13,7 @@ public class ResultOriginExtend extends ResultOrigin {
     public String userName;
     public String checkerName;
     public String uploaderName;
+    public String secondName;
 
     /**
      * 构造函数
@@ -24,11 +25,12 @@ public class ResultOriginExtend extends ResultOrigin {
      * @param uploaderName
      */
     public ResultOriginExtend(ResultOrigin resultOrigin, String memberNum, String userName, String checkerName,
-                              String uploaderName) {
+                              String uploaderName, String secondName) {
         BeanUtils.copyProperties(resultOrigin, this);
         this.memberNum = memberNum;
         this.userName = userName;
         this.checkerName = checkerName;
         this.uploaderName = uploaderName;
+        this.secondName = secondName;
     }
 }

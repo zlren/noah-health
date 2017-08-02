@@ -7,10 +7,9 @@ import com.yhch.bean.Identity;
 import com.yhch.bean.PageResult;
 import com.yhch.bean.origin.ResultOriginExtend;
 import com.yhch.pojo.ResultOrigin;
+import com.yhch.pojo.ResultOriginFile;
 import com.yhch.pojo.User;
-import com.yhch.service.PropertyService;
-import com.yhch.service.ResultOriginService;
-import com.yhch.service.UserService;
+import com.yhch.service.*;
 import com.yhch.util.TimeUtil;
 import com.yhch.util.Validator;
 import org.apache.commons.fileupload.util.Streams;
@@ -47,6 +46,11 @@ public class ResultOriginController {
     @Autowired
     private PropertyService propertyService;
 
+    @Autowired
+    private OriginCategorySecondService originCategorySecondService;
+
+    @Autowired
+    private ResultOriginFileService resultOriginFileService;
 
     /**
      * 上传扫描件
@@ -57,6 +61,7 @@ public class ResultOriginController {
      */
     @RequestMapping(value = "upload", method = RequestMethod.POST)
     @ResponseBody
+
     public CommonResult addResultOriginFile(@RequestParam("file") MultipartFile file, Integer id) {
 
         ResultOrigin resultOrigin = this.resultOriginService.queryById(id);
@@ -74,7 +79,7 @@ public class ResultOriginController {
                 return CommonResult.failure("上传失败，文件名包含特殊字符");
             }
 
-            String preFileName = id + "_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 4);
+            String preFileName = id + "_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 6);
             fileName = preFileName + "_" + file.getOriginalFilename();
 
             try {
@@ -85,14 +90,13 @@ public class ResultOriginController {
                 e.printStackTrace();
             }
 
-            String path = resultOrigin.getPath();
-            if (path == null || path.length() == 0) {
-                resultOrigin.setPath(fileName);
-            } else {
-                resultOrigin.setPath(path + ";" + fileName);
-            }
+            // 记录保存在result_origin_file表中
+            ResultOriginFile resultOriginFile = new ResultOriginFile();
+            resultOriginFile.setResultOriginId(id);
+            resultOriginFile.setPath(fileName);
 
-            this.resultOriginService.update(resultOrigin);
+            this.resultOriginFileService.save(resultOriginFile);
+
         } else {
             return CommonResult.failure("文件上传失败");
         }
@@ -102,7 +106,7 @@ public class ResultOriginController {
 
 
     /**
-     * 上传记录
+     * 添加原始资料记录
      *
      * @param session
      * @param params
@@ -118,6 +122,9 @@ public class ResultOriginController {
         Integer userId = (Integer) params.get(Constant.USER_ID);
         String note = (String) params.get(Constant.NOTE);
 
+        String hospital = (String) params.get("hospital");
+        Integer secondId = (Integer) params.get("secondId");
+
         Date time;
         try {
             time = new SimpleDateFormat("yyyy-MM-dd").parse((String) params.get(Constant.TIME));
@@ -131,11 +138,9 @@ public class ResultOriginController {
         resultOrigin.setTime(time);
         resultOrigin.setUploaderId(uploaderId);
         resultOrigin.setCheckerId(null);
-        try {
-            resultOrigin.setUploadTime(TimeUtil.getCurrentTime());
-        } catch (ParseException ignored) {
-            return CommonResult.failure("解析时间出错");
-        }
+        resultOrigin.setSecondId(secondId); // 原始资料亚类
+        resultOrigin.setHospital(hospital); // 原始资料医院
+        resultOrigin.setUploadTime(TimeUtil.getCurrentTime());
 
         // 初始状态上传中
         resultOrigin.setStatus(Constant.SHANG_CHUAN_ZHONG);
@@ -162,6 +167,11 @@ public class ResultOriginController {
             return CommonResult.failure("删除失败，不存在的记录");
         }
 
+        // 删除所有保存的文件路径
+        ResultOriginFile record = new ResultOriginFile();
+        record.setResultOriginId(originId);
+        this.resultOriginFileService.deleteByWhere(record);
+
         this.resultOriginService.deleteById(originId);
         return CommonResult.success("删除成功");
     }
@@ -179,24 +189,24 @@ public class ResultOriginController {
     public CommonResult updateResultOrigin(@PathVariable("originId") Integer originId, @RequestBody Map<String,
             Object> params) {
 
-        ResultOrigin resultOrigin = this.resultOriginService.queryById(originId);
-
-        if (resultOrigin == null) {
-            return CommonResult.failure("不存在的文件");
-        }
-
-        Integer userId = (Integer) params.get(Constant.USER_ID);
-        Integer uploaderId = (Integer) params.get(Constant.UPLOADER_ID);
-
-        if (userId != null) {
-            resultOrigin.setUserId(userId);
-        }
-
-        if (uploaderId != null) {
-            resultOrigin.setUploaderId(uploaderId);
-        }
-
-        this.resultOriginService.update(resultOrigin);
+        // ResultOrigin resultOrigin = this.resultOriginService.queryById(originId);
+        //
+        // if (resultOrigin == null) {
+        //     return CommonResult.failure("不存在的文件");
+        // }
+        //
+        // Integer userId = (Integer) params.get(Constant.USER_ID);
+        // Integer uploaderId = (Integer) params.get(Constant.UPLOADER_ID);
+        //
+        // if (userId != null) {
+        //     resultOrigin.setUserId(userId);
+        // }
+        //
+        // if (uploaderId != null) {
+        //     resultOrigin.setUploaderId(uploaderId);
+        // }
+        //
+        // this.resultOriginService.update(resultOrigin);
 
         return CommonResult.success("修改成功");
     }
@@ -243,8 +253,14 @@ public class ResultOriginController {
             }
             String uploaderNameExtend = this.userService.queryById(resultOrigin.getUploaderId()).getName();
 
+            String originCategorySecondName = "";
+            if (resultOrigin.getSecondId() != null) {
+                originCategorySecondName = this.originCategorySecondService.queryById(resultOrigin.getSecondId())
+                        .getName();
+            }
+
             ResultOriginExtend resultOriginExtend = new ResultOriginExtend(resultOrigin, memberNumExtend,
-                    userNameExtend, checkerNameExtend, uploaderNameExtend);
+                    userNameExtend, checkerNameExtend, uploaderNameExtend, originCategorySecondName);
 
             resultOriginExtendList.add(resultOriginExtend);
         });
@@ -288,25 +304,23 @@ public class ResultOriginController {
 
         List<Map<String, String>> result = new ArrayList<>();
 
-        String path = resultOrigin.getPath();
+        ResultOriginFile record = new ResultOriginFile();
+        record.setResultOriginId(originId);
+        List<ResultOriginFile> resultOriginFileList = this.resultOriginFileService.queryListByWhere(record);
 
-        if (!Validator.checkEmpty(path)) {
-            String[] split = path.split(";");
-            for (String s : split) {
-                Map<String, String> map = new HashMap<>();
-                map.put("name", s.split("_")[2]);
-                map.put("url", "/origin/" + s);
-
-                result.add(map);
-            }
-        }
+        resultOriginFileList.forEach(filePath -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("name", filePath.getPath().split("_")[2]);
+            map.put("url", "/origin/" + filePath.getPath());
+            result.add(map);
+        });
 
         return CommonResult.success("查询成功", result);
     }
 
 
     /**
-     * 根据originId查找file信息
+     * 删除文件
      *
      * @param originId
      * @return
@@ -327,25 +341,31 @@ public class ResultOriginController {
             return CommonResult.failure("删除失败，缺少参数");
         }
 
-        String path = resultOrigin.getPath();
-        StringBuilder updatePath = new StringBuilder();
+        ResultOriginFile record = new ResultOriginFile();
+        record.setResultOriginId(originId);
+        record.setPath(fileName);
 
-        // 切开，遍历，组装
-        if (!Validator.checkEmpty(path)) {
-            String[] split = path.split(";");
-            for (String s : split) {
-                if (!s.equals(fileName)) {
-                    if (updatePath.length() == 0) {
-                        updatePath = new StringBuilder(s);
-                    } else {
-                        updatePath.append(";").append(s);
-                    }
-                }
-            }
-        }
+        this.resultOriginFileService.deleteByWhere(record);
 
-        resultOrigin.setPath(updatePath.toString());
-        this.resultOriginService.update(resultOrigin);
+        // String path = resultOrigin.getPath();
+        // StringBuilder updatePath = new StringBuilder();
+        //
+        // // 切开，遍历，组装
+        // if (!Validator.checkEmpty(path)) {
+        //     String[] split = path.split(";");
+        //     for (String s : split) {
+        //         if (!s.equals(fileName)) {
+        //             if (updatePath.length() == 0) {
+        //                 updatePath = new StringBuilder(s);
+        //             } else {
+        //                 updatePath.append(";").append(s);
+        //             }
+        //         }
+        //     }
+        // }
+        //
+        // resultOrigin.setPath(updatePath.toString());
+        // this.resultOriginService.update(resultOrigin);
 
         return CommonResult.success("删除成功");
     }
@@ -380,7 +400,9 @@ public class ResultOriginController {
 
         if (status.equals(Constant.DAI_SHEN_HE)) { // 提交，待审核
 
-            if (Validator.checkEmpty(resultOrigin.getPath())) {
+            ResultOriginFile record = new ResultOriginFile();
+            record.setResultOriginId(originId);
+            if (this.resultOriginFileService.queryCountByWhere(record) == 0) {
                 return CommonResult.failure("提交失败，请上传至少一份文件");
             }
 

@@ -6,6 +6,7 @@ import com.yhch.bean.Constant;
 import com.yhch.bean.PageResult;
 import com.yhch.pojo.CategorySecond;
 import com.yhch.pojo.CategoryThird;
+import com.yhch.service.CategoryFirstService;
 import com.yhch.service.CategorySecondService;
 import com.yhch.service.CategoryThirdService;
 import com.yhch.util.Validator;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,6 +27,9 @@ import java.util.Map;
 public class CategorySecondController {
 
     private static final Logger logger = LoggerFactory.getLogger(CategorySecondController.class);
+
+    @Autowired
+    private CategoryFirstService categoryFirstService;
 
     @Autowired
     private CategorySecondService categorySecondService;
@@ -78,6 +81,15 @@ public class CategorySecondController {
         }
 
         this.categorySecondService.save(categorySecond);
+
+        // 医技没有检查项，同步在third表中插入一条
+        if (this.categoryFirstService.queryById(firstId).getType().equals("医技")) {
+            CategoryThird categoryThird = new CategoryThird();
+            categoryThird.setSecondId(categorySecond.getId()); // id回填
+            categoryThird.setName(name); // 名字和医技亚类同名
+            this.categoryThirdService.save(categoryThird);
+        }
+
         return CommonResult.success("添加成功");
     }
 
@@ -92,16 +104,20 @@ public class CategorySecondController {
     @ResponseBody
     public CommonResult deleteCategorySecond(@PathVariable("secondId") Integer secondId) {
 
+        CategorySecond categorySecond = this.categorySecondService.queryById(secondId);
+        String type = this.categoryFirstService.queryById(categorySecond.getFirstId()).getType();
+
         CategoryThird categoryThird = new CategoryThird();
         categoryThird.setSecondId(secondId);
-        List<CategoryThird> categoryThirds = this.categoryThirdService.queryListByWhere(categoryThird);
+        Integer count = this.categoryThirdService.queryCountByWhere(categoryThird);
 
-        if (categoryThirds != null && categoryThirds.size() > 0) {
-            return CommonResult.failure("存在亚亚类，无法删除");
-        }
-
-        if (this.categorySecondService.queryById(secondId) == null) {
-            return CommonResult.failure("删除失败，不存在的亚类");
+        if (type.equals("化验")) {
+            if (count > 0) {
+                return CommonResult.failure("存在检查项目，无法删除");
+            }
+        } else {
+            // 医技项目删掉自动添加的检查项目表
+            this.categoryThirdService.deleteByWhere(categoryThird);
         }
 
         this.categorySecondService.deleteById(secondId);

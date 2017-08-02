@@ -1,7 +1,7 @@
 package com.yhch.pojo;
 
-import java.util.Date;
 import javax.persistence.*;
+import java.util.Date;
 
 @Table(name = "result_health")
 public class ResultHealth {
@@ -33,6 +33,9 @@ public class ResultHealth {
     private String reason;
 
     private String value;
+
+    @Column(name = "value_new")
+    private String valueNew;
 
     /**
      * @return id
@@ -186,5 +189,19 @@ public class ResultHealth {
      */
     public void setValue(String value) {
         this.value = value;
+    }
+
+    /**
+     * @return value_new
+     */
+    public String getValueNew() {
+        return valueNew;
+    }
+
+    /**
+     * @param valueNew
+     */
+    public void setValueNew(String valueNew) {
+        this.valueNew = valueNew;
     }
 }

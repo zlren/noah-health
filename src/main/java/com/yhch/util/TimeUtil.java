@@ -37,10 +37,18 @@ public class TimeUtil {
      * @return
      * @throws ParseException
      */
-    public static Date getCurrentTime() throws ParseException {
+    public static Date getCurrentTime() {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String format = simpleDateFormat.format(new Date());
-        return simpleDateFormat.parse(format);
+
+        Date parse = null;
+        try {
+            parse = simpleDateFormat.parse(format);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return parse;
     }
 
 

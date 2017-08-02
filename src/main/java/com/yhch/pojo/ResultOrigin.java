@@ -1,7 +1,7 @@
 package com.yhch.pojo;
 
-import java.util.Date;
 import javax.persistence.*;
+import java.util.Date;
 
 @Table(name = "result_origin")
 public class ResultOrigin {
@@ -14,6 +14,8 @@ public class ResultOrigin {
 
     @Column(name = "second_id")
     private Integer secondId;
+
+    private String hospital;
 
     @Column(name = "upload_time")
     private Date uploadTime;
@@ -31,8 +33,6 @@ public class ResultOrigin {
     private String note;
 
     private String reason;
-
-    private String path;
 
     /**
      * @return id
@@ -74,6 +74,20 @@ public class ResultOrigin {
      */
     public void setSecondId(Integer secondId) {
         this.secondId = secondId;
+    }
+
+    /**
+     * @return hospital
+     */
+    public String getHospital() {
+        return hospital;
+    }
+
+    /**
+     * @param hospital
+     */
+    public void setHospital(String hospital) {
+        this.hospital = hospital;
     }
 
     /**
@@ -172,19 +186,5 @@ public class ResultOrigin {
      */
     public void setReason(String reason) {
         this.reason = reason;
-    }
-
-    /**
-     * @return path
-     */
-    public String getPath() {
-        return path;
-    }
-
-    /**
-     * @param path
-     */
-    public void setPath(String path) {
-        this.path = path;
     }
 }

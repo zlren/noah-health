@@ -26,7 +26,6 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -95,11 +94,7 @@ public class ResultInputController {
         resultInput.setNote(note);
         resultInput.setHospital(hospital);
         resultInput.setTime(time);
-        try {
-            resultInput.setUploadTime(TimeUtil.getCurrentTime());
-        } catch (ParseException ignored) {
-            return CommonResult.failure("解析时间出错");
-        }
+        resultInput.setUploadTime(TimeUtil.getCurrentTime());
 
         // 级联插入
         this.resultInputService.saveInputAndEmptyDetail(resultInput);
