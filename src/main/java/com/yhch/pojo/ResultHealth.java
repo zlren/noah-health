@@ -32,10 +32,10 @@ public class ResultHealth {
 
     private String reason;
 
-    private String value;
+    private String content;
 
-    @Column(name = "value_new")
-    private String valueNew;
+    @Column(name = "content_new")
+    private String contentNew;
 
     /**
      * @return id
@@ -178,30 +178,30 @@ public class ResultHealth {
     }
 
     /**
-     * @return value
+     * @return content
      */
-    public String getValue() {
-        return value;
+    public String getContent() {
+        return content;
     }
 
     /**
-     * @param value
+     * @param content
      */
-    public void setValue(String value) {
-        this.value = value;
+    public void setContent(String content) {
+        this.content = content;
     }
 
     /**
-     * @return value_new
+     * @return content_new
      */
-    public String getValueNew() {
-        return valueNew;
+    public String getContentNew() {
+        return contentNew;
     }
 
     /**
-     * @param valueNew
+     * @param contentNew
      */
-    public void setValueNew(String valueNew) {
-        this.valueNew = valueNew;
+    public void setContentNew(String contentNew) {
+        this.contentNew = contentNew;
     }
 }

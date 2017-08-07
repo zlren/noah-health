@@ -530,11 +530,36 @@ public class UserService extends BaseService<User> {
         };
         archiverList.forEach(archiver -> archiverIdSet.add(archiver.getId()));
 
-        if (archiverIdSet.size() == 0) {
-            archiverIdSet.add(-1);
-        }
-
         return archiverIdSet;
+    }
+
+
+    /**
+     * 根据档案部主管，查询自己治下的档案部员工的id集合
+     *
+     * @param adviserMgrId
+     * @return
+     */
+    public Set<Integer> queryAdviserIdSetByAdviseMgrId(Integer adviserMgrId) {
+
+        Example userExample = new Example(User.class);
+        Example.Criteria userCriteria = userExample.createCriteria();
+
+        userCriteria.andEqualTo("staffMgrId", adviserMgrId);
+        userCriteria.andEqualTo("role", Constant.ADVISER);
+
+        List<User> adviserList = this.getMapper().selectByExample(userExample);
+
+        Set<Integer> adviserIdSet = new HashSet<Integer>() {
+            {
+                {
+                    add(-1);
+                }
+            }
+        };
+        adviserList.forEach(adviser -> adviserIdSet.add(adviser.getId()));
+
+        return adviserIdSet;
     }
 
 

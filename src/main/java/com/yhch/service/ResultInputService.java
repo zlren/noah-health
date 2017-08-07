@@ -270,4 +270,66 @@ public class ResultInputService extends BaseService<ResultInput> {
 
         return this.getMapper().selectByExample(example);
     }
+
+
+    /**
+     * 档案部查询用户的input信息
+     *
+     * @param pageNow
+     * @param pageSize
+     * @param userName
+     * @param memberNum
+     * @param beginTime
+     * @param endTime
+     * @param status
+     * @param identity
+     */
+    public List<ResultInput> queryInputListByArc(Integer pageNow, Integer pageSize, String userName, String
+            memberNum, Date beginTime, Date endTime,
+                                                 String status, Identity identity) {
+
+        String identityRole = identity.getRole();
+        String identityId = identity.getId();
+
+        Example example = new Example(ResultInput.class);
+        Example.Criteria criteria = example.createCriteria();
+
+        example.setOrderByClause("time DESC"); // 倒叙
+
+        {   // 时间和状态的筛选是统一的
+
+            // 时间
+            if (beginTime != null && endTime != null) {
+                criteria.andBetween("time", beginTime, endTime);
+            }
+
+            // 状态
+            Set<String> statusSet = this.userService.getStatusSetUnderRole(identity);
+            if (!Validator.checkEmpty(status)) {
+                Set<String> t = new HashSet<>();
+                t.add(status);
+                statusSet.retainAll(t);
+            }
+            criteria.andIn(Constant.STATUS, statusSet);
+        }
+
+
+        // 如果是一个档案部员工，那就查所有和自己有关的记录
+        if (this.userService.checkArchiver(identityRole)) {
+            criteria.andEqualTo("inputerId", Integer.valueOf(identityId));
+        } else if (this.userService.checkArchiverManager(identityRole)) {
+            criteria.andIn("inputerId", this.userService.queryArchiverIdSetByArchiveMgrId(Integer.valueOf(identityId)));
+        }
+
+        if (!Validator.checkEmpty(userName)) {
+            criteria.andLike(Constant.NAME, "%" + userName + "%");
+        }
+
+        if (!Validator.checkEmpty(memberNum)) {
+            criteria.andLike("memberNum", "%" + memberNum + "%");
+        }
+
+        PageHelper.startPage(pageNow, pageSize);
+        return this.getMapper().selectByExample(example);
+    }
 }

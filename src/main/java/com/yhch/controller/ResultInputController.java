@@ -171,6 +171,38 @@ public class ResultInputController {
 
 
     /**
+     * 档案部查的时候，直接查那些uploaderId是自己的所有记录，不要再嵌套一层user列表
+     *
+     * @return
+     */
+    @RequestMapping(value = "list_by_arc", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult queryResultInputListByArc(@RequestBody Map<String, Object> params, HttpSession session) {
+
+        Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
+        Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
+        String userName = (String) params.get("userName");
+        String memberNum = (String) params.get("memberNum");
+        Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
+        Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
+        String status = (String) params.get(Constant.STATUS);
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+
+        List<ResultInput> resultInputList = this.resultInputService.queryInputListByArc(pageNow, pageSize, userName,
+                memberNum, beginTime, endTime, status, identity);
+        PageResult pageResult = new PageResult(new PageInfo<>(resultInputList));
+
+        logger.info("查询的结果的条数：{}", pageResult.getRowCount());
+
+        List<ResultInputExtend> resultInputExtendList = this.resultInputService.extendFromResultInputList
+                (resultInputList);
+        pageResult.setData(resultInputExtendList);
+
+        return CommonResult.success("查询成功", pageResult);
+    }
+
+
+    /**
      * 根据userId查询单个member的所有检查结果
      *
      * @param userId
@@ -285,8 +317,6 @@ public class ResultInputController {
     @RequestMapping(value = "download/{inputId}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult downloadResultInputWithDetail(@PathVariable("inputId") Integer inputId) {
-
-        logger.info("进来了！！！！");
 
         ResultInput resultInput = this.resultInputService.queryById(inputId);
         if (resultInput == null) {

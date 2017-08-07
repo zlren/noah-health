@@ -241,33 +241,40 @@ public class ResultOriginController {
 
         PageResult pageResult = new PageResult(new PageInfo<>(resultOriginList));
 
-        List<ResultOriginExtend> resultOriginExtendList = new ArrayList<>();
 
-        resultOriginList.forEach(resultOrigin -> {
-
-            String memberNumExtend = this.userService.queryById(resultOrigin.getUserId()).getMemberNum();
-            String userNameExtend = this.userService.queryById(resultOrigin.getUserId()).getName();
-            String checkerNameExtend = null;
-            if (resultOrigin.getCheckerId() != null) {
-                checkerNameExtend = this.userService.queryById(resultOrigin.getCheckerId()).getName();
-            }
-            String uploaderNameExtend = this.userService.queryById(resultOrigin.getUploaderId()).getName();
-
-            String originCategorySecondName = "";
-            if (resultOrigin.getSecondId() != null) {
-                originCategorySecondName = this.originCategorySecondService.queryById(resultOrigin.getSecondId())
-                        .getName();
-            }
-
-            ResultOriginExtend resultOriginExtend = new ResultOriginExtend(resultOrigin, memberNumExtend,
-                    userNameExtend, checkerNameExtend, uploaderNameExtend, originCategorySecondName);
-
-            resultOriginExtendList.add(resultOriginExtend);
-        });
+        List<ResultOriginExtend> resultOriginExtendList = this.resultOriginService.extendFromResultOriginList
+                (resultOriginList);
 
         pageResult.setData(resultOriginExtendList);
 
         return CommonResult.success("查询成功", pageResult);
+    }
+
+
+    /**
+     * 根据userId查询原始数据列表
+     *
+     * @param params
+     * @param session
+     * @return
+     */
+    @RequestMapping(value = "list/{userId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult queryResultOriginListByUserId(@RequestBody Map<String, Object> params, HttpSession session,
+                                                      @PathVariable("userId") Integer userId) {
+
+        String status = (String) params.get(Constant.STATUS);
+        Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
+        Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+
+        List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginListByUserId(userId, status, beginTime,
+                endTime, identity);
+
+        List<ResultOriginExtend> resultOriginExtendList = this.resultOriginService.extendFromResultOriginList
+                (resultOriginList);
+
+        return CommonResult.success("查询成功", resultOriginExtendList);
     }
 
 

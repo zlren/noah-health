@@ -3,6 +3,7 @@ package com.yhch.service;
 import com.github.pagehelper.PageHelper;
 import com.yhch.bean.Constant;
 import com.yhch.bean.Identity;
+import com.yhch.bean.origin.ResultOriginExtend;
 import com.yhch.pojo.ResultOrigin;
 import com.yhch.util.Validator;
 import org.slf4j.LoggerFactory;
@@ -10,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * ResultOriginService
@@ -26,6 +24,9 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private OriginCategorySecondService originCategorySecondService;
 
     /**
      * 条件查询
@@ -145,5 +146,84 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
 
         PageHelper.startPage(pageNow, pageSize);
         return this.getMapper().selectByExample(example);
+    }
+
+
+    /**
+     * 根据userId查询这个会员的所有的原始资料记录
+     *
+     * @param status
+     * @param beginTime
+     * @param endTime
+     * @param identity
+     * @return
+     */
+    public List<ResultOrigin> queryResultOriginListByUserId(Integer userId, String status, Date beginTime, Date
+            endTime, Identity identity) {
+
+        String identityId = identity.getId();
+        String identityRole = identity.getRole();
+
+        Example example = new Example(ResultOrigin.class);
+        Example.Criteria originCriteria = example.createCriteria();
+
+        example.setOrderByClause("time desc");
+
+        {   // 时间和状态的筛选是统一的
+
+            // 时间
+            if (beginTime != null && endTime != null) {
+                originCriteria.andBetween("time", beginTime, endTime);
+            }
+
+            // 状态
+            Set<String> statusSet = this.userService.getStatusSetUnderRole(identity);
+            if (!Validator.checkEmpty(status)) {
+                Set<String> t = new HashSet<>();
+                t.add(status);
+                statusSet.retainAll(t);
+            }
+            originCriteria.andIn(Constant.STATUS, statusSet);
+        }
+
+        originCriteria.andEqualTo("userId", userId);
+
+        return this.getMapper().selectByExample(example);
+    }
+
+
+    /**
+     * 拓展
+     *
+     * @param resultOriginList
+     * @return
+     */
+    public List<ResultOriginExtend> extendFromResultOriginList(List<ResultOrigin> resultOriginList) {
+
+        List<ResultOriginExtend> resultOriginExtendList = new ArrayList<>();
+
+        resultOriginList.forEach(resultOrigin -> {
+
+            String memberNumExtend = this.userService.queryById(resultOrigin.getUserId()).getMemberNum();
+            String userNameExtend = this.userService.queryById(resultOrigin.getUserId()).getName();
+            String checkerNameExtend = null;
+            if (resultOrigin.getCheckerId() != null) {
+                checkerNameExtend = this.userService.queryById(resultOrigin.getCheckerId()).getName();
+            }
+            String uploaderNameExtend = this.userService.queryById(resultOrigin.getUploaderId()).getName();
+
+            String originCategorySecondName = "";
+            if (resultOrigin.getSecondId() != null) {
+                originCategorySecondName = this.originCategorySecondService.queryById(resultOrigin.getSecondId())
+                        .getName();
+            }
+
+            ResultOriginExtend resultOriginExtend = new ResultOriginExtend(resultOrigin, memberNumExtend,
+                    userNameExtend, checkerNameExtend, uploaderNameExtend, originCategorySecondName);
+
+            resultOriginExtendList.add(resultOriginExtend);
+        });
+
+        return resultOriginExtendList;
     }
 }

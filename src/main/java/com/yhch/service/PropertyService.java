@@ -30,4 +30,10 @@ public class PropertyService {
 
     @Value("${file.path}")
     public String filePath;
+
+    @Value("${default.adviser}")
+    public Integer defaultAdviser;
+
+    @Value("${default.adviseMgr}")
+    public Integer defaultAdviseMgr;
 }

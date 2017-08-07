@@ -128,6 +128,10 @@ public class AuthController {
             user.setAvatar("avatar_default.png"); // 默认头像
             user.setMemberNum(null);
             user.setValid(TimeUtil.getOneYearAfterTime()); // 默认有效期一年
+
+            // 默认顾问和顾问主管
+            user.setStaffId(this.propertyService.defaultAdviser);
+
             this.userService.save(user);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
