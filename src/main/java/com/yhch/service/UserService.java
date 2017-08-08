@@ -620,11 +620,6 @@ public class UserService extends BaseService<User> {
         };
         memberList.forEach(user -> memberIdSet.add(user.getId()));
 
-        // 结果为空的话查询会出错
-        if (memberIdSet.size() == 0) {
-            memberIdSet.add(-1);
-        }
-
         return memberIdSet;
     }
 

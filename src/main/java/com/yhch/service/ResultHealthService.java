@@ -130,8 +130,9 @@ public class ResultHealthService extends BaseService<ResultHealth> {
             String inputerNameExtend = this.userService.queryById(resultHealth.getInputerId()).getName();
             String secondNameExtend = this.healthCategorySecondService.queryById(resultHealth.getSecondId()).getName();
 
+            String memberNum = this.userService.queryById(resultHealth.getUserId()).getMemberNum();
             resultHealthExtendList.add(new ResultHealthExtend(resultHealth, userNameExtend, secondNameExtend,
-                    inputerNameExtend, checkerNameExtend));
+                    inputerNameExtend, checkerNameExtend, memberNum));
         });
 
         return resultHealthExtendList;

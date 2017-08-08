@@ -35,6 +35,9 @@ public class ResultInputService extends BaseService<ResultInput> {
     private CategorySecondService categorySecondService;
 
     @Autowired
+    private CategoryFirstService categoryFirstService;
+
+    @Autowired
     private UserService userService;
 
     /**
@@ -151,22 +154,31 @@ public class ResultInputService extends BaseService<ResultInput> {
     public List<ResultInputExtend> extendFromResultInputList(List<ResultInput> resultInputList) {
 
         List<ResultInputExtend> resultInputExtendList = new ArrayList<>();
-
-        resultInputList.forEach(resultInput -> {
-
-            String userNameExtend = this.userService.queryById(resultInput.getUserId()).getName();
-            String checkerNameExtend = null;
-            if (resultInput.getCheckerId() != null) {
-                checkerNameExtend = this.userService.queryById(resultInput.getCheckerId()).getName();
-            }
-            String inputerNameExtend = this.userService.queryById(resultInput.getInputerId()).getName();
-            String secondNameExtend = this.categorySecondService.queryById(resultInput.getSecondId()).getName();
-
-            resultInputExtendList.add(new ResultInputExtend(resultInput, userNameExtend, secondNameExtend,
-                    inputerNameExtend, checkerNameExtend));
-        });
-
+        resultInputList.forEach(resultInput -> resultInputExtendList.add(extendFromResultInput(resultInput)));
         return resultInputExtendList;
+    }
+
+
+    /**
+     * 拓展单条记录
+     *
+     * @param resultInput
+     * @return
+     */
+    public ResultInputExtend extendFromResultInput(ResultInput resultInput) {
+        String userNameExtend = this.userService.queryById(resultInput.getUserId()).getName();
+        String checkerNameExtend = null;
+        if (resultInput.getCheckerId() != null) {
+            checkerNameExtend = this.userService.queryById(resultInput.getCheckerId()).getName();
+        }
+        String inputerNameExtend = this.userService.queryById(resultInput.getInputerId()).getName();
+        String secondNameExtend = this.categorySecondService.queryById(resultInput.getSecondId()).getName();
+        String memberNum = this.userService.queryById(resultInput.getUserId()).getMemberNum();
+        String type = this.categoryFirstService.queryById(categorySecondService.queryById(resultInput.getSecondId())
+                .getFirstId()).getType();
+
+        return new ResultInputExtend(resultInput, userNameExtend, secondNameExtend, inputerNameExtend,
+                checkerNameExtend, memberNum, type);
     }
 
 

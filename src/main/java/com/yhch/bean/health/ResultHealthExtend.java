@@ -9,6 +9,7 @@ public class ResultHealthExtend extends ResultHealth {
     public String secondName;
     public String inputerName;
     public String checkerName;
+    public String memberNum;
 
 
     /**
@@ -19,12 +20,13 @@ public class ResultHealthExtend extends ResultHealth {
      * @param checkerName
      */
     public ResultHealthExtend(ResultHealth resultHealth, String userName, String secondName, String
-            inputerName, String checkerName) {
+            inputerName, String checkerName, String memberNum) {
 
         BeanUtils.copyProperties(resultHealth, this);
         this.userName = userName;
         this.secondName = secondName;
         this.inputerName = inputerName;
         this.checkerName = checkerName;
+        this.memberNum = memberNum;
     }
 }

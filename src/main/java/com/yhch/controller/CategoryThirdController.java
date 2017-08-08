@@ -5,7 +5,9 @@ import com.yhch.bean.CommonResult;
 import com.yhch.bean.Constant;
 import com.yhch.bean.PageResult;
 import com.yhch.pojo.CategoryThird;
+import com.yhch.pojo.ResultInputDetail;
 import com.yhch.service.CategoryThirdService;
+import com.yhch.service.ResultInputDetailService;
 import com.yhch.util.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,13 +21,15 @@ import java.util.Objects;
  * 检查项目
  * Created by zlren on 2017/6/14.
  */
-
 @RequestMapping("third")
 @Controller
 public class CategoryThirdController {
 
     @Autowired
     private CategoryThirdService categoryThirdService;
+
+    @Autowired
+    private ResultInputDetailService resultInputDetailService;
 
     /**
      * 根据id查询
@@ -57,11 +61,10 @@ public class CategoryThirdController {
 
         Integer secondId = (Integer) params.get(Constant.SECOND_ID);
         String name = (String) params.get(Constant.NAME);
-        // String systemCategory = (String) params.get(Constant.SYSTEM_CATEGORY);
         String referenceValue = (String) params.get(Constant.REFERENCE_VALUE);
-        // String hospital = (String) params.get(Constant.HOSPITAL);
+        String enShort = (String) params.get("enShort");
 
-        // 没有检查hospital是否为空  || Validator.checkEmpty(systemCategory)
+        // 没有检查hospital是否为空
         if (secondId == null || Validator.checkEmpty(name) || Validator
                 .checkEmpty(referenceValue)) {
             return CommonResult.failure("添加失败，信息不完整");
@@ -70,15 +73,13 @@ public class CategoryThirdController {
         CategoryThird categoryThird = new CategoryThird();
         categoryThird.setSecondId(secondId);
         categoryThird.setName(name);
+        categoryThird.setEnShort(enShort);
 
         if (this.categoryThirdService.queryOne(categoryThird) != null) {
             return CommonResult.failure("添加失败，已经存在的检查项目");
         }
 
-        // categoryThird.setSystemCategory(systemCategory);
         categoryThird.setReferenceValue(referenceValue);
-        // categoryThird.setHospital(hospital);
-
         this.categoryThirdService.save(categoryThird);
 
         return CommonResult.success("添加检查项目成功");
@@ -101,6 +102,12 @@ public class CategoryThirdController {
 
         if (this.categoryThirdService.queryById(thirdId) == null) {
             return CommonResult.failure("删除失败，不存在的检查项目");
+        }
+
+        ResultInputDetail record = new ResultInputDetail();
+        record.setThirdId(thirdId);
+        if (this.resultInputDetailService.queryCountByWhere(record) > 0) {
+            return CommonResult.failure("删除失败，此检查项在检查记录中存在");
         }
 
         this.categoryThirdService.deleteById(thirdId);
@@ -126,13 +133,11 @@ public class CategoryThirdController {
 
         Integer secondId = (Integer) params.get(Constant.SECOND_ID);
         String name = (String) params.get(Constant.NAME);
-        String systemCategory = (String) params.get(Constant.SYSTEM_CATEGORY);
         String referenceValue = (String) params.get(Constant.REFERENCE_VALUE);
-        String hospital = (String) params.get(Constant.HOSPITAL);
+        String enShort = (String) params.get("enShort");
 
         // 没有检查hospital是否为空
-        if (secondId == null || Validator.checkEmpty(name) || Validator.checkEmpty(systemCategory) || Validator
-                .checkEmpty(referenceValue)) {
+        if (secondId == null || Validator.checkEmpty(name) || Validator.checkEmpty(referenceValue)) {
             return CommonResult.failure("修改失败，信息不完整");
         }
 
@@ -140,6 +145,7 @@ public class CategoryThirdController {
         CategoryThird categoryThird = new CategoryThird();
         categoryThird.setSecondId(secondId);
         categoryThird.setName(name);
+        categoryThird.setEnShort(enShort);
 
         // 修改非（secondId和name）的时候不能被判重
         CategoryThird exist = this.categoryThirdService.queryOne(categoryThird);

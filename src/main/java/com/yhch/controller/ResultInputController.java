@@ -58,6 +58,32 @@ public class ResultInputController {
     @Autowired
     private PropertyService propertyService;
 
+
+    /**
+     * 根据inputId查询单条result的详情
+     *
+     * @param inputId
+     * @return
+     */
+    @RequestMapping(value = "{inputId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult queryResultInputDetailByInputId(@PathVariable("inputId") Integer inputId) {
+
+        ResultInput resultInput = this.resultInputService.queryById(inputId);
+        ResultInputExtend resultInputExtend = this.resultInputService.extendFromResultInput(resultInput);
+
+        ResultInputDetail resultInputDetailRecord = new ResultInputDetail();
+        resultInputDetailRecord.setResultInputId(resultInputExtend.getId());
+        List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.queryListByWhere
+                (resultInputDetailRecord);
+
+        resultInputExtend.data = this.resultInputDetailService.extendFromResultInputDetailList
+                (resultInputDetailList);
+
+        return CommonResult.success("查询成功", resultInputExtend);
+    }
+
+
     /**
      * 在input表增加一条记录
      *
@@ -103,25 +129,25 @@ public class ResultInputController {
     }
 
 
-    /**
-     * 根据inputId查询一个化验表的信息
-     *
-     * @param inputId
-     * @return
-     */
-    @RequestMapping(value = "{inputId}", method = RequestMethod.GET)
-    @ResponseBody
-    public CommonResult queryResultInputById(@PathVariable("inputId") Integer inputId) {
-
-        ResultInputDetail record = new ResultInputDetail();
-        record.setResultInputId(inputId);
-        List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.queryListByWhere(record);
-
-        List<ResultInputDetailExtend> resultInputDetailExtendList = this.resultInputDetailService
-                .extendFromResultInputDetailList(resultInputDetailList);
-
-        return CommonResult.success("查询成功", resultInputDetailExtendList);
-    }
+    // /**
+    //  * 根据inputId查询一个化验表的信息
+    //  *
+    //  * @param inputId
+    //  * @return
+    //  */
+    // @RequestMapping(value = "{inputId}", method = RequestMethod.GET)
+    // @ResponseBody
+    // public CommonResult queryResultInputById(@PathVariable("inputId") Integer inputId) {
+    //
+    //     ResultInputDetail record = new ResultInputDetail();
+    //     record.setResultInputId(inputId);
+    //     List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.queryListByWhere(record);
+    //
+    //     List<ResultInputDetailExtend> resultInputDetailExtendList = this.resultInputDetailService
+    //             .extendFromResultInputDetailList(resultInputDetailList);
+    //
+    //     return CommonResult.success("查询成功", resultInputDetailExtendList);
+    // }
 
 
     /**
@@ -220,12 +246,15 @@ public class ResultInputController {
         Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
 
+        // resultInputList
         List<ResultInput> resultInputList = this.resultInputService.queryResultAndDetailListByUserId(identity,
                 userId, type, status, secondId, beginTime, endTime);
 
+        // resultInputExtendList
         List<ResultInputExtend> resultInputExtendList = this.resultInputService.extendFromResultInputList
                 (resultInputList);
 
+        // resultInputExtendList with detail
         resultInputExtendList.forEach(resultInputExtend -> {
 
             ResultInputDetail resultInputDetailRecord = new ResultInputDetail();
