@@ -77,9 +77,10 @@ public class UserService extends BaseService<User> {
                 return CommonResult.failure("登录失败：用户不存在");
             }
 
-            if (!this.checkValid(user)) {
-                return CommonResult.failure("登录失败：过期无效的用户");
-            }
+            // 登录的时候即使过期也让登录
+            // if (!this.checkValid(user)) {
+            //     return CommonResult.failure("登录失败：过期无效的用户");
+            // }
         }
 
 
@@ -199,11 +200,10 @@ public class UserService extends BaseService<User> {
             criteria.andLike(Constant.ROLE, "%" + role + "%");
         } else {
             if (type.equals(Constant.MEMBER)) {
-                // criteria.andLike(Constant.ROLE, "%会员%");
                 criteria.andIn("id", this.queryMemberIdSetUnderRole(identity));
                 criteria.andGreaterThan("valid", new Date());
             } else { // type.equals("Constant.EMPLOYEE")
-                criteria.andNotLike(Constant.ROLE, "%会员%");
+                criteria.andIn(Constant.ROLE, Constant.employeeRoleSet);
                 criteria.andIn("id", this.queryStaffIdSetUnderManager(identity));
             }
         }
@@ -636,6 +636,7 @@ public class UserService extends BaseService<User> {
         if (name == null) {
             name = "";
         }
+
         if (memberNum == null) {
             memberNum = "";
         }

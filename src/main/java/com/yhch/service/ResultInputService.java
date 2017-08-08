@@ -333,13 +333,9 @@ public class ResultInputService extends BaseService<ResultInput> {
             criteria.andIn("inputerId", this.userService.queryArchiverIdSetByArchiveMgrId(Integer.valueOf(identityId)));
         }
 
-        if (!Validator.checkEmpty(userName)) {
-            criteria.andLike(Constant.NAME, "%" + userName + "%");
-        }
 
-        if (!Validator.checkEmpty(memberNum)) {
-            criteria.andLike("memberNum", "%" + memberNum + "%");
-        }
+        criteria.andIn("userId", this.userService.getMemberIdSetByNameAndMemberNumLike(userName, memberNum));
+
 
         PageHelper.startPage(pageNow, pageSize);
         return this.getMapper().selectByExample(example);

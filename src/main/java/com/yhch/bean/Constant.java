@@ -1,5 +1,8 @@
 package com.yhch.bean;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * 常量
  * Created by zlren on 2017/6/6.
@@ -77,5 +80,19 @@ public class Constant {
     public static String WEI_TONG_GUO = "未通过";
     public static String YI_TONG_GUO = "已通过";
     public static String LU_RU_ZHONG = "录入中";
+
+    public static Set<String> employeeRoleSet = new HashSet<String>() {
+        {
+            {
+                add(ADMIN);
+                add(FINANCER);
+                add(ARCHIVER);
+                add(ARCHIVE_MANAGER);
+                add(ADVISE_MANAGER);
+                add(ADVISER);
+            }
+        }
+    };
+
 
 }

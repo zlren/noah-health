@@ -22,15 +22,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.servlet.http.HttpSession;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * UserController
@@ -297,16 +295,6 @@ public class UserController {
 
         UserExtend userExtend = this.userService.extendFromUser(user);
 
-        // String role = user.getRole();
-        //
-        // if (role.equals(Constant.USER_1) || role.equals(Constant.USER_2) || role.equals
-        //         (Constant.USER_3)) {
-        //     // User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
-        //     // user.setStaffMgrId(this.userService.queryById(adviser.getStaffMgrId()).getName());
-        // } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ARCHIVER)) {
-        //     // user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
-        // }
-
         return CommonResult.success("查询成功", userExtend);
     }
 
@@ -418,15 +406,20 @@ public class UserController {
     @ResponseBody
     public CommonResult queryAdviseList() {
 
-        User adviseMgr = new User();
-        adviseMgr.setRole(Constant.ADVISE_MANAGER);
-        List<User> adviseMgrList = this.userService.queryListByWhere(adviseMgr);
+        Example example = new Example(User.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("role", Constant.ADVISE_MANAGER);
+        example.orderBy("id asc");
 
-        Map<String, List<User>> result = new HashMap<>();
+        List<User> adviseMgrList = this.userService.getMapper().selectByExample(example);
 
-        adviseMgrList.forEach(adviseMgrTemp -> {
 
-            Integer adviseMgrId = adviseMgrTemp.getId();
+        Map<String, List<User>> result = new LinkedHashMap<>();
+
+        // 用for是保证顺序
+        for (int i = 0; i < adviseMgrList.size(); i++) {
+
+            Integer adviseMgrId = adviseMgrList.get(i).getId();
 
             User adviser = new User();
             adviser.setStaffMgrId(adviseMgrId);
@@ -435,9 +428,9 @@ public class UserController {
 
             // 只返回有员工的顾问主管和员工级联关系
             if (adviserList != null && adviserList.size() > 0) {
-                result.put(adviseMgrTemp.getName(), adviserList);
+                result.put(adviseMgrList.get(i).getName(), adviserList);
             }
-        });
+        }
 
         return CommonResult.success("查询成功", result);
     }
@@ -468,20 +461,6 @@ public class UserController {
         List<User> userList = this.userService.queryUserList(pageNow, pageSize, role, phone, name, memberNum, type,
                 identity);
         PageResult pageResult = new PageResult(new PageInfo<>(userList));
-
-        // if (type.equals(Constant.MEMBER)) {
-        //     userList.forEach(user -> {
-        //         User adviser = this.userService.queryById(Integer.valueOf(user.getStaffId()));
-        //         user.setStaffId(adviser.getName());
-        //         user.setStaffMgrId(this.userService.queryById(Integer.valueOf(adviser.getStaffMgrId())).getName());
-        //     });
-        // } else if (type.equals(Constant.EMPLOYEE)) {
-        //     userList.forEach(user -> {
-        //         if (user.getRole().equals(Constant.ADVISER) || user.getRole().equals(Constant.ARCHIVER)) {
-        //             user.setStaffMgrId(this.userService.queryById(Integer.valueOf(user.getStaffMgrId())).getName());
-        //         }
-        //     });
-        // }
 
         List<UserExtend> userExtendList = this.userService.extendFromUser(userList);
         pageResult.setData(userExtendList);
