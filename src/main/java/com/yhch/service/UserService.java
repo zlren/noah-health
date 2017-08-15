@@ -17,6 +17,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService extends BaseService<User> {
@@ -49,6 +50,14 @@ public class UserService extends BaseService<User> {
         return !this.checkMember(user.getRole()) || new Date().before(user.getValid());
     }
 
+    public boolean checkValid(Integer userId) {
+        return this.checkValid(this.queryById(userId));
+    }
+
+    public boolean checkValid(String userId) {
+        return this.checkValid(this.queryById(Integer.valueOf(userId)));
+    }
+
 
     /**
      * 登录验证
@@ -77,9 +86,10 @@ public class UserService extends BaseService<User> {
                 return CommonResult.failure("登录失败：用户不存在");
             }
 
-            if (!this.checkValid(user)) {
-                return CommonResult.failure("登录失败：过期无效的用户");
-            }
+            // 暂时对过期的用户不作登录的限制
+            // if (!this.checkValid(user)) {
+            //     return CommonResult.failure("登录失败：过期无效的用户");
+            // }
         }
 
 
@@ -201,7 +211,7 @@ public class UserService extends BaseService<User> {
             if (type.equals(Constant.MEMBER)) {
                 // criteria.andLike(Constant.ROLE, "%会员%");
                 criteria.andIn("id", this.queryMemberIdSetUnderRole(identity));
-                criteria.andGreaterThan("valid", new Date());
+                // criteria.andGreaterThan("valid", new Date());
             } else { // type.equals("Constant.EMPLOYEE")
                 criteria.andNotLike(Constant.ROLE, "%会员%");
                 criteria.andIn("id", this.queryStaffIdSetUnderManager(identity));
@@ -277,7 +287,7 @@ public class UserService extends BaseService<User> {
      * @param identity
      * @return
      */
-    public List<User> queryMemberListUnderEmployee(Identity identity) {
+    public List<User> queryMemberListUnderEmployee(Identity identity, String type) {
 
         // 当前职员的role和id
         String role = identity.getRole();
@@ -291,6 +301,13 @@ public class UserService extends BaseService<User> {
             users = this.queryMembersByAdviseMgrId(Integer.valueOf(id));
         } else if (role.equals(Constant.ADVISER)) {
             users = this.queryMembersByAdviseId(Integer.valueOf(id));
+        }
+
+        // 电子资料库 >= 1
+        // 辅检数据库，健康摘要库 >= 2
+        if (type.equals("辅检数据库") || type.equals("健康摘要库")) {
+            users = users.stream().filter(user -> user.getRole().equals(Constant.USER_2) || user.getRole().equals
+                    (Constant.USER_3)).collect(Collectors.toList());
         }
 
         return users;
@@ -315,7 +332,7 @@ public class UserService extends BaseService<User> {
         if (this.checkMember(identity.getRole())) {
             memberSet.add(Integer.valueOf(identity.getId()));
         } else {
-            List<User> memberList = this.queryMemberListUnderEmployee(identity);
+            List<User> memberList = this.queryMemberListUnderEmployee(identity, "ALL");
             memberList.forEach(member -> memberSet.add(member.getId()));
         }
 
@@ -574,19 +591,13 @@ public class UserService extends BaseService<User> {
         String role = identity.getRole();
         Set<String> statusSet = new HashSet<>();
 
-        if (role.equals(Constant.ADMIN)) { // 系统管理员
+        if (role.equals(Constant.ADMIN) || role.equals(Constant.ARCHIVER) || role.equals(Constant.ARCHIVE_MANAGER)) {
+            // 系统管理员，档案部的
             statusSet.add(Constant.WEI_TONG_GUO);
             statusSet.add(Constant.YI_TONG_GUO);
             statusSet.add(Constant.LU_RU_ZHONG);
             statusSet.add(Constant.DAI_SHEN_HE);
             statusSet.add(Constant.SHANG_CHUAN_ZHONG);
-        } else if (role.equals(Constant.ARCHIVER)) { // 档案部员工只能查看未通过和录入中的
-            statusSet.add(Constant.WEI_TONG_GUO);
-            statusSet.add(Constant.LU_RU_ZHONG);
-            statusSet.add(Constant.SHANG_CHUAN_ZHONG);
-            statusSet.add(Constant.DAI_SHEN_HE);
-        } else if (role.equals(Constant.ARCHIVE_MANAGER)) { // 档案部主管
-            statusSet.add(Constant.DAI_SHEN_HE);
         } else if (role.equals(Constant.ADVISER) || role.equals(Constant.ADVISE_MANAGER) || this.checkMember(role)) {
             statusSet.add(Constant.YI_TONG_GUO);
         }
@@ -611,13 +622,11 @@ public class UserService extends BaseService<User> {
 
         List<User> memberList = this.getMapper().selectByExample(userExample);
 
-        Set<Integer> memberIdSet = new HashSet<Integer>() {
+        Set<Integer> memberIdSet = new HashSet<Integer>() {{
             {
-                {
-                    add(-1);
-                }
+                add(-1);
             }
-        };
+        }};
         memberList.forEach(user -> memberIdSet.add(user.getId()));
 
         return memberIdSet;
@@ -658,7 +667,6 @@ public class UserService extends BaseService<User> {
         userList.forEach(user -> userExtendList.add(extendFromUser(user)));
         return userExtendList;
     }
-
 
     /**
      * 从user拓展

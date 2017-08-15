@@ -185,6 +185,11 @@ public class ResultInputController {
         String memberNum = (String) params.get("memberNum");
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
+        // 过期的用户看不了
+        if (!this.userService.checkValid(identity.getId())) {
+            return CommonResult.failure("过期无效的用户");
+        }
+
         List<User> userList = this.resultInputService.queryResultInputUserList(identity, userName, memberNum,
                 pageNow, pageSize);
         PageResult pageResult = new PageResult(new PageInfo<>(userList));
@@ -298,6 +303,7 @@ public class ResultInputController {
 
         // checker
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+        String identityRole = identity.getRole();
         Integer checkerId = Integer.valueOf(identity.getId());
         String checkerName = this.userService.queryById(checkerId).getName();
 
@@ -310,6 +316,11 @@ public class ResultInputController {
             return CommonResult.success("提交成功");
 
         } else if (status.equals(Constant.WEI_TONG_GUO)) { // 未通过
+
+            // 具有通过和未通过两项权利的人只有主管和ADMIN
+            if (!this.userService.checkManager(identityRole) && !this.userService.checkAdmin(identityRole)) {
+                return CommonResult.failure("无此权限");
+            }
 
             if (Validator.checkEmpty(reason)) {
                 reason = "<未说明原因>";
@@ -324,6 +335,11 @@ public class ResultInputController {
             return CommonResult.success("操作成功");
 
         } else if (status.equals(Constant.YI_TONG_GUO)) { // 通过，已通过
+
+            // 具有通过和未通过两项权利的人只有主管和ADMIN
+            if (!this.userService.checkManager(identityRole) && !this.userService.checkAdmin(identityRole)) {
+                return CommonResult.failure("无此权限");
+            }
 
             resultInput.setCheckerId(checkerId);
 

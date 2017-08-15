@@ -121,6 +121,25 @@ public class UserController {
 
 
     /**
+     * 根据职员查询旗下的member
+     *
+     * @param session
+     * @return
+     */
+    @RequestMapping(value = "member_under_employee", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult queryMemberUnderEmployee(HttpSession session, @RequestBody Map<String, String> params) {
+
+        String type = params.get(Constant.TYPE);
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+
+        List<User> users = this.userService.queryMemberListUnderEmployee(identity, type);
+
+        return CommonResult.success("查询成功", users);
+    }
+
+
+    /**
      * 修改别的用户的信息
      *
      * @param params

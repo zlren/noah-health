@@ -15,6 +15,8 @@ import com.yhch.service.ResultHealthService;
 import com.yhch.service.UserService;
 import com.yhch.util.TimeUtil;
 import com.yhch.util.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +28,8 @@ import java.util.Map;
 @RequestMapping("health")
 @RestController
 public class ResultHealthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ResultHealthController.class);
 
     @Autowired
     private ResultHealthService resultHealthService;
@@ -87,7 +91,7 @@ public class ResultHealthController {
      * @return
      */
     @RequestMapping(value = "list", method = RequestMethod.POST)
-    @RequiredRoles(roles = {"系统管理员", "二级用户"})
+    @RequiredRoles(roles = {"系统管理员", "二级用户", "顾问部员工", "顾问部主管"})
     public CommonResult queryResultHealthUserList(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
@@ -95,6 +99,11 @@ public class ResultHealthController {
         String userName = (String) params.get("userName");
         String memberNum = (String) params.get("memberNum");
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+
+        // 过期的用户看不了
+        if (!this.userService.checkValid(identity.getId())) {
+            return CommonResult.failure("过期无效的用户");
+        }
 
         List<User> userList = this.resultHealthService.queryResultHealthUserList(identity, userName, memberNum,
                 pageNow, pageSize);
@@ -182,6 +191,7 @@ public class ResultHealthController {
 
         // checker
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+        String identityRole = identity.getRole();
         Integer checkerId = Integer.valueOf(identity.getId());
         String checkerName = this.userService.queryById(checkerId).getName();
 
@@ -194,6 +204,11 @@ public class ResultHealthController {
             return CommonResult.success("提交成功");
 
         } else if (status.equals(Constant.WEI_TONG_GUO)) { // 未通过
+
+            // 具有通过和未通过两项权利的人只有主管和ADMIN
+            if (!this.userService.checkManager(identityRole) && !this.userService.checkAdmin(identityRole)) {
+                return CommonResult.failure("无此权限");
+            }
 
             if (Validator.checkEmpty(reason)) {
                 reason = "<未说明原因>";
@@ -208,6 +223,11 @@ public class ResultHealthController {
             return CommonResult.success("操作成功");
 
         } else if (status.equals(Constant.YI_TONG_GUO)) { // 通过，已通过
+
+            // 具有通过和未通过两项权利的人只有主管和ADMIN
+            if (!this.userService.checkManager(identityRole) && !this.userService.checkAdmin(identityRole)) {
+                return CommonResult.failure("无此权限");
+            }
 
             resultHealth.setCheckerId(checkerId);
 

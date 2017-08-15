@@ -45,8 +45,8 @@ public class TokenCertifyInterceptor implements HandlerInterceptor {
             request.getSession().setAttribute(Constant.IDENTITY, identity);
 
             logger.info("{}: token有效", identity.getUsername());
-            return true;
 
+            return true;
         } catch (Exception e) {
 
             logger.info("TOKEN无效，转到登录界面");

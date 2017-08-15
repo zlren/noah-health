@@ -166,6 +166,7 @@ public class ResultInputService extends BaseService<ResultInput> {
      * @return
      */
     public ResultInputExtend extendFromResultInput(ResultInput resultInput) {
+
         String userNameExtend = this.userService.queryById(resultInput.getUserId()).getName();
         String checkerNameExtend = null;
         if (resultInput.getCheckerId() != null) {
@@ -297,8 +298,7 @@ public class ResultInputService extends BaseService<ResultInput> {
      * @param identity
      */
     public List<ResultInput> queryInputListByArc(Integer pageNow, Integer pageSize, String userName, String
-            memberNum, Date beginTime, Date endTime,
-                                                 String status, Identity identity) {
+            memberNum, Date beginTime, Date endTime, String status, Identity identity) {
 
         String identityRole = identity.getRole();
         String identityId = identity.getId();
@@ -333,13 +333,8 @@ public class ResultInputService extends BaseService<ResultInput> {
             criteria.andIn("inputerId", this.userService.queryArchiverIdSetByArchiveMgrId(Integer.valueOf(identityId)));
         }
 
-        if (!Validator.checkEmpty(userName)) {
-            criteria.andLike(Constant.NAME, "%" + userName + "%");
-        }
-
-        if (!Validator.checkEmpty(memberNum)) {
-            criteria.andLike("memberNum", "%" + memberNum + "%");
-        }
+        Set<Integer> set = this.userService.getMemberIdSetByNameAndMemberNumLike(userName, memberNum);
+        criteria.andIn("userId", set);
 
         PageHelper.startPage(pageNow, pageSize);
         return this.getMapper().selectByExample(example);

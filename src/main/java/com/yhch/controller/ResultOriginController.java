@@ -8,7 +8,6 @@ import com.yhch.bean.PageResult;
 import com.yhch.bean.origin.ResultOriginExtend;
 import com.yhch.pojo.ResultOrigin;
 import com.yhch.pojo.ResultOriginFile;
-import com.yhch.pojo.User;
 import com.yhch.service.*;
 import com.yhch.util.TimeUtil;
 import com.yhch.util.Validator;
@@ -45,9 +44,6 @@ public class ResultOriginController {
 
     @Autowired
     private PropertyService propertyService;
-
-    @Autowired
-    private OriginCategorySecondService originCategorySecondService;
 
     @Autowired
     private ResultOriginFileService resultOriginFileService;
@@ -178,41 +174,6 @@ public class ResultOriginController {
 
 
     /**
-     * 修改原始数据
-     *
-     * @param originId
-     * @param params
-     * @return
-     */
-    @RequestMapping(value = "{originId}", method = RequestMethod.PUT)
-    @ResponseBody
-    public CommonResult updateResultOrigin(@PathVariable("originId") Integer originId, @RequestBody Map<String,
-            Object> params) {
-
-        // ResultOrigin resultOrigin = this.resultOriginService.queryById(originId);
-        //
-        // if (resultOrigin == null) {
-        //     return CommonResult.failure("不存在的文件");
-        // }
-        //
-        // Integer userId = (Integer) params.get(Constant.USER_ID);
-        // Integer uploaderId = (Integer) params.get(Constant.UPLOADER_ID);
-        //
-        // if (userId != null) {
-        //     resultOrigin.setUserId(userId);
-        // }
-        //
-        // if (uploaderId != null) {
-        //     resultOrigin.setUploaderId(uploaderId);
-        // }
-        //
-        // this.resultOriginService.update(resultOrigin);
-
-        return CommonResult.success("修改成功");
-    }
-
-
-    /**
      * 条件分页查询原始数据列表
      *
      * @param params
@@ -234,6 +195,11 @@ public class ResultOriginController {
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+
+        // 过期的用户看不了
+        if (!this.userService.checkValid(identity.getId())) {
+            return CommonResult.failure("过期无效的用户");
+        }
 
         List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginList(identity, pageNow,
                 pageSize, status, userName, uploaderName, checkerName, memberNum, beginTime, endTime);
@@ -268,29 +234,14 @@ public class ResultOriginController {
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
-        List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginListByUserId(userId, status, beginTime,
+        List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginListByUserId(userId, status,
+                beginTime,
                 endTime, identity);
 
         List<ResultOriginExtend> resultOriginExtendList = this.resultOriginService.extendFromResultOriginList
                 (resultOriginList);
 
         return CommonResult.success("查询成功", resultOriginExtendList);
-    }
-
-
-    /**
-     * 根据职员查询旗下的member
-     *
-     * @param session
-     * @return
-     */
-    @RequestMapping(value = "member_under_employee", method = RequestMethod.GET)
-    @ResponseBody
-    public CommonResult queryMemberUnderEmployee(HttpSession session) {
-
-        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
-        List<User> users = this.userService.queryMemberListUnderEmployee(identity);
-        return CommonResult.success("查询成功", users);
     }
 
 
@@ -354,26 +305,6 @@ public class ResultOriginController {
 
         this.resultOriginFileService.deleteByWhere(record);
 
-        // String path = resultOrigin.getPath();
-        // StringBuilder updatePath = new StringBuilder();
-        //
-        // // 切开，遍历，组装
-        // if (!Validator.checkEmpty(path)) {
-        //     String[] split = path.split(";");
-        //     for (String s : split) {
-        //         if (!s.equals(fileName)) {
-        //             if (updatePath.length() == 0) {
-        //                 updatePath = new StringBuilder(s);
-        //             } else {
-        //                 updatePath.append(";").append(s);
-        //             }
-        //         }
-        //     }
-        // }
-        //
-        // resultOrigin.setPath(updatePath.toString());
-        // this.resultOriginService.update(resultOrigin);
-
         return CommonResult.success("删除成功");
     }
 
@@ -404,6 +335,7 @@ public class ResultOriginController {
         // checker
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
         Integer checkerId = Integer.valueOf(identity.getId());
+        String identityRole = identity.getRole();
 
         if (status.equals(Constant.DAI_SHEN_HE)) { // 提交，待审核
 
@@ -421,6 +353,11 @@ public class ResultOriginController {
 
         } else if (status.equals(Constant.WEI_TONG_GUO)) { // 未通过
 
+            // 具有通过和未通过两项权利的人只有主管和ADMIN
+            if (!this.userService.checkManager(identityRole) && !this.userService.checkAdmin(identityRole)) {
+                return CommonResult.failure("无此权限");
+            }
+
             if (Validator.checkEmpty(reason)) {
                 reason = "<未说明原因>";
             }
@@ -433,6 +370,11 @@ public class ResultOriginController {
             return CommonResult.success("操作成功");
 
         } else if (status.equals(Constant.YI_TONG_GUO)) { // 通过，已通过
+
+            // 具有通过和未通过两项权利的人只有主管和ADMIN
+            if (!this.userService.checkManager(identityRole) && !this.userService.checkAdmin(identityRole)) {
+                return CommonResult.failure("无此权限");
+            }
 
             resultOrigin.setCheckerId(checkerId);
             resultOrigin.setStatus(Constant.YI_TONG_GUO);
