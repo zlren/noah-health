@@ -325,7 +325,6 @@ public class ResultInputService extends BaseService<ResultInput> {
             criteria.andIn(Constant.STATUS, statusSet);
         }
 
-
         // 如果是一个档案部员工，那就查所有和自己有关的记录
         if (this.userService.checkArchiver(identityRole)) {
             criteria.andEqualTo("inputerId", Integer.valueOf(identityId));

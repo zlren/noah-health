@@ -219,6 +219,8 @@ public class ResultInputController {
         String status = (String) params.get(Constant.STATUS);
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
+        logger.info("username是{}, memberNum是{}", userName, memberNum);
+
         List<ResultInput> resultInputList = this.resultInputService.queryInputListByArc(pageNow, pageSize, userName,
                 memberNum, beginTime, endTime, status, identity);
         PageResult pageResult = new PageResult(new PageInfo<>(resultInputList));
