@@ -42,9 +42,9 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
      * @param endTime
      * @return
      */
-    public List<ResultOrigin> queryResultOriginList(Identity identity, Integer pageNow, Integer pageSize, String
-            status, String userName, String uploaderName, String checkerName, String memberNum, Date beginTime, Date
-                                                            endTime) {
+    public List<ResultOrigin> queryResultOriginList(Integer userId, Identity identity, Integer pageNow, Integer
+            pageSize, String status, String userName, String uploaderName, String checkerName, String memberNum,
+                                                    Date beginTime, Date endTime) {
 
         String identityId = identity.getId();
         String identityRole = identity.getRole();
@@ -53,6 +53,10 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
         Example.Criteria originCriteria = example.createCriteria();
 
         example.setOrderByClause("time desc");
+
+        if (userId != null) {
+            originCriteria.andEqualTo("userId", userId);
+        }
 
         {   // 时间和状态的筛选是统一的
 
@@ -91,9 +95,11 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
             // 审核者可以是管理员，也可以是档案部主管
             if (!Validator.checkEmpty(checkerName)) {
 
+                logger.info("哈哈哈 checkerName: {}", checkerName);
+
                 Set<Integer> adminSet = this.userService.getIdSetByUserNameLikeAndRole(checkerName, "管理员");
                 Set<Integer> mgrSet = this.userService.getIdSetByUserNameLikeAndRole(checkerName, "档案部主管");
-                adminSet.retainAll(mgrSet);
+                adminSet.addAll(mgrSet);
 
                 originCriteria.andIn("checkerId", adminSet);
             }
@@ -123,9 +129,6 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
             // 重在对userId的筛选，挑出是自己的顾问员工对应的会员
             Set<Integer> memberSet = this.userService.queryMemberIdSetUnderRole(identity);
 
-            logger.info("哈哈哈");
-            memberSet.forEach(member -> logger.info("{}", member));
-
             memberSet.retainAll(this.userService.getMemberIdSetByNameAndMemberNumLike(userName, memberNum));
             originCriteria.andIn("userId", memberSet);
 
@@ -145,49 +148,6 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
 
 
         PageHelper.startPage(pageNow, pageSize);
-        return this.getMapper().selectByExample(example);
-    }
-
-
-    /**
-     * 根据userId查询这个会员的所有的原始资料记录
-     *
-     * @param status
-     * @param beginTime
-     * @param endTime
-     * @param identity
-     * @return
-     */
-    public List<ResultOrigin> queryResultOriginListByUserId(Integer userId, String status, Date beginTime, Date
-            endTime, Identity identity) {
-
-        String identityId = identity.getId();
-        String identityRole = identity.getRole();
-
-        Example example = new Example(ResultOrigin.class);
-        Example.Criteria originCriteria = example.createCriteria();
-
-        example.setOrderByClause("time desc");
-
-        {   // 时间和状态的筛选是统一的
-
-            // 时间
-            if (beginTime != null && endTime != null) {
-                originCriteria.andBetween("time", beginTime, endTime);
-            }
-
-            // 状态
-            Set<String> statusSet = this.userService.getStatusSetUnderRole(identity);
-            if (!Validator.checkEmpty(status)) {
-                Set<String> t = new HashSet<>();
-                t.add(status);
-                statusSet.retainAll(t);
-            }
-            originCriteria.andIn(Constant.STATUS, statusSet);
-        }
-
-        originCriteria.andEqualTo("userId", userId);
-
         return this.getMapper().selectByExample(example);
     }
 
@@ -226,4 +186,5 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
 
         return resultOriginExtendList;
     }
+
 }

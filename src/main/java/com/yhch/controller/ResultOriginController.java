@@ -8,14 +8,16 @@ import com.yhch.bean.PageResult;
 import com.yhch.bean.origin.ResultOriginExtend;
 import com.yhch.pojo.ResultOrigin;
 import com.yhch.pojo.ResultOriginFile;
-import com.yhch.service.*;
+import com.yhch.service.PropertyService;
+import com.yhch.service.ResultOriginFileService;
+import com.yhch.service.ResultOriginService;
+import com.yhch.service.UserService;
 import com.yhch.util.TimeUtil;
 import com.yhch.util.Validator;
 import org.apache.commons.fileupload.util.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,7 +33,7 @@ import java.util.*;
  * Created by zlren on 2017/6/21.
  */
 @RequestMapping("origin")
-@Controller
+@RestController
 public class ResultOriginController {
 
     private static final Logger logger = LoggerFactory.getLogger(ResultOriginController.class);
@@ -56,8 +58,6 @@ public class ResultOriginController {
      * @return
      */
     @RequestMapping(value = "upload", method = RequestMethod.POST)
-    @ResponseBody
-
     public CommonResult addResultOriginFile(@RequestParam("file") MultipartFile file, Integer id) {
 
         ResultOrigin resultOrigin = this.resultOriginService.queryById(id);
@@ -109,7 +109,6 @@ public class ResultOriginController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult addResultOriginRecord(HttpSession session, @RequestBody Map<String, Object> params) {
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
@@ -156,7 +155,6 @@ public class ResultOriginController {
      * @return
      */
     @RequestMapping(value = "{originId}", method = RequestMethod.DELETE)
-    @ResponseBody
     public CommonResult deleteResultOrigin(@PathVariable("originId") Integer originId) {
 
         if (this.resultOriginService.queryById(originId) == null) {
@@ -180,7 +178,6 @@ public class ResultOriginController {
      * @return
      */
     @RequestMapping(value = "list", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryResultOriginList(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
@@ -201,7 +198,7 @@ public class ResultOriginController {
             return CommonResult.failure("过期无效的用户");
         }
 
-        List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginList(identity, pageNow,
+        List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginList(null, identity, pageNow,
                 pageSize, status, userName, uploaderName, checkerName, memberNum, beginTime, endTime);
 
 
@@ -224,24 +221,39 @@ public class ResultOriginController {
      * @param session
      * @return
      */
-    @RequestMapping(value = "list/{userId}", method = RequestMethod.GET)
-    @ResponseBody
+    @RequestMapping(value = "list/{userId}", method = RequestMethod.POST)
     public CommonResult queryResultOriginListByUserId(@RequestBody Map<String, Object> params, HttpSession session,
                                                       @PathVariable("userId") Integer userId) {
 
+        Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
+        Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
+
         String status = (String) params.get(Constant.STATUS);
+        String userName = (String) params.get("userName");
+        String uploaderName = (String) params.get("uploaderName");
+        String checkerName = (String) params.get("checkerName");
+        String memberNum = (String) params.get("memberNum");
         Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
+
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
-        List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginListByUserId(userId, status,
-                beginTime,
-                endTime, identity);
+        // 过期的用户看不了
+        if (!this.userService.checkValid(identity.getId())) {
+            return CommonResult.failure("过期无效的用户");
+        }
+
+        List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginList(userId, identity, pageNow,
+                pageSize, status, userName, uploaderName, checkerName, memberNum, beginTime, endTime);
+        PageResult pageResult = new PageResult(new PageInfo<>(resultOriginList));
+
 
         List<ResultOriginExtend> resultOriginExtendList = this.resultOriginService.extendFromResultOriginList
                 (resultOriginList);
+        pageResult.setData(resultOriginExtendList);
 
-        return CommonResult.success("查询成功", resultOriginExtendList);
+        return CommonResult.success("查询成功", pageResult);
+
     }
 
 
@@ -252,7 +264,6 @@ public class ResultOriginController {
      * @return
      */
     @RequestMapping(value = "file/{originId}", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryFileListByRecordId(@PathVariable("originId") Integer originId) {
 
         ResultOrigin resultOrigin = this.resultOriginService.queryById(originId);
@@ -284,7 +295,6 @@ public class ResultOriginController {
      * @return
      */
     @RequestMapping(value = "file/{originId}", method = RequestMethod.DELETE)
-    @ResponseBody
     public CommonResult queryFileListByRecordId(@PathVariable("originId") Integer originId, @RequestBody Map<String,
             Object> params) {
 
@@ -315,7 +325,6 @@ public class ResultOriginController {
      * @return
      */
     @RequestMapping(value = "status/{originId}", method = RequestMethod.PUT)
-    @ResponseBody
     public CommonResult submitOriginRecord(@PathVariable("originId") Integer originId,
                                            @RequestBody Map<String, Object> params, HttpSession session) {
 

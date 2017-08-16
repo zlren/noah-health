@@ -10,7 +10,6 @@ import com.yhch.service.CategoryThirdService;
 import com.yhch.service.ResultInputDetailService;
 import com.yhch.util.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +21,7 @@ import java.util.Objects;
  * Created by zlren on 2017/6/14.
  */
 @RequestMapping("third")
-@Controller
+@RestController
 public class CategoryThirdController {
 
     @Autowired
@@ -38,7 +37,6 @@ public class CategoryThirdController {
      * @return
      */
     @RequestMapping(value = "{thirdId}", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryCategoryThirdById(@PathVariable("thirdId") Integer thirdId) {
 
         if (this.categoryThirdService.queryById(thirdId) == null) {
@@ -56,7 +54,6 @@ public class CategoryThirdController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult addCategoryThird(@RequestBody Map<String, Object> params) {
 
         Integer secondId = (Integer) params.get(Constant.SECOND_ID);
@@ -97,7 +94,6 @@ public class CategoryThirdController {
      * @return
      */
     @RequestMapping(value = "{thirdId}", method = RequestMethod.DELETE)
-    @ResponseBody
     public CommonResult deleteCategoryThird(@PathVariable("thirdId") Integer thirdId) {
 
         if (this.categoryThirdService.queryById(thirdId) == null) {
@@ -123,7 +119,6 @@ public class CategoryThirdController {
      * @return
      */
     @RequestMapping(value = "{thirdId}", method = RequestMethod.PUT)
-    @ResponseBody
     public CommonResult updateCategoryThird(@RequestBody Map<String, Object> params, @PathVariable("thirdId") Integer
             thirdId) {
 
@@ -171,7 +166,6 @@ public class CategoryThirdController {
      * @return
      */
     @RequestMapping(value = "{secondId}/list", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryThirdCategoryListBySecondId(@RequestBody Map<String, Integer> params, @PathVariable
             ("secondId")
             Integer secondId) {
@@ -197,7 +191,6 @@ public class CategoryThirdController {
      * @return
      */
     @RequestMapping(value = "{secondId}/list", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryThirdCategoryListBySecondId(@PathVariable("secondId") Integer secondId) {
         CategoryThird record = new CategoryThird();
         record.setSecondId(secondId);

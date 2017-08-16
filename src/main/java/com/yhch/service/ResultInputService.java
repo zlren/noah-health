@@ -63,6 +63,36 @@ public class ResultInputService extends BaseService<ResultInput> {
         return true;
     }
 
+
+    /**
+     * 判断一条result记录是否异常
+     * 从resultDetail表中去查找此inputeId的所有检查项目的normal
+     *
+     * @param inputerId
+     * @return true表示异常
+     */
+    public boolean isError(Integer inputerId) {
+
+        ResultInputDetail record = new ResultInputDetail();
+        record.setResultInputId(inputerId);
+
+        List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.queryListByWhere(record);
+
+        logger.info("检查{}", inputerId);
+
+        final boolean[] result = {false};
+
+        resultInputDetailList.forEach(resultInputDetail -> {
+            if (resultInputDetail.getNormal() != null && resultInputDetail.getNormal()) {
+                result[0] = true;
+                logger.info("inputerId: {} 有异常: {}", inputerId, resultInputDetail.getId());
+            }
+        });
+
+        return result[0];
+    }
+
+
     /**
      * @param userIdSet
      * @param status
@@ -296,9 +326,12 @@ public class ResultInputService extends BaseService<ResultInput> {
      * @param endTime
      * @param status
      * @param identity
+     * @param inputerName
+     * @param checkerName
      */
     public List<ResultInput> queryInputListByArc(Integer pageNow, Integer pageSize, String userName, String
-            memberNum, Date beginTime, Date endTime, String status, Identity identity) {
+            memberNum, Date beginTime, Date endTime, String status, Identity identity, String inputerName, String
+                                                         checkerName) {
 
         String identityRole = identity.getRole();
         String identityId = identity.getId();
@@ -328,8 +361,24 @@ public class ResultInputService extends BaseService<ResultInput> {
         // 如果是一个档案部员工，那就查所有和自己有关的记录
         if (this.userService.checkArchiver(identityRole)) {
             criteria.andEqualTo("inputerId", Integer.valueOf(identityId));
-        } else if (this.userService.checkArchiverManager(identityRole)) {
-            criteria.andIn("inputerId", this.userService.queryArchiverIdSetByArchiveMgrId(Integer.valueOf(identityId)));
+        } else if (this.userService.checkArchiverManager(identityRole)) { // 档案部主管，可以筛选录入者，因为自己手下有很多员工
+            // ..
+            Set<Integer> set = this.userService.queryArchiverIdSetByArchiveMgrId(Integer.valueOf(identityId));
+            if (!Validator.checkEmpty(inputerName)) {
+                Set<Integer> idSetByUserNameLike = this.userService.getEmployeeIdSetByUserNameLike(inputerName);
+                set.retainAll(idSetByUserNameLike);
+            }
+
+            criteria.andIn("inputerId", set);
+        } else if (this.userService.checkAdmin(identityRole)) {
+
+            if (!Validator.checkEmpty(inputerName)) { // fixme
+                criteria.andIn("inputerId", this.userService.getEmployeeIdSetByUserNameLike(inputerName));
+            }
+
+            if (!Validator.checkEmpty(checkerName)) {
+                criteria.andIn("checkerId", this.userService.getEmployeeIdSetByUserNameLike(checkerName));
+            }
         }
 
         Set<Integer> set = this.userService.getMemberIdSetByNameAndMemberNumLike(userName, memberNum);

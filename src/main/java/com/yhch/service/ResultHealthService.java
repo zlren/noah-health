@@ -56,8 +56,8 @@ public class ResultHealthService extends BaseService<ResultHealth> {
      * @return
      */
     public List<ResultHealth> queryResultHealthListByUserId(Identity identity, Integer userId, String status, Integer
-            secondId,
-                                                            Date beginTime, Date endTime) {
+            secondId, Date beginTime, Date endTime) {
+
         String identityRole = identity.getRole();
         String identityId = identity.getId();
 
@@ -73,21 +73,15 @@ public class ResultHealthService extends BaseService<ResultHealth> {
                 criteria.andBetween("time", beginTime, endTime);
             }
 
-            // // 状态
-            // Set<String> statusSet = this.userService.getStatusSetUnderRole(identity);
-            // if (!Validator.checkEmpty(status)) {
-            //     Set<String> t = new HashSet<>();
-            //     t.add(status);
-            //     statusSet.retainAll(t);
-            // }
-            // criteria.andIn(Constant.STATUS, statusSet);
-
 
             if (!Validator.checkEmpty(status)) {
                 criteria.andEqualTo(Constant.STATUS, status);
             }
 
-            criteria.andCondition("length(content)>", 0);
+            // 会员看content字段
+            if (this.userService.checkMember(identityRole)) {
+                criteria.andCondition("length(content)>", 0);
+            }
         }
 
         criteria.andEqualTo("userId", userId);

@@ -19,7 +19,6 @@ import org.apache.commons.fileupload.util.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tk.mybatis.mapper.entity.Example;
@@ -28,12 +27,15 @@ import javax.servlet.http.HttpSession;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * UserController
  */
-@Controller
+@RestController
 @RequestMapping("user")
 public class UserController {
 
@@ -56,7 +58,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult addEmployee(@RequestBody Map<String, Object> params) {
 
         String name = (String) params.get(Constant.NAME);
@@ -125,7 +126,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(value = "member_under_employee", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryMemberUnderEmployee(HttpSession session, @RequestBody Map<String, String> params) {
 
         String type = params.get(Constant.TYPE);
@@ -144,7 +144,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(method = RequestMethod.PUT)
-    @ResponseBody
     public CommonResult updateOtherUser(@RequestBody Map<String, Object> params) {
 
         Integer userId = (Integer) params.get("userId");
@@ -304,7 +303,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(value = "{userId}", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryById(@PathVariable("userId") Integer userId) {
 
         User user = this.userService.queryById(userId);
@@ -326,7 +324,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(value = "{userId}", method = RequestMethod.DELETE)
-    @ResponseBody
     @RequiredRoles(roles = {"系统管理员"})
     public CommonResult deleteById(@PathVariable("userId") Integer userId) {
 
@@ -354,7 +351,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(value = "{userId}", method = RequestMethod.PUT)
-    @ResponseBody
     public CommonResult updateById(@PathVariable("userId") Integer userId, @RequestBody Map<String, Object> params) {
 
         // 自己可以修改自己的name和phone
@@ -403,7 +399,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(value = "manager/list", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryManagerList(@RequestBody Map<String, Object> params) {
 
         String manager = (String) params.get(Constant.MANAGER);
@@ -422,7 +417,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(value = "advise/list", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryAdviseList() {
 
         Example example = new Example(User.class);
@@ -463,7 +457,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(value = "{type}/list", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryMember(@RequestBody Map<String, Object> params, @PathVariable("type") String type,
                                     HttpSession session) {
 
@@ -497,7 +490,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(value = "password/{userId}", method = RequestMethod.PUT)
-    @ResponseBody
     public CommonResult changePassword(@RequestBody Map<String, Object> params, @PathVariable("userId") Integer
             userId) {
 
@@ -544,7 +536,6 @@ public class UserController {
      * @return
      */
     @RequestMapping(value = "avatar", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult uploadAvatar(@RequestParam("file") MultipartFile file, Integer id) {
 
         User user = this.userService.queryById(id);

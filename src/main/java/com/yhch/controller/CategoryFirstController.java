@@ -8,17 +8,18 @@ import com.yhch.service.CategoryFirstService;
 import com.yhch.service.CategorySecondService;
 import com.yhch.util.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 大类
  * Created by zlren on 2017/6/12.
  */
 @RequestMapping("first")
-@Controller
+@RestController
 public class CategoryFirstController {
 
     @Autowired
@@ -35,7 +36,6 @@ public class CategoryFirstController {
      * @return
      */
     @RequestMapping(value = "{firstId}", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryCategoryFirstById(@PathVariable("firstId") Integer firstId) {
 
         if (this.categoryFirstService.queryById(firstId) == null) {
@@ -53,7 +53,6 @@ public class CategoryFirstController {
      */
     @RequestMapping(method = RequestMethod.POST)
     // @RequiredRoles(roles = {"系统管理员"})
-    @ResponseBody
     public CommonResult addCategoryFist(@RequestBody Map<String, String> params) {
 
         String type = params.get(Constant.TYPE);
@@ -83,7 +82,6 @@ public class CategoryFirstController {
      * @return
      */
     @RequestMapping(value = "{firstId}", method = RequestMethod.DELETE)
-    @ResponseBody
     public CommonResult deleteCategoryFist(@PathVariable("firstId") Integer firstId) {
 
         CategorySecond categorySecond = new CategorySecond();
@@ -110,7 +108,6 @@ public class CategoryFirstController {
      * @return
      */
     @RequestMapping(value = "{firstId}", method = RequestMethod.PUT)
-    @ResponseBody
     public CommonResult updateCategoryFist(@RequestBody Map<String, Object> params, @PathVariable("firstId") Integer
             firstId) {
 
@@ -148,7 +145,6 @@ public class CategoryFirstController {
      * @return
      */
     @RequestMapping(value = "{type}/list", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryListFirst(@PathVariable("type") String type) {
 
         if (!type.equals(Constant.HUAYAN) && !type.equals(Constant.YIJI)) {
@@ -169,7 +165,6 @@ public class CategoryFirstController {
      * @return
      */
     @RequestMapping(value = "level", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryFirstSecondLevel(@RequestBody Map<String, Object> params) {
 
         String type = (String) params.get(Constant.TYPE);

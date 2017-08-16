@@ -494,6 +494,10 @@ public class UserService extends BaseService<User> {
         Example userExample = new Example(User.class);
         Example.Criteria userCriteria = userExample.createCriteria();
 
+        if (name == null) {
+            name = "";
+        }
+
         userCriteria.andLike("name", "%" + name + "%");
 
         if (role.equals("职员")) {
@@ -508,15 +512,11 @@ public class UserService extends BaseService<User> {
             {
                 {
                     add(-1);
+                    add(null);
                 }
             }
         };
         userList.forEach(user -> userIdSet.add(user.getId()));
-
-        // 结果为空的话查询会出错
-        if (userIdSet.size() == 0) {
-            userIdSet.add(-1);
-        }
 
         return userIdSet;
     }
@@ -547,6 +547,9 @@ public class UserService extends BaseService<User> {
         };
         archiverList.forEach(archiver -> archiverIdSet.add(archiver.getId()));
 
+        // 也加上主管自己的id
+        archiverIdSet.add(archiverMgrId);
+
         return archiverIdSet;
     }
 
@@ -576,6 +579,9 @@ public class UserService extends BaseService<User> {
         };
         adviserList.forEach(adviser -> adviserIdSet.add(adviser.getId()));
 
+        // 也加上主管自己的id
+        adviserIdSet.add(adviserMgrId);
+
         return adviserIdSet;
     }
 
@@ -587,8 +593,18 @@ public class UserService extends BaseService<User> {
      * @return
      */
     public Set<String> getStatusSetUnderRole(Identity identity) {
+        return this.getStatusSetUnderRole(identity.getRole());
+    }
 
-        String role = identity.getRole();
+
+    /**
+     * 根据角色返回可用的状态集合
+     *
+     * @param role
+     * @return
+     */
+    public Set<String> getStatusSetUnderRole(String role) {
+
         Set<String> statusSet = new HashSet<>();
 
         if (role.equals(Constant.ADMIN) || role.equals(Constant.ARCHIVER) || role.equals(Constant.ARCHIVE_MANAGER)) {

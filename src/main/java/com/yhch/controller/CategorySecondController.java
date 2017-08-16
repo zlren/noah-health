@@ -13,7 +13,6 @@ import com.yhch.util.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -23,7 +22,7 @@ import java.util.Map;
  * Created by zlren on 2017/6/14.
  */
 @RequestMapping("second")
-@Controller
+@RestController
 public class CategorySecondController {
 
     private static final Logger logger = LoggerFactory.getLogger(CategorySecondController.class);
@@ -44,7 +43,6 @@ public class CategorySecondController {
      * @return
      */
     @RequestMapping(value = "{secondId}", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryCategorySecondById(@PathVariable("secondId") Integer secondId) {
 
         if (this.categorySecondService.queryById(secondId) == null) {
@@ -62,7 +60,6 @@ public class CategorySecondController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult addCategorySecond(@RequestBody Map<String, Object> params) {
 
         Integer firstId = (Integer) params.get(Constant.FIRST_ID);
@@ -101,7 +98,6 @@ public class CategorySecondController {
      * @return
      */
     @RequestMapping(value = "{secondId}", method = RequestMethod.DELETE)
-    @ResponseBody
     public CommonResult deleteCategorySecond(@PathVariable("secondId") Integer secondId) {
 
         CategorySecond categorySecond = this.categorySecondService.queryById(secondId);
@@ -133,7 +129,6 @@ public class CategorySecondController {
      * @return
      */
     @RequestMapping(value = "{secondId}", method = RequestMethod.PUT)
-    @ResponseBody
     public CommonResult updateCategorySecond(@RequestBody Map<String, Object> params, @PathVariable("secondId")
             Integer secondId) {
 
@@ -173,7 +168,6 @@ public class CategorySecondController {
      * @return
      */
     @RequestMapping(value = "{firstId}/list", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult querySecondCategoryList(@RequestBody Map<String, Integer> params, @PathVariable("firstId")
             Integer firstId) {
 
@@ -187,5 +181,4 @@ public class CategorySecondController {
                 pageSize, categorySecond);
         return CommonResult.success("查询成功", new PageResult(categorySecondPageInfo));
     }
-
 }

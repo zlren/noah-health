@@ -72,6 +72,9 @@ public class ResultHealthController {
         resultHealth.setStatus(status);
         resultHealth.setNote(note);
         resultHealth.setContent(""); // 添加完是空的，审核通过
+        if (contentNew == null) {
+            contentNew = ""; // 空字符串
+        }
         resultHealth.setContentNew(contentNew);
 
         resultHealth.setTime(TimeUtil.getCurrentTime()); // 添加一条健康摘要的时候不输入时间
@@ -129,13 +132,33 @@ public class ResultHealthController {
 
         String contentNew = params.get("contentNew");
 
+
+        logger.info("！！！！！！！！！！！！！！！收到的ContentNew: {}", contentNew);
+
         ResultHealth resultHealth = new ResultHealth();
         resultHealth.setId(healthId);
+
+        if (contentNew == null) {
+            contentNew = "";
+        }
         resultHealth.setContentNew(contentNew);
 
         this.resultHealthService.updateSelective(resultHealth);
 
         return CommonResult.success("更新成功");
+    }
+
+
+    /**
+     * 删除一条健康摘要
+     *
+     * @param healthId
+     * @return
+     */
+    @RequestMapping(value = "{healthId}", method = RequestMethod.DELETE)
+    public CommonResult deleteResultHealthRecord(@PathVariable("healthId") Integer healthId) {
+        this.resultHealthService.deleteById(healthId);
+        return CommonResult.success("删除成功");
     }
 
 
@@ -146,7 +169,6 @@ public class ResultHealthController {
      * @return
      */
     @RequestMapping(value = "list/{userId}", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryHealthListByUserId(@PathVariable("userId") Integer userId, HttpSession session,
                                                 @RequestBody Map<String, Object> params) {
 

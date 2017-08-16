@@ -9,7 +9,6 @@ import com.yhch.service.OriginCategoryFirstService;
 import com.yhch.service.OriginCategorySecondService;
 import com.yhch.util.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -19,7 +18,7 @@ import java.util.Map;
 /**
  * Created by zlren on 17/7/19.
  */
-@Controller
+@RestController
 @RequestMapping("origin_category")
 public class OriginCategoryController {
 
@@ -37,7 +36,6 @@ public class OriginCategoryController {
      * @return
      */
     @RequestMapping(value = "first", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult addOriginCategoryFirst(@RequestBody Map<String, String> params) {
         String originCategoryFirstName = params.get("name");
 
@@ -60,7 +58,6 @@ public class OriginCategoryController {
      * @return
      */
     @RequestMapping(value = "second", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult addOriginCategorySecond(@RequestBody Map<String, Object> params) {
 
         Integer first = (Integer) params.get("firstId");
@@ -85,7 +82,6 @@ public class OriginCategoryController {
      * @return
      */
     @RequestMapping(value = "level", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryOriginFirstSecondLevel() {
 
         Map<String, List<OriginCategorySecond>> result = new HashMap<>();
@@ -116,7 +112,6 @@ public class OriginCategoryController {
      * @return
      */
     @RequestMapping(value = "first/{firstId}", method = RequestMethod.DELETE)
-    @ResponseBody
     public CommonResult deleteOriginCategoryFist(@PathVariable("firstId") Integer firstId) {
 
         OriginCategorySecond originCategorySecond = new OriginCategorySecond();
@@ -142,7 +137,6 @@ public class OriginCategoryController {
      * @return
      */
     @RequestMapping(value = "first/list", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryOriginCategoryFirstList() {
         return CommonResult.success("查询成功", this.originCategoryFirstService.queryAll());
     }
@@ -155,7 +149,6 @@ public class OriginCategoryController {
      * @return
      */
     @RequestMapping(value = "second/{firstId}/list", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryOriginCategorySecondListByFirstId(@RequestBody Map<String, Integer> params, @PathVariable("firstId") Integer firstId) {
 
         Integer pageNow = params.get(Constant.PAGE_NOW);
@@ -176,7 +169,6 @@ public class OriginCategoryController {
      * @return
      */
     @RequestMapping(value = "second/{secondId}", method = RequestMethod.DELETE)
-    @ResponseBody
     public CommonResult deleteOriginCategorySecond(@PathVariable("secondId") Integer secondId) {
 
         if (this.originCategorySecondService.queryById(secondId) == null) {

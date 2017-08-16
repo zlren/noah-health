@@ -4,11 +4,7 @@ import com.yhch.bean.CommonResult;
 import com.yhch.pojo.ResultInputDetail;
 import com.yhch.service.ResultInputDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +14,7 @@ import java.util.Map;
  * detail表
  * Created by zlren on 2017/7/2.
  */
-@Controller
+@RestController
 @RequestMapping("detail")
 public class ResultInputDetailController {
 
@@ -32,7 +28,6 @@ public class ResultInputDetailController {
      * @return
      */
     @RequestMapping(method = RequestMethod.PUT)
-    @ResponseBody
     public CommonResult addResultInputDetail(@RequestBody Map<String, String> params) {
 
         List<ResultInputDetail> dataToSaveList = new ArrayList<>();

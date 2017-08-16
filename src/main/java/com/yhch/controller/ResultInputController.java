@@ -19,7 +19,6 @@ import org.apache.poi.xssf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
@@ -29,13 +28,14 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 化验、医技数据管理
  * Created by zlren on 2017/6/21.
  */
 @RequestMapping("input")
-@Controller
+@RestController
 public class ResultInputController {
 
     private static final Logger logger = LoggerFactory.getLogger(ResultInputController.class);
@@ -66,7 +66,6 @@ public class ResultInputController {
      * @return
      */
     @RequestMapping(value = "{inputId}", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult queryResultInputDetailByInputId(@PathVariable("inputId") Integer inputId) {
 
         ResultInput resultInput = this.resultInputService.queryById(inputId);
@@ -91,7 +90,6 @@ public class ResultInputController {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult addResultInput(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer userId = (Integer) params.get("userId");
@@ -129,27 +127,6 @@ public class ResultInputController {
     }
 
 
-    // /**
-    //  * 根据inputId查询一个化验表的信息
-    //  *
-    //  * @param inputId
-    //  * @return
-    //  */
-    // @RequestMapping(value = "{inputId}", method = RequestMethod.GET)
-    // @ResponseBody
-    // public CommonResult queryResultInputById(@PathVariable("inputId") Integer inputId) {
-    //
-    //     ResultInputDetail record = new ResultInputDetail();
-    //     record.setResultInputId(inputId);
-    //     List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.queryListByWhere(record);
-    //
-    //     List<ResultInputDetailExtend> resultInputDetailExtendList = this.resultInputDetailService
-    //             .extendFromResultInputDetailList(resultInputDetailList);
-    //
-    //     return CommonResult.success("查询成功", resultInputDetailExtendList);
-    // }
-
-
     /**
      * 删除input记录，级联删除detail表
      *
@@ -157,7 +134,6 @@ public class ResultInputController {
      * @return
      */
     @RequestMapping(value = "{inputId}", method = RequestMethod.DELETE)
-    @ResponseBody
     public CommonResult deleteResultInputById(@PathVariable("inputId") Integer inputId) {
 
         boolean result = this.resultInputService.deleteInput(inputId);
@@ -176,7 +152,6 @@ public class ResultInputController {
      * @return
      */
     @RequestMapping(value = "list", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryResultInputUserList(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
@@ -203,26 +178,29 @@ public class ResultInputController {
 
     /**
      * 档案部查的时候，直接查那些uploaderId是自己的所有记录，不要再嵌套一层user列表
+     * ADMIN也调用的这个
      *
      * @return
      */
     @RequestMapping(value = "list_by_arc", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryResultInputListByArc(@RequestBody Map<String, Object> params, HttpSession session) {
 
         Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
         Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
         String userName = (String) params.get("userName");
         String memberNum = (String) params.get("memberNum");
+        String inputerName = (String) params.get("inputerName");
+        String checkerName = (String) params.get("checkerName");
         Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
         String status = (String) params.get(Constant.STATUS);
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
-        logger.info("username是{}, memberNum是{}", userName, memberNum);
+        logger.info("username是: {}, memberNum是: {}", userName, memberNum);
+        logger.info("inputerName是: {}, checkerName是: {}", inputerName, checkerName);
 
         List<ResultInput> resultInputList = this.resultInputService.queryInputListByArc(pageNow, pageSize, userName,
-                memberNum, beginTime, endTime, status, identity);
+                memberNum, beginTime, endTime, status, identity, inputerName, checkerName);
         PageResult pageResult = new PageResult(new PageInfo<>(resultInputList));
 
         logger.info("查询的结果的条数：{}", pageResult.getRowCount());
@@ -242,13 +220,13 @@ public class ResultInputController {
      * @return
      */
     @RequestMapping(value = "list/{userId}", method = RequestMethod.POST)
-    @ResponseBody
     public CommonResult queryResultAndDetailListByUserId(@PathVariable("userId") Integer userId, HttpSession session,
                                                          @RequestBody Map<String, Object> params) {
 
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
         String type = (String) params.get("type");
         String status = (String) params.get(Constant.STATUS);
+        String normal = (String) params.get("normal");
         Integer secondId = (Integer) params.get(Constant.SECOND_ID);
         Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
@@ -256,6 +234,14 @@ public class ResultInputController {
         // resultInputList
         List<ResultInput> resultInputList = this.resultInputService.queryResultAndDetailListByUserId(identity,
                 userId, type, status, secondId, beginTime, endTime);
+
+        // 过滤异常
+        logger.info("normal的值是: {}", normal);
+        if ("异常".equals(normal)) {
+            resultInputList = resultInputList.stream().filter(
+                    resultInput -> this.resultInputService.isError(resultInput.getId())
+            ).collect(Collectors.toList());
+        }
 
         // resultInputExtendList
         List<ResultInputExtend> resultInputExtendList = this.resultInputService.extendFromResultInputList
@@ -286,7 +272,6 @@ public class ResultInputController {
      * @return
      */
     @RequestMapping(value = "status/{inputId}", method = RequestMethod.PUT)
-    @ResponseBody
     public CommonResult submitOriginRecord(@PathVariable("inputId") Integer inputId, @RequestBody Map<String, Object>
             params, HttpSession session) {
 
@@ -362,7 +347,6 @@ public class ResultInputController {
      * @return
      */
     @RequestMapping(value = "download/{inputId}", method = RequestMethod.GET)
-    @ResponseBody
     public CommonResult downloadResultInputWithDetail(@PathVariable("inputId") Integer inputId) {
 
         ResultInput resultInput = this.resultInputService.queryById(inputId);
