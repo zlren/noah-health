@@ -7,6 +7,7 @@ import com.yhch.bean.Identity;
 import com.yhch.bean.PageResult;
 import com.yhch.bean.input.ResultInputDetailExtend;
 import com.yhch.bean.input.ResultInputExtend;
+import com.yhch.bean.rolecheck.RequiredRoles;
 import com.yhch.bean.user.UserExtend;
 import com.yhch.pojo.ResultInput;
 import com.yhch.pojo.ResultInputDetail;
@@ -134,12 +135,34 @@ public class ResultInputController {
      * @return
      */
     @RequestMapping(value = "{inputId}", method = RequestMethod.DELETE)
-    public CommonResult deleteResultInputById(@PathVariable("inputId") Integer inputId) {
+    @RequiredRoles(roles = {"系统管理员", "档案部员工", "档案部主管"})
+    public CommonResult deleteResultInputById(@PathVariable("inputId") Integer inputId, HttpSession session) {
+
+        Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
+        String identityRole = identity.getRole();
+        String identityId = identity.getId();
+
+        ResultInput resultInput = this.resultInputService.queryById(inputId);
+
+        // if (this.userService.checkArchiver(identityRole)) {
+        //     // 如果是档案部员工，这条记录必须是他创建的
+        //     if (!resultInput.getInputerId().equals(Integer.valueOf(identityId))) {
+        //         return CommonResult.failure("无此权限");
+        //     }
+        // } else if (this.userService.checkArchiverManager(identityRole)) {
+        //     // 如果是档案部主管，这条记录必须是手下的人创建的
+        //     Set<Integer> archiverIdSet = this.userService.queryStaffIdSetUnderManager(identity);
+        //
+        //     if (!archiverIdSet.contains(resultInput.getInputerId())) { // 再加上或是自己创建的
+        //         return CommonResult.failure("无此权限");
+        //     }
+        // }
 
         boolean result = this.resultInputService.deleteInput(inputId);
         if (!result) {
             return CommonResult.failure("删除失败");
         }
+
         return CommonResult.success("删除成功");
     }
 

@@ -51,6 +51,8 @@ public class ResultInputDetailController {
                     }
                 } else if (split[1].equals("value")) {
                     resultInputDetail.setValue(next.getValue());
+                } else if (split[1].equals("note")) {
+                    resultInputDetail.setNote(next.getValue());
                 }
 
                 dataToSaveList.add(resultInputDetail);

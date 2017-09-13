@@ -16,6 +16,8 @@ public class ResultInputDetail {
 
     private String value;
 
+    private String note;
+
     /**
      * 是否异常
      */
@@ -93,5 +95,13 @@ public class ResultInputDetail {
      */
     public void setNormal(Boolean normal) {
         this.normal = normal;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }

@@ -45,12 +45,12 @@ public class ResultInputDetailService extends BaseService<ResultInputDetail> {
             CategoryThird categoryThird = this.categoryThirdService.queryById(resultInputDetail.getThirdId());
             String thirdName = categoryThird.getName();
             String referenceValue = categoryThird.getReferenceValue();
-            // String systemCategory = categoryThird.getSystemCategory();
-            // String hospital = categoryThird.getHospital();
+            String enShort = categoryThird.getEnShort();
+
             String hospital = this.resultInputService.queryById(resultInputDetail.getResultInputId()).getHospital();
 
             resultInputDetailExtendList.add(new ResultInputDetailExtend(resultInputDetail, thirdName, referenceValue,
-                    hospital));
+                    hospital, enShort));
         });
 
         return resultInputDetailExtendList;

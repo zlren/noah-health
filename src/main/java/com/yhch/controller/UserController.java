@@ -27,10 +27,7 @@ import javax.servlet.http.HttpSession;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * UserController
@@ -564,4 +561,75 @@ public class UserController {
 
         return CommonResult.success("头像上传成功", "/avatar/" + fileName);
     }
+
+
+    /**
+     * 根据userId查询用户详情
+     *
+     * @param userId
+     * @return
+     */
+    @RequestMapping(value = "info/{userId}", method = RequestMethod.POST)
+    public CommonResult queryUserInfo(@RequestBody Map<String, Object> params,
+                                      @PathVariable("userId") Integer userId) {
+
+        Map<String, Object> map = new HashMap<>();
+
+        Integer pageNow = (Integer) params.get(Constant.PAGE_NOW);
+        Integer pageSize = (Integer) params.get(Constant.PAGE_SIZE);
+
+        logger.info("两个参数是{}, {}", pageNow, pageSize);
+
+        User user = this.userService.queryById(userId);
+
+        if (user == null) {
+            return CommonResult.failure("用户不存在");
+        }
+
+        user.setPassword(null);
+
+        String role = user.getRole();
+
+        // 被查询的是一个主管
+        if (this.userService.checkManager(role)) {
+
+            logger.info("查询的是一个主管");
+
+            // 查询旗下员工
+            User record = new User();
+            record.setStaffMgrId(userId);
+            if (this.userService.checkArchiverManager(role)) {
+                record.setRole(Constant.ARCHIVER);
+            } else if (this.userService.checkAdviseManager(role)) {
+                record.setRole(Constant.ADVISER);
+            }
+            PageInfo<User> employeePageInfo = this.userService.queryPageListByWhere(pageNow, pageSize, record);
+            PageResult pageResult = new PageResult(employeePageInfo);
+
+            List<UserExtend> userExtendList = this.userService.extendFromUser(employeePageInfo.getList());
+            pageResult.setData(userExtendList);
+
+            return CommonResult.success("查询成功", pageResult);
+        } else if (this.userService.checkArchiver(role)) { // 档案部员工
+
+            map.put("info", this.userService.extendFromUser(user));
+
+            return CommonResult.success("查询成功", map);
+        } else if (this.userService.checkAdviser(role)) { // 顾问部员工
+
+            // 查询顾问员工旗下的会员
+            User record = new User();
+            record.setStaffId(userId);
+            PageInfo<User> memberPageInfo = this.userService.queryPageListByWhere(pageNow, pageSize, record);
+            PageResult pageResult = new PageResult(memberPageInfo);
+
+            List<UserExtend> userExtendList = this.userService.extendFromUser(memberPageInfo.getList());
+            pageResult.setData(userExtendList);
+
+            return CommonResult.success("查询成功", pageResult);
+        }
+
+        return CommonResult.success("没有数据");
+    }
+
 }

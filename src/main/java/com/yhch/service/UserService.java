@@ -608,9 +608,11 @@ public class UserService extends BaseService<User> {
         Set<String> statusSet = new HashSet<>();
 
         if (role.equals(Constant.ADMIN) || role.equals(Constant.ARCHIVER) || role.equals(Constant.ARCHIVE_MANAGER)) {
-            // 系统管理员，档案部的
+            // 系统管理员，档案部的是所有的状态
             statusSet.add(Constant.WEI_TONG_GUO);
-            statusSet.add(Constant.YI_TONG_GUO);
+            if (role.equals(Constant.ADMIN)) {  // 现在改成档案部看不了已通过的
+                statusSet.add(Constant.YI_TONG_GUO);
+            }
             statusSet.add(Constant.LU_RU_ZHONG);
             statusSet.add(Constant.DAI_SHEN_HE);
             statusSet.add(Constant.SHANG_CHUAN_ZHONG);
@@ -699,13 +701,13 @@ public class UserService extends BaseService<User> {
         user.setPassword(null); // 防止md5值外泄
 
         if (this.checkMember(user.getRole())) {
-            if (user.getStaffId() != null) {
+            if (user.getStaffId() != null) { // 会员
                 staffName = this.queryById(user.getStaffId()).getName();
                 staffMgrName = this.queryById(this.queryById(user.getStaffId()).getStaffMgrId()).getName();
             } else {
                 staffName = "<未设置顾问>";
             }
-        } else if (user.getRole().equals(Constant.ARCHIVER) || user.getRole().equals(Constant.ADVISER)) {
+        } else if (user.getRole().equals(Constant.ARCHIVER) || user.getRole().equals(Constant.ADVISER)) { // 普通职员
             staffMgrName = this.queryById(user.getStaffMgrId()).getName();
         }
 

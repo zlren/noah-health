@@ -11,6 +11,7 @@ public class ResultInputDetailExtend extends ResultInputDetail {
     public String thirdName;
     public String referenceValue;
     public String hospital;
+    public String enShort;
 
     /**
      * 构造函数
@@ -21,10 +22,11 @@ public class ResultInputDetailExtend extends ResultInputDetail {
      * @param hospital
      */
     public ResultInputDetailExtend(ResultInputDetail resultInputDetail, String thirdName, String referenceValue,
-                                   String hospital) {
+                                   String hospital, String enShort) {
         BeanUtils.copyProperties(resultInputDetail, this);
         this.thirdName = thirdName;
         this.referenceValue = referenceValue;
         this.hospital = hospital;
+        this.enShort = enShort;
     }
 }
