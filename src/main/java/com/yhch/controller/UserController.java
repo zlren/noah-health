@@ -158,6 +158,9 @@ public class UserController {
         // 未修改的user
         User user = this.userService.queryById(userId);
 
+        // 设置新增的详细个人信息
+        this.userService.setUserExtendInfo(params, user);
+
         if (!Validator.checkEmpty(name)) {
             user.setName(name);
         }
@@ -384,6 +387,11 @@ public class UserController {
 
             user.setUsername(phone);
         }
+
+
+        // 设置新增的详细个人信息
+        this.userService.setUserExtendInfo(params, user);
+
 
         this.userService.update(user);
         return CommonResult.success("修改成功");

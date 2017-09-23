@@ -7,6 +7,7 @@ import com.yhch.bean.Identity;
 import com.yhch.bean.user.UserExtend;
 import com.yhch.pojo.User;
 import com.yhch.util.MD5Util;
+import com.yhch.util.TimeUtil;
 import com.yhch.util.TokenUtil;
 import com.yhch.util.Validator;
 import org.slf4j.Logger;
@@ -713,4 +714,69 @@ public class UserService extends BaseService<User> {
 
         return new UserExtend(user, staffName, staffMgrName);
     }
+
+
+    /**
+     * 设置那些后来添加的额外的信息
+     *
+     * @param params
+     * @param user
+     */
+    public void setUserExtendInfo(Map params, User user) {
+
+        // 新增的那一坨
+        String birthString = (String) params.get("birth"); // 出生日期
+        Date birth = TimeUtil.parseTime(birthString);
+
+        String gender = (String) params.get("gender"); // 性别
+        String idCard = (String) params.get("idCard"); // 身份证号
+        String physicalCondition = (String) params.get("physicalCondition"); // 身体状况
+        String maritalStatus = (String) params.get("maritalStatus"); // 婚姻状况
+        String medicalCare = (String) params.get("medicalCare"); // 医疗费别
+        String hospital = (String) params.get("hospital"); // 医保定点医院
+        String insurance = (String) params.get("insurance"); // 商业健康保险
+        String allergyDrug = (String) params.get("allergyDrug"); // 过敏_药物
+        String allergyOthers = (String) params.get("allergyOthers"); // 过敏_其他
+
+        if (birth != null) {
+            user.setBirth(birth);
+        }
+
+        if (!Validator.checkEmpty(gender)) {
+            user.setGender(gender);
+        }
+
+        if (!Validator.checkEmpty(idCard)) {
+            user.setIdCard(idCard);
+        }
+
+        if (!Validator.checkEmpty(physicalCondition)) {
+            user.setPhysicalCondition(physicalCondition);
+        }
+
+        if (!Validator.checkEmpty(maritalStatus)) {
+            user.setMaritalStatus(maritalStatus);
+        }
+
+        if (!Validator.checkEmpty(medicalCare)) {
+            user.setMedicalCare(medicalCare);
+        }
+
+        if (!Validator.checkEmpty(hospital)) {
+            user.setHospital(hospital);
+        }
+
+        if (!Validator.checkEmpty(insurance)) {
+            user.setInsurance(insurance);
+        }
+
+        if (!Validator.checkEmpty(allergyDrug)) {
+            user.setAllergyDrug(allergyDrug);
+        }
+
+        if (!Validator.checkEmpty(allergyOthers)) {
+            user.setAllergyOthers(allergyOthers);
+        }
+    }
+
 }

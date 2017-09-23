@@ -13,11 +13,12 @@ public class ResultHealthExtend extends ResultHealth {
 
 
     /**
-     * @param resultInput
+     * @param resultHealth
      * @param userName
      * @param secondName
      * @param inputerName
      * @param checkerName
+     * @param memberNum
      */
     public ResultHealthExtend(ResultHealth resultHealth, String userName, String secondName, String
             inputerName, String checkerName, String memberNum) {

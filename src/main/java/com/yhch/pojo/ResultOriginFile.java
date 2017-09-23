@@ -1,7 +1,14 @@
 package com.yhch.pojo;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "result_origin_file")
 public class ResultOriginFile {
     @Id
@@ -12,46 +19,4 @@ public class ResultOriginFile {
     private Integer resultOriginId;
 
     private String path;
-
-    /**
-     * @return id
-     */
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id
-     */
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    /**
-     * @return result_origin_id
-     */
-    public Integer getResultOriginId() {
-        return resultOriginId;
-    }
-
-    /**
-     * @param resultOriginId
-     */
-    public void setResultOriginId(Integer resultOriginId) {
-        this.resultOriginId = resultOriginId;
-    }
-
-    /**
-     * @return path
-     */
-    public String getPath() {
-        return path;
-    }
-
-    /**
-     * @param path
-     */
-    public void setPath(String path) {
-        this.path = path;
-    }
 }

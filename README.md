@@ -1,4 +1,4 @@
-### 医海慈航信息管理系统
+### 诺亚健康信息管理系统
 
 -   `SSM框架`：Spring、SpringMVC和MyBatis（MySql）
 -   `通用Mapper`
