@@ -8,7 +8,7 @@
     <context:property-placeholder location="classpath:*.properties"/>
 
     <!--扫描包-->
-    <context:component-scan base-package="com.yhch"/>
+    <context:component-scan base-package="com.noahhealth"/>
 
     <!--HikariCP数据源-->
     <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">

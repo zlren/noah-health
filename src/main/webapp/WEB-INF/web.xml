@@ -47,7 +47,7 @@
     <!--解决跨域访问-->
     <filter>
         <filter-name>crossOriginFilter</filter-name>
-        <filter-class>com.yhch.interceptor.CrossOriginInterceptor</filter-class>
+        <filter-class>com.noahhealth.interceptor.CrossOriginInterceptor</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>crossOriginFilter</filter-name>
@@ -63,18 +63,18 @@
     <!-- 配置SpringMVC框架入口 -->
     <servlet>
         <description>SpringMVCServlet</description>
-        <servlet-name>yhch-servlet</servlet-name>
+        <servlet-name>noahhealth-servlet</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
         <init-param>
             <param-name>contextConfigLocation</param-name>
             <param-value>
-                classpath:spring/yhch-servlet.xml
+                classpath:spring/noahhealth-servlet.xml
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
-        <servlet-name>yhch-servlet</servlet-name>
+        <servlet-name>noahhealth-servlet</servlet-name>
         <!-- <url-pattern>*.html</url-pattern> -->
         <url-pattern>/api/*</url-pattern>
     </servlet-mapping>

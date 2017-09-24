@@ -32,6 +32,6 @@
         <constructor-arg name="port" value="${redis.port}"/>
         <constructor-arg name="poolConfig" ref="jedisPoolConfig"/>
     </bean>
-    <bean id="jedisClient" class="com.yhch.util.JedisClient"/>
+    <bean id="jedisClient" class="com.noahhealth.util.JedisClient"/>
 
 </beans>
