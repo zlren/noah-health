@@ -63,6 +63,16 @@ public class ResultHealthController {
         String problemNew = (String) params.get("problemNew");
         Date time = TimeUtil.parseTime((String) params.get(Constant.TIME));
 
+
+        // 一个用户一个摘要类别只能有一条记录
+        ResultHealth record = new ResultHealth();
+        record.setUserId(userId);
+        record.setSecondId(secondId);
+        if (this.resultHealthService.queryCountByWhere(record) > 0) {
+            return CommonResult.failure("此摘要类别已经存在，请勿重复添加");
+        }
+
+
         ResultHealth resultHealth = new ResultHealth();
 
         resultHealth.setUserId(userId);

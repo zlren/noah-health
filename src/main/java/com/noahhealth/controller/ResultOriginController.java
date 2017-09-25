@@ -126,6 +126,9 @@ public class ResultOriginController {
             return CommonResult.failure("添加失败，日期解析错误");
         }
 
+        String normal = (String) params.get("normal");
+
+
         ResultOrigin resultOrigin = new ResultOrigin();
         resultOrigin.setUserId(userId);
         resultOrigin.setTime(time);
@@ -134,6 +137,8 @@ public class ResultOriginController {
         resultOrigin.setSecondId(secondId); // 原始资料亚类
         resultOrigin.setHospital(hospital); // 原始资料医院
         resultOrigin.setUploadTime(TimeUtil.getCurrentTime());
+
+        resultOrigin.setNormal(normal); // 新增的
 
         // 初始状态上传中
         resultOrigin.setStatus(Constant.SHANG_CHUAN_ZHONG);

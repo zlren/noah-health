@@ -10,8 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import tk.mybatis.mapper.entity.Example;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,23 +39,30 @@ public class HealthCategoryController {
     @RequestMapping(value = "level", method = RequestMethod.GET)
     public CommonResult queryHealthCategoryLevel() {
 
-        Map<String, List<HealthCategorySecond>> result = new HashMap<>();
+        Example example = new Example(HealthCategoryFirst.class);
+        example.orderBy("id asc");
 
-        List<HealthCategoryFirst> healthCategoryFirstList = this.healthCategoryFirstService.queryListByWhere(null);
+        List<HealthCategoryFirst> healthCategoryFirstList = this.healthCategoryFirstService.getMapper().selectByExample
+                (example);
 
-        healthCategoryFirstList.forEach(healthCategoryFirst -> {
 
-            HealthCategorySecond healthCategorySecond = new HealthCategorySecond();
-            healthCategorySecond.setFirstId(healthCategoryFirst.getId());
+        Map<String, List<HealthCategorySecond>> result = new LinkedHashMap<>();
 
+        // 用for是保证顺序
+        for (int i = 0; i < healthCategoryFirstList.size(); i++) {
+
+            Integer firstId = healthCategoryFirstList.get(i).getId();
+
+            HealthCategorySecond second = new HealthCategorySecond();
+            second.setFirstId(firstId);
             List<HealthCategorySecond> healthCategorySecondList = this.healthCategorySecondService.queryListByWhere
-                    (healthCategorySecond);
+                    (second);
 
-            // 如果一个大类不存在亚类，不把它加入到level中
+            // 只返回有亚类的健康摘要大类
             if (healthCategorySecondList != null && healthCategorySecondList.size() > 0) {
-                result.put(healthCategoryFirst.getName(), healthCategorySecondList);
+                result.put(healthCategoryFirstList.get(i).getName(), healthCategorySecondList);
             }
-        });
+        }
 
         return CommonResult.success("查询成功", result);
     }

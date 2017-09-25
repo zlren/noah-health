@@ -7,7 +7,6 @@ import com.noahhealth.bean.Identity;
 import com.noahhealth.bean.user.UserExtend;
 import com.noahhealth.pojo.User;
 import com.noahhealth.util.MD5Util;
-import com.noahhealth.util.TimeUtil;
 import com.noahhealth.util.TokenUtil;
 import com.noahhealth.util.Validator;
 import lombok.extern.slf4j.Slf4j;
@@ -723,9 +722,7 @@ public class UserService extends BaseService<User> {
     public void setUserExtendInfo(Map params, User user) {
 
         // 新增的那一坨
-        String birthString = (String) params.get("birth"); // 出生日期
-        Date birth = TimeUtil.parseTime(birthString);
-
+        String birth = (String) params.get("birth"); // 出生日期
         String gender = (String) params.get("gender"); // 性别
         String idCard = (String) params.get("idCard"); // 身份证号
         String physicalCondition = (String) params.get("physicalCondition"); // 身体状况

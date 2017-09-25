@@ -308,7 +308,6 @@ public class ResultInputService extends BaseService<ResultInput> {
                     (identityId)));
         }
 
-
         return this.getMapper().selectByExample(example);
     }
 

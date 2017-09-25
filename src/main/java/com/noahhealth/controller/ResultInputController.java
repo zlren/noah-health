@@ -20,6 +20,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -271,10 +272,27 @@ public class ResultInputController {
         // resultInputExtendList with detail
         resultInputExtendList.forEach(resultInputExtend -> {
 
-            ResultInputDetail resultInputDetailRecord = new ResultInputDetail();
-            resultInputDetailRecord.setResultInputId(resultInputExtend.getId());
-            List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.queryListByWhere
-                    (resultInputDetailRecord);
+            // ResultInputDetail resultInputDetailRecord = new ResultInputDetail();
+            // resultInputDetailRecord.setResultInputId(resultInputExtend.getId());
+
+            Example example = new Example(ResultInputDetail.class);
+            Example.Criteria criteria = example.createCriteria();
+
+
+            criteria.andEqualTo("resultInputId", resultInputExtend.getId());
+
+            // 不想看到那些没有值的检查项目
+            // 用户自己看不到，顾问、顾问部主管看不到
+            if (this.userService.checkMember(identity.getRole()) || this.userService.checkAdviser(identity.getRole())
+                    || this.userService.checkAdviseManager(identity.getRole())) {
+                criteria.andCondition("length(value)>", 0);
+            }
+
+            // List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.queryListByWhere
+            //         (resultInputDetailRecord);
+
+            List<ResultInputDetail> resultInputDetailList = this.resultInputDetailService.getMapper().selectByExample
+                    (example);
 
             resultInputExtend.data = this.resultInputDetailService.extendFromResultInputDetailList
                     (resultInputDetailList);
