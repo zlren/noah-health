@@ -1,10 +1,12 @@
 package com.noahhealth.pojo;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import javax.persistence.*;
 
 @Data
+@Accessors(chain = true)
 @Table(name = "result_input_detail")
 public class ResultInputDetail {
     @Id

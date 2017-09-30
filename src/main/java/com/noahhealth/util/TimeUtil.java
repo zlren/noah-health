@@ -30,6 +30,18 @@ public class TimeUtil {
         return null;
     }
 
+
+    /**
+     * 解析时间
+     *
+     * @param date
+     * @return
+     */
+    public static String parseTime(Date date) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return simpleDateFormat.format(date);
+    }
+
     /**
      * 得到当前时间
      *

@@ -10,15 +10,22 @@ import com.noahhealth.bean.rolecheck.RequiredRoles;
 import com.noahhealth.bean.user.UserExtend;
 import com.noahhealth.pojo.ResultHealth;
 import com.noahhealth.pojo.User;
+import com.noahhealth.service.HealthCategorySecondService;
+import com.noahhealth.service.PropertyService;
 import com.noahhealth.service.ResultHealthService;
 import com.noahhealth.service.UserService;
 import com.noahhealth.util.TimeUtil;
 import com.noahhealth.util.Validator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.xssf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +39,13 @@ public class ResultHealthController {
     private ResultHealthService resultHealthService;
 
     @Autowired
+    private HealthCategorySecondService healthCategorySecondService;
+
+    @Autowired
     private UserService userService;
+
+    @Autowired
+    private PropertyService propertyService;
 
 
     /**
@@ -286,5 +299,81 @@ public class ResultHealthController {
         } else {
             return CommonResult.failure("参数错误");
         }
+    }
+
+
+    /**
+     * 生成excel表打印
+     *
+     * @param userId
+     * @param params
+     * @return
+     */
+    @RequestMapping(value = "download/{userId}", method = RequestMethod.POST)
+    public CommonResult downloadResultInputWithDetail(@PathVariable("userId") Integer userId, @RequestBody
+            Map<String, Object> params) {
+
+        Integer secondId = (Integer) params.get(Constant.SECOND_ID);
+        String status = (String) params.get(Constant.STATUS);
+        Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
+        Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
+
+        ResultHealth resultHealth = this.resultHealthService.queryOne(new ResultHealth().setUserId(userId)
+                .setSecondId(secondId));
+        if (resultHealth == null) {
+            return CommonResult.failure("下载失败，不存在的健康摘要");
+        }
+
+        String secondName = this.healthCategorySecondService.queryById(secondId).getName();
+
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet inputSheet = workbook.createSheet(secondName);
+        inputSheet.setDefaultColumnWidth(20);
+        inputSheet.setDefaultRowHeight((short) (1.6 * 256));
+
+        XSSFCellStyle style = workbook.createCellStyle();
+        style.setAlignment(XSSFCellStyle.ALIGN_CENTER);
+        style.setWrapText(true);
+
+        List<XSSFRow> rowPointer = new ArrayList<>(50);
+        for (int i = 0; i < 50; i++) {
+            XSSFRow row = inputSheet.createRow(i);
+
+            if (i != 0) {
+                row.setHeight((short) 60);
+            }
+
+            rowPointer.add(row);
+        }
+
+
+        rowPointer.get(0).createCell(0).setCellValue("摘要分类");
+        rowPointer.get(0).createCell(1).setCellValue(this.healthCategorySecondService.queryById(resultHealth
+                .getSecondId()).getName());
+
+        rowPointer.get(1).createCell(0).setCellValue("健康问题");
+        XSSFCell cell1 = rowPointer.get(1).createCell(1);
+        cell1.setCellValue(resultHealth.getProblem());
+        cell1.setCellStyle(style);
+
+        rowPointer.get(2).createCell(0).setCellValue("健康摘要");
+        XSSFCell cell = rowPointer.get(2).createCell(1);
+        cell.setCellValue(resultHealth.getContent());
+        cell.setCellStyle(style);
+
+        // 这里并没有体现用户的信息，所以想把文件名中加入用户的信息
+        String fileName = this.propertyService.filePath + "/health/" + userId + "-" + resultHealth.getId() + ".xlsx";
+
+        try {
+            FileOutputStream out = new FileOutputStream(new File(fileName));
+            // OutputStream out = response.getOutputStream();
+            workbook.write(out);
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return CommonResult.failure("下载失败");
+        }
+
+        return CommonResult.success("下载成功", "/health/" + userId + "-" + resultHealth.getId() + ".xlsx");
     }
 }

@@ -25,11 +25,28 @@ public class TokenCertifyInterceptor implements HandlerInterceptor {
     @Autowired
     private PropertyService propertyService;
 
+    @Autowired
+    private HttpServletRequest httpServletRequest;
+
+    private String getClientIp() {
+
+        String remoteAddr = "";
+
+        if (httpServletRequest != null) {
+            remoteAddr = httpServletRequest.getHeader("X-FORWARDED-FOR");
+            if (remoteAddr == null || "".equals(remoteAddr)) {
+                remoteAddr = httpServletRequest.getRemoteAddr();
+            }
+        }
+
+        return remoteAddr;
+    }
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws
             Exception {
 
-        log.info("进入TokenCertifyInterceptor");
+        log.info("进入TokenCertifyInterceptor，ip地址为{}", getClientIp());
 
         // 验证token的有效性
         try {
