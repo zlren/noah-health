@@ -13,7 +13,7 @@ import java.io.IOException;
  */
 @Component
 @Slf4j
-public class CrossOriginInterceptor implements Filter {
+public class CrossOriginFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -32,6 +32,7 @@ public class CrossOriginInterceptor implements Filter {
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Content-Type, Accept, TOKEN, " +
                 "Content-Range, Content-Disposition, Content-Description");
+
         filterChain.doFilter(servletRequest, servletResponse);
     }
 

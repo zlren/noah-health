@@ -191,6 +191,7 @@ public class ResultOriginController {
         String uploaderName = (String) params.get("uploaderName");
         String checkerName = (String) params.get("checkerName");
         String memberNum = (String) params.get("memberNum");
+        Integer secondId = (Integer) params.get(Constant.SECOND_ID);
         Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
 
@@ -202,7 +203,7 @@ public class ResultOriginController {
         }
 
         List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginList(null, identity, pageNow,
-                pageSize, status, userName, uploaderName, checkerName, memberNum, beginTime, endTime);
+                pageSize, status, userName, uploaderName, checkerName, memberNum, beginTime, endTime, secondId );
 
 
         PageResult pageResult = new PageResult(new PageInfo<>(resultOriginList));
@@ -236,6 +237,7 @@ public class ResultOriginController {
         String uploaderName = (String) params.get("uploaderName");
         String checkerName = (String) params.get("checkerName");
         String memberNum = (String) params.get("memberNum");
+        Integer secondId = (Integer) params.get(Constant.SECOND_ID);
         Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
 
@@ -247,7 +249,7 @@ public class ResultOriginController {
         }
 
         List<ResultOrigin> resultOriginList = this.resultOriginService.queryResultOriginList(userId, identity, pageNow,
-                pageSize, status, userName, uploaderName, checkerName, memberNum, beginTime, endTime);
+                pageSize, status, userName, uploaderName, checkerName, memberNum, beginTime, endTime, secondId);
         PageResult pageResult = new PageResult(new PageInfo<>(resultOriginList));
 
 

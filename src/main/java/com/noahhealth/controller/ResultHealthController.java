@@ -339,9 +339,10 @@ public class ResultHealthController {
         for (int i = 0; i < 50; i++) {
             XSSFRow row = inputSheet.createRow(i);
 
-            if (i != 0) {
-                row.setHeight((short) 60);
-            }
+            // 第二行和第三行的高度设置高一点
+            // if (i == 1 || i == 2) {
+            //     row.setHeight((short) 60);
+            // }
 
             rowPointer.add(row);
         }

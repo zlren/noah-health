@@ -11,11 +11,12 @@
 
     <!-- 定义注解驱动 -->
     <mvc:annotation-driven/>
-    <!--<bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"/>-->
-    <!--<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>-->
 
     <!--定义拦截器-->
     <mvc:interceptors>
+
+        <!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
+        <!--一定要把token的拦截器设置在权限校验的前面，因为token校验通过后会在request的session中放入此用户具有的role，才能在下一步进行比对-->
 
         <!--token认证拦截器-->
         <mvc:interceptor>
@@ -35,8 +36,6 @@
             <!-- 如果不定义 mvc:mapping path 将拦截所有的URL请求 -->
             <bean class="com.noahhealth.bean.rolecheck.RoleCheckInterceptor"/>
         </mvc:interceptor>
-
-        <!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
     </mvc:interceptors>
 
     <!-- 定义Controller的扫描包 -->
@@ -46,8 +45,8 @@
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
         <!-- 设定默认编码 -->
         <property name="defaultEncoding" value="UTF-8"/>
-        <!-- 设定文件上传的最大值10MB，10*1024*1024 -->
-        <property name="maxUploadSize" value="10485760"/>
+        <!-- 设定文件上传的最大值50MB，50*1024*1024 -->
+        <property name="maxUploadSize" value="52428800"/>
     </bean>
 
 </beans>

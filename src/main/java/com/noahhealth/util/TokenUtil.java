@@ -32,22 +32,22 @@ public class TokenUtil {
      */
     public static String createToken(Identity identity, String apiKeySecret) {
 
-        //The JWT signature algorithm we will be using to sign the token
+        // The JWT signature algorithm we will be using to sign the token
         SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
 
         long nowMillis = System.currentTimeMillis();
         Date now = new Date(nowMillis);
 
-        //We will sign our JWT with our ApiKey secret
+        // We will sign our JWT with our ApiKey secret
         byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(apiKeySecret);
         Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
 
-        Map<String, Object> claims = new HashMap<>();
+        Map<String, Object> claims = new HashMap<>(3);
         claims.put("username", identity.getUsername());
         claims.put("role", identity.getRole());
         claims.put("id", identity.getId());
 
-        //Let's set the JWT Claims
+        // Let's set the JWT Claims
         JwtBuilder builder = Jwts.builder()
                 .setClaims(claims)
                 .setId(identity.getId())
@@ -55,17 +55,18 @@ public class TokenUtil {
                 .setIssuer(identity.getIssuer())
                 .signWith(signatureAlgorithm, signingKey);
 
-        //if it has been specified, let's add the expiration
+        // if it has been specified, let's add the expiration
         long ttlMillis = identity.getDuration();
         if (ttlMillis >= 0) {
             long expMillis = nowMillis + ttlMillis;
             Date exp = new Date(expMillis);
             builder.setExpiration(exp);
+
+            // TODO 这句话没必要吧。。
             identity.setDuration(exp.getTime());
         }
 
-        //Builds the JWT and serializes it to a compact, URL-safe string
-        logger.info("TOKEN生成成功");
+        // Builds the JWT and serializes it to a compact, URL-safe string
         return builder.compact();
     }
 
@@ -77,7 +78,7 @@ public class TokenUtil {
      * @return
      * @throws Exception
      */
-    public static Identity parseToken(String token, String apiKeySecret) throws Exception {
+    public static Identity parseToken(String token, String apiKeySecret) {
 
         Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(apiKeySecret))
                 .parseClaimsJws(token).getBody();

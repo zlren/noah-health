@@ -5,6 +5,7 @@ import com.noahhealth.bean.Identity;
 import com.noahhealth.util.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -17,8 +18,12 @@ import java.util.Set;
 
 /**
  * 自定义注解
- * Created by zlren on 17/6/10.
+ * 这里利用了Interceptor可以拿到本次请求对应的Controller的方法的特性，取出方法上的注解，再进行权限比对
+ *
+ * @author zlren
+ * @date 17/6/10
  */
+@Component
 public class RoleCheckInterceptor extends HandlerInterceptorAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(RoleCheckInterceptor.class);
@@ -31,6 +36,7 @@ public class RoleCheckInterceptor extends HandlerInterceptorAdapter {
         // 将handler强转为HandlerMethod, 前面已经证实这个handler就是HandlerMethod
 
         if (handler instanceof HandlerMethod) {
+
             HandlerMethod handlerMethod = (HandlerMethod) handler;
 
             // 从方法处理器中获取出要调用的方法
@@ -71,6 +77,7 @@ public class RoleCheckInterceptor extends HandlerInterceptorAdapter {
                 logger.info("权限拒绝");
                 // 拦截之后应该返回公共结果, 这里没做处理
                 response.sendRedirect("/api/auth/role_denied");
+                return false;
             }
         }
 

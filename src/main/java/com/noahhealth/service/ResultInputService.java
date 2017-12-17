@@ -328,7 +328,7 @@ public class ResultInputService extends BaseService<ResultInput> {
      */
     public List<ResultInput> queryInputListByArc(Integer pageNow, Integer pageSize, String userName, String
             memberNum, Date beginTime, Date endTime, String status, Identity identity, String inputerName, String
-                                                         checkerName) {
+                                                         checkerName, String type) {
 
         String identityRole = identity.getRole();
         String identityId = identity.getId();
@@ -354,6 +354,9 @@ public class ResultInputService extends BaseService<ResultInput> {
             }
             criteria.andIn(Constant.STATUS, statusSet);
         }
+
+        // type是化验或者医技，分开查询
+        criteria.andIn("secondId", this.categorySecondService.getSecondIdSetByFirstType(type));
 
         // 如果是一个档案部员工，那就查所有和自己有关的记录
         if (this.userService.checkArchiver(identityRole)) {

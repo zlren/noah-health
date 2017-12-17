@@ -210,16 +210,14 @@ public class ResultInputController {
         String memberNum = (String) params.get("memberNum");
         String inputerName = (String) params.get("inputerName");
         String checkerName = (String) params.get("checkerName");
+        String type = (String) params.get("type"); // 化验或者医技
         Date beginTime = TimeUtil.parseTime((String) params.get("beginTime"));
         Date endTime = TimeUtil.parseTime((String) params.get("endTime"));
         String status = (String) params.get(Constant.STATUS);
         Identity identity = (Identity) session.getAttribute(Constant.IDENTITY);
 
-        log.info("username是: {}, memberNum是: {}", userName, memberNum);
-        log.info("inputerName是: {}, checkerName是: {}", inputerName, checkerName);
-
         List<ResultInput> resultInputList = this.resultInputService.queryInputListByArc(pageNow, pageSize, userName,
-                memberNum, beginTime, endTime, status, identity, inputerName, checkerName);
+                memberNum, beginTime, endTime, status, identity, inputerName, checkerName, type);
         PageResult pageResult = new PageResult(new PageInfo<>(resultInputList));
 
         log.info("查询的结果的条数：{}", pageResult.getRowCount());

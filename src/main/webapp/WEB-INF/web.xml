@@ -47,7 +47,7 @@
     <!--解决跨域访问-->
     <filter>
         <filter-name>crossOriginFilter</filter-name>
-        <filter-class>com.noahhealth.interceptor.CrossOriginInterceptor</filter-class>
+        <filter-class>com.noahhealth.interceptor.CrossOriginFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>crossOriginFilter</filter-name>

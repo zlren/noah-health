@@ -43,7 +43,7 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
      */
     public List<ResultOrigin> queryResultOriginList(Integer userId, Identity identity, Integer pageNow, Integer
             pageSize, String status, String userName, String uploaderName, String checkerName, String memberNum,
-                                                    Date beginTime, Date endTime) {
+                                                    Date beginTime, Date endTime, Integer secondId) {
 
         String identityId = identity.getId();
         String identityRole = identity.getRole();
@@ -74,6 +74,10 @@ public class ResultOriginService extends BaseService<ResultOrigin> {
             originCriteria.andIn(Constant.STATUS, statusSet);
         }
 
+        // 添加对资料类别的筛选，这个应该是统一的
+        if (secondId != -1) {
+            originCriteria.andEqualTo("secondId", secondId);
+        }
 
         if (this.userService.checkAdmin(identityRole)) { // 系统管理员
 

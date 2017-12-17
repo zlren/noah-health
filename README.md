@@ -1,9 +1,10 @@
-### 诺亚健康信息管理系统
+#### 诺亚健康信息管理系统
 
--   `SSM框架`：Spring、SpringMVC和MyBatis（MySql）
--   `通用Mapper`
--   `自定义注解`实现权限管理
--   `TOKEN认证`
--   `Redis`缓存
--   `Nginx`文件服务器
+-   SSM 框架：Spring、SpringMVC 和 MyBatis
+-   通用 Mapper
+-   自定义注解实现权限管理
+-   TOKEN（JWT）认证
+-   Redis
+-   Nginx 文件服务器
+
 
