@@ -27,3 +27,5 @@ target/
 # system ignore
 .DS_Store
 
+env.properties
+jdbc.properties
